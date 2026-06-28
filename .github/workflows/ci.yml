@@ -1,7 +1,7 @@
 name: ci
 
-# Keep `main` always-playable: every push/PR must pass the smoke check
-# (every src/ module parses + index.html wires src/main.js).
+# Gate: every push/PR must pass the sim test suite + typecheck, and the legacy
+# prototype smoke check, so `main` stays always-playable.
 
 on:
   push:
@@ -10,12 +10,18 @@ on:
   workflow_dispatch:
 
 jobs:
-  smoke:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Smoke check
-        run: node scripts/smoke-check.mjs
+          cache: npm
+      - run: npm ci
+      - name: Vitest (sim)
+        run: npm test
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Prototype smoke check
+        run: npm run smoke

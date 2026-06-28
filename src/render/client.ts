@@ -201,7 +201,7 @@ addEventListener('resize', resize); resize();
 const clock = new THREE.Clock();
 function animate() {
   requestAnimationFrame(animate);
-  const t = clock.elapsedTime;
+  const t = clock.getElapsedTime(); // advances the clock; reading .elapsedTime directly leaves it frozen at 0
   const mv = (player as unknown as Entity).move as MoveState | undefined;
   let wx = TW(player.tile.x), wz = TZ(player.tile.y), moving = false;
   if (mv && mv.from && mv.to && mv.sinceTick === engine.tickCount) {

@@ -12,10 +12,10 @@ _Last updated: 2026-06-28._
 |---|--------|------|--------|-------------------|
 | 1 | Tick engine | `docs/modules/Tick.md` ✅ | **Done (2026-06-28, tests: 7)** | Headless deterministic engine (`src/sim/tick.ts`). 7 Vitest tests = all 6 acceptance criteria + auto-pause edge case. Browser-verified via `tick-harness.html`: 0.6s cadence, Pause freezes, Step +1. |
 | 2 | World + entities + tile grid | `docs/modules/World.md` ✅ | **Done (2026-06-28, tests: 7)** | Grid w/ passability, entity store (id/type/tile/components), `entitiesAt`, stable serialize. RNG landed in #1. 7 Vitest tests. Headless data module — on-screen QA arrives with Movement (#3). |
-| 3 | Movement (tiles, pathing) | `docs/modules/Movement.md` ✅ | Not Started | Depends on Tick + World. |
+| 3 | Movement (tiles, pathing) | `docs/modules/Movement.md` ✅ | **Done (2026-06-28, tests: 7)** | BFS pathfinding (8-dir, no corner-cut), tick-stepped walk/run, collision, render-interp hints. 7 Vitest tests (all 7 AC). **Browser-verified** in `movement-harness`: real tap-to-walk routes around walls, never enters a blocked tile, arrives at target (mid-detour screenshot confirmed). |
 | 4 | Items + Inventory (28) | _to author_ | Not Started | |
 | 5 | Equipment | _to author_ | Not Started | |
-| 6 | Item interactions + ground items | _to author_ | Not Started | default action + option menu; item-on-object. |
+| 6 | Item/World interaction + context menu | `docs/modules/Interaction.md` ✅ | Spec | Default action + option menu; item-on-object. **Captures the reported mobile bugs as binding criteria: reliable touch tap-to-talk + long-press menu.** Needs the client render+input layer. |
 | 7 | Skills + Woodcutting (gather) | _to author_ | Not Started | |
 | 8 | Firemaking (process) | _to author_ | Not Started | |
 | 9 | Melee combat | _to author_ | Not Started | hits, death, loot, respawn. |

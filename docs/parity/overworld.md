@@ -57,8 +57,16 @@ applyEvent/progress): headless, deterministic, immutable step machine; condition
       on a station/object), reach (player settles on a new tile). Advance fires a log line + haptic.
 - [x] Verified in browser: banner shows step 1; tapping the Guide advanced it 1→2 with dialogue;
       out-of-order events don't advance; talk→reach→interact ran to the Complete state.
-**4c. Full Tutorial Island step list + polish — ⬜** — author the talk→survival→fishing→cooking→
-mining→smithing→combat→prayer→magic→bank→done sequence in data; QC the full run.
+**4c. Full step list + active-target highlight — ✅**
+- [x] Full 11-step sequence in `tutorialQuest.ts`: talk Guide → survival (reach campfire) → fishing →
+      cooking → mining → smelting → smithing → combat (rat) → prayer → magic (Wizard) → banking.
+- [x] Active-target highlight: a pulsing gold ring follows the current step's target (entity for
+      talk/interact, tile for reach); clears on completion. Verified on /play (ring on the Guide at step 1).
+- [x] Full-run QC: real-pathfinder audit confirms ALL 11 targets reachable (every station/NPC has a
+      walkable adjacent tile; reach tile walkable; bank booth reachable through the hut door). No
+      unreachable steps. End-to-end advance + completion verified in 4b.
+
+## ✅ Overworld revamp COMPLETE — pending Josh's full-walkthrough mobile QA. Live root NOT flipped.
 
 ## Rules
 - Data-driven: new content is a `MapDef` edit, not new code. New asset = factory + registry + kind.

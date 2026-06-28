@@ -32,7 +32,12 @@ sampler renders every kind with zero build errors.
       browser — ocean/lake blocked, paths/grass/sand walkable, no gaps (40×40 grid probe).
 - [x] Populated with the new asset variety across zones (mining cluster, SW monster field, SE village,
       mixed-variant forests).
-**3b. Buildings + fences — ⬜ (next)** — wall/building schema + `structures.ts` factories.
+**3b. Buildings + fences — ✅**
+- [x] `BuildingDef`/`FenceDef` schema; `structures.ts → makeBuilding/makeFence` (faceted, palette-driven).
+- [x] `loadMap` places them + blocks the footprint perimeter (door left open) / fence line; building
+      interior gets a walkable floor. Verified in browser: bank hut + house render with pitched roofs,
+      collision probe confirms walls/fences block, doorways + interiors walkable.
+- [x] Tests: building fits grid + door on perimeter; fence run in bounds (52 tests).
 **3c. Skill-station rooms — ⬜** — anvil/furnace/range/altar/bank/fishing-spot props; one room per
       station (survival/fishing, cooking, mining/smithing, combat, quest guide, bank, prayer, magic).
 

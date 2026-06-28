@@ -65,4 +65,30 @@ describe('Tutorial Island map data', () => {
       (m.terrain ?? []).some((t) => WALKABLE_TERRAIN[t.kind] && x >= t.x && x < t.x + t.w && y >= t.y && y < t.y + t.h);
     if ((m.terrain ?? []).length) expect(walkableAt(m.start.x, m.start.y)).toBe(true);
   });
+
+  it('every building fits the grid and its door is a perimeter tile', () => {
+    for (const b of m.buildings ?? []) {
+      expect(b.x).toBeGreaterThanOrEqual(0);
+      expect(b.y).toBeGreaterThanOrEqual(0);
+      expect(b.x + b.w).toBeLessThanOrEqual(m.width);
+      expect(b.y + b.h).toBeLessThanOrEqual(m.height);
+      expect(b.w).toBeGreaterThanOrEqual(2);
+      expect(b.h).toBeGreaterThanOrEqual(2);
+      const inFootprint = b.door.x >= b.x && b.door.x < b.x + b.w && b.door.y >= b.y && b.door.y < b.y + b.h;
+      const onPerim = b.door.x === b.x || b.door.x === b.x + b.w - 1 || b.door.y === b.y || b.door.y === b.y + b.h - 1;
+      expect(inFootprint && onPerim).toBe(true);
+    }
+  });
+
+  it('every fence run stays inside the grid', () => {
+    for (const f of m.fences ?? []) {
+      const ex = f.dir === 'h' ? f.x + f.len : f.x + 1;
+      const ey = f.dir === 'v' ? f.y + f.len : f.y + 1;
+      expect(f.x).toBeGreaterThanOrEqual(0);
+      expect(f.y).toBeGreaterThanOrEqual(0);
+      expect(ex).toBeLessThanOrEqual(m.width);
+      expect(ey).toBeLessThanOrEqual(m.height);
+      expect(f.len).toBeGreaterThan(0);
+    }
+  });
 });

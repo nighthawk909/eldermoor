@@ -42,6 +42,14 @@ export const tutorialIsland: MapDef = {
     // a chopnable tree by the start
     { id: 'tree1', kind: 'tree_oak', entityType: 'object', tile: { x: 17, y: 14 }, obj: 'tree', name: 'Tree', examine: 'A sturdy oak — good for logs.' },
   ],
+  buildings: [
+    { x: 9, y: 9, w: 5, h: 4, door: { x: 11, y: 12 }, wall: '#8a7a5a', roof: '#5a6b8c' },   // bank hut (NW)
+    { x: 27, y: 29, w: 5, h: 4, door: { x: 29, y: 29 }, wall: '#9a8358', roof: '#7a3f2c' },  // house (SE village)
+  ],
+  fences: [
+    { x: 22, y: 32, len: 6, dir: 'h' }, // village paddock edge
+    { x: 33, y: 22, len: 6, dir: 'v' }, // eastern field edge
+  ],
   decor: [
     { kind: 'fire', tile: { x: 23, y: 23 }, blocked: true }, // survival campfire near start
   ],

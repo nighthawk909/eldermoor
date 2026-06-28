@@ -6,7 +6,7 @@ import type { Entity, World } from '../sim/world.js';
 import { setBlocked } from '../sim/world.js';
 import { type MapDef, type SpawnDef, WALKABLE_TERRAIN } from './mapTypes.js';
 import { buildAsset } from './assetRegistry.js';
-import { makeTerrainPlane } from '../render/structures.js';
+import { makeTerrainPlane, makeBuilding, makeFence } from '../render/structures.js';
 
 export interface LoadCtx {
   world: World;
@@ -39,6 +39,25 @@ export function loadMap(map: MapDef, ctx: LoadCtx): void {
       const walkable = WALKABLE_TERRAIN[t.kind]; // walkable clears collision; water re-blocks (lakes over grass)
       for (let yy = t.y; yy < t.y + t.h; yy++) for (let xx = t.x; xx < t.x + t.w; xx++) setBlocked(ctx.world.grid, xx, yy, !walkable);
     }
+  }
+
+  // buildings: floor + walls; block the footprint perimeter except the door
+  for (const b of map.buildings ?? []) {
+    ctx.place(makeTerrainPlane(b.floor ?? 'floor', b.w, b.h), b.x + (b.w - 1) / 2, b.y + (b.h - 1) / 2);
+    ctx.place(makeBuilding(b), b.x + (b.w - 1) / 2, b.y + (b.h - 1) / 2);
+    for (let ty = b.y; ty < b.y + b.h; ty++) for (let tx = b.x; tx < b.x + b.w; tx++) {
+      const onPerim = tx === b.x || tx === b.x + b.w - 1 || ty === b.y || ty === b.y + b.h - 1;
+      const isDoor = tx === b.door.x && ty === b.door.y;
+      setBlocked(ctx.world.grid, tx, ty, onPerim && !isDoor);
+    }
+  }
+
+  // fences: posts/rails along a run; block the line
+  for (const f of map.fences ?? []) {
+    const cx = f.dir === 'h' ? f.x + (f.len - 1) / 2 : f.x;
+    const cy = f.dir === 'v' ? f.y + (f.len - 1) / 2 : f.y;
+    ctx.place(makeFence(f), cx, cy);
+    for (let i = 0; i < f.len; i++) setBlocked(ctx.world.grid, f.dir === 'h' ? f.x + i : f.x, f.dir === 'v' ? f.y + i : f.y, true);
   }
 
   // explicit collision footprint (e.g. pond) — applied after terrain so it can re-block

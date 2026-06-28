@@ -11,6 +11,7 @@ export default defineConfig({
         tick: 'tick-harness.html',          // new engine: tick heartbeat
         movement: 'movement-harness.html',  // new engine: tile movement demo
         characters: 'characters-showcase.html', // character factory showcase (hero/NPCs/monsters)
+        play: 'play.html',                   // new playable client (tile/tick + characters)
       },
     },
   },

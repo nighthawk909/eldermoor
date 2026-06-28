@@ -80,3 +80,71 @@ export function makePond(): THREE.Group {
   w.rotation.x = -Math.PI / 2; w.position.y = 0.04; w.receiveShadow = true; g.add(w);
   return g;
 }
+
+/* ---------------- skill stations ---------------- */
+function emissive(hex: string, glow: string, intensity = 1.4): THREE.MeshStandardMaterial {
+  return new THREE.MeshStandardMaterial({ color: new THREE.Color(hex), emissive: new THREE.Color(glow), emissiveIntensity: intensity, flatShading: true });
+}
+
+export function makeAnvil(): THREE.Group {
+  const g = new THREE.Group();
+  const steel = mat('#3a3f47', { rough: 0.4, metal: 0.8 }), wood = mat('#5a3f28', { rough: 0.9 });
+  g.add(P(new THREE.CylinderGeometry(0.22, 0.28, 0.42, 8), wood, 0, 0.21, 0)); // stump base
+  g.add(P(new THREE.BoxGeometry(0.3, 0.16, 0.22), steel, 0, 0.5, 0));           // waist
+  g.add(P(new THREE.BoxGeometry(0.56, 0.16, 0.28), steel, 0, 0.64, 0));         // face
+  const horn = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.3, 5), steel); horn.rotation.z = -Math.PI / 2; horn.position.set(0.4, 0.64, 0); horn.castShadow = true; g.add(horn);
+  return g;
+}
+
+export function makeFurnace(): THREE.Group {
+  const g = new THREE.Group();
+  const stone = mat('#7a7269', { rough: 1 });
+  g.add(P(new THREE.BoxGeometry(1.0, 1.1, 0.9), stone, 0, 0.55, 0));
+  g.add(P(new THREE.BoxGeometry(0.42, 0.46, 0.22), emissive('#ff7a1c', '#ff5a10', 1.6), 0, 0.42, 0.46)); // glowing mouth
+  g.add(P(new THREE.CylinderGeometry(0.16, 0.2, 0.5, 6), stone, 0.3, 1.35, 0));  // chimney
+  const L = new THREE.PointLight(new THREE.Color('#ff8a3c'), 3, 4.5, 2); L.position.set(0, 0.45, 0.7); g.add(L);
+  return g;
+}
+
+export function makeRange(): THREE.Group {
+  const g = new THREE.Group();
+  const stone = mat('#8a8279', { rough: 1 });
+  g.add(P(new THREE.BoxGeometry(1.0, 0.6, 0.7), stone, 0, 0.3, 0));
+  g.add(P(new THREE.BoxGeometry(0.6, 0.22, 0.46), emissive('#ff7a1c', '#ff5a10', 1.5), 0, 0.52, 0)); // fire bed
+  for (const x of [0.42, -0.42]) g.add(P(new THREE.BoxGeometry(0.12, 0.78, 0.7), stone, x, 0.39, 0)); // side walls
+  const L = new THREE.PointLight(new THREE.Color('#ff9a3c'), 2.5, 4, 2); L.position.set(0, 0.75, 0); g.add(L);
+  return g;
+}
+
+export function makeAltar(): THREE.Group {
+  const g = new THREE.Group();
+  const stone = mat('#cfc8bb', { rough: 0.9 }), cloth = mat('#7a2e3a', { rough: 0.9 });
+  g.add(P(new THREE.BoxGeometry(1.2, 0.66, 0.6), stone, 0, 0.33, 0));
+  g.add(P(new THREE.BoxGeometry(1.34, 0.12, 0.72), stone, 0, 0.72, 0));  // top slab
+  g.add(P(new THREE.BoxGeometry(1.0, 0.22, 0.5), cloth, 0, 0.5, 0.07));  // drape
+  for (const s of [1, -1]) {
+    g.add(P(new THREE.CylinderGeometry(0.04, 0.04, 0.18, 6), mat('#e8e0c8', { rough: 0.7 }), 0.52 * s, 0.87, 0));
+    g.add(P(new THREE.ConeGeometry(0.05, 0.12, 5), emissive('#ffd060', '#ffb020', 1.5), 0.52 * s, 1.02, 0));
+  }
+  return g;
+}
+
+export function makeBankBooth(): THREE.Group {
+  const g = new THREE.Group();
+  const wood = mat('#6b4a2c', { rough: 0.85 }), top = mat('#8a5a34', { rough: 0.8 });
+  g.add(P(new THREE.BoxGeometry(1.2, 0.9, 0.38), wood, 0, 0.45, 0));   // counter front
+  g.add(P(new THREE.BoxGeometry(1.32, 0.12, 0.54), top, 0, 0.93, 0));  // counter top
+  for (const s of [1, -1]) g.add(P(new THREE.CylinderGeometry(0.05, 0.05, 1.4, 6), wood, 0.58 * s, 0.7, 0.18)); // posts
+  g.add(P(new THREE.BoxGeometry(1.36, 0.12, 0.1), top, 0, 1.42, 0.18)); // sign board
+  return g;
+}
+
+export function makeFishingSpot(): THREE.Group {
+  const g = new THREE.Group();
+  const m = new THREE.MeshStandardMaterial({ color: new THREE.Color('#bfe6f2'), roughness: 0.2, transparent: true, opacity: 0.85, flatShading: true });
+  for (const [r, y] of [[0.32, 0.06], [0.18, 0.08]] as const) {
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(r, 0.03, 6, 16), m); ring.rotation.x = -Math.PI / 2; ring.position.y = y; g.add(ring);
+  }
+  for (const [x, z] of [[0.1, 0.05], [-0.12, -0.08], [0.05, -0.12]] as const) g.add(P(new THREE.IcosahedronGeometry(0.05, 0), m, x, 0.09, z));
+  return g;
+}

@@ -14,6 +14,8 @@ export const ASSET_KINDS = [
   'tree', 'tree_oak', 'tree_willow', 'tree_pine', 'tree_dead',
   // rocks (ore variants)
   'rock', 'rock_copper', 'rock_tin', 'rock_iron', 'rock_coal', 'rock_clay',
+  // skill stations
+  'anvil', 'furnace', 'range', 'altar', 'bank_booth', 'fishing_spot',
   // decor / props
   'fire', 'pond',
 ] as const;

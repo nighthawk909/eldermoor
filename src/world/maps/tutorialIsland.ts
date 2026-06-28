@@ -39,8 +39,16 @@ export const tutorialIsland: MapDef = {
     { id: 'rock_iron', kind: 'rock_iron', entityType: 'object', tile: { x: 26, y: 9 }, obj: 'rock', name: 'Iron rock', examine: 'A rock rich with iron.' },
     { id: 'rock_coal', kind: 'rock_coal', entityType: 'object', tile: { x: 24, y: 11 }, obj: 'rock', name: 'Coal rock', examine: 'A seam of coal.' },
     { id: 'rock_clay', kind: 'rock_clay', entityType: 'object', tile: { x: 26, y: 11 }, obj: 'rock', name: 'Clay rock', examine: 'Soft, workable clay.' },
-    // a chopnable tree by the start
+    // a choppable tree by the start
     { id: 'tree1', kind: 'tree_oak', entityType: 'object', tile: { x: 17, y: 14 }, obj: 'tree', name: 'Tree', examine: 'A sturdy oak — good for logs.' },
+    // skill stations (one per zone)
+    { id: 'fishing_spot', kind: 'fishing_spot', entityType: 'object', tile: { x: 11, y: 28 }, obj: 'fishing_spot', name: 'Fishing spot', examine: 'Fish ripple beneath the surface.' },
+    { id: 'range', kind: 'range', entityType: 'object', tile: { x: 25, y: 22 }, obj: 'range', name: 'Cooking range', examine: 'A stone range for cooking.' },
+    { id: 'furnace', kind: 'furnace', entityType: 'object', tile: { x: 28, y: 10 }, obj: 'furnace', name: 'Furnace', examine: 'For smelting ore into bars.' },
+    { id: 'anvil', kind: 'anvil', entityType: 'object', tile: { x: 29, y: 12 }, obj: 'anvil', name: 'Anvil', examine: 'Hammer bars into gear here.' },
+    { id: 'altar_prayer', kind: 'altar', entityType: 'object', tile: { x: 15, y: 11 }, obj: 'altar', name: 'Altar', examine: 'Pray here to restore the spirit.' },
+    { id: 'altar_magic', kind: 'altar', entityType: 'object', tile: { x: 31, y: 11 }, obj: 'altar', name: 'Rune altar', examine: 'Arcane energy hums around it.' },
+    { id: 'bank_booth', kind: 'bank_booth', entityType: 'object', tile: { x: 11, y: 10 }, obj: 'bank', name: 'Bank booth', examine: 'Access your bank here.' },
   ],
   buildings: [
     { x: 9, y: 9, w: 5, h: 4, door: { x: 11, y: 12 }, wall: '#8a7a5a', roof: '#5a6b8c' },   // bank hut (NW)

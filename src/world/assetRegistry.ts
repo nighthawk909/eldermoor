@@ -3,7 +3,7 @@
 // adding a new asset = add a factory + register it here + add its id to ASSET_KINDS.
 import * as THREE from 'three';
 import { makeHero, makeNPC, NPC_PRESETS, makeRat, makeBrute, makeSpider, makeGoblin, makeImp, makeCow } from '../render/characters.js';
-import { makeTree, makeRock, makeFire, makePond } from '../render/props.js';
+import { makeTree, makeRock, makeFire, makePond, makeAnvil, makeFurnace, makeRange, makeAltar, makeBankBooth, makeFishingSpot } from '../render/props.js';
 import { ASSET_KINDS, type AssetKind } from './mapTypes.js';
 
 export type AssetFactory = () => THREE.Object3D;
@@ -20,6 +20,8 @@ export const assetRegistry: Record<AssetKind, AssetFactory> = {
   tree: () => makeTree('oak'), tree_oak: () => makeTree('oak'), tree_willow: () => makeTree('willow'), tree_pine: () => makeTree('pine'), tree_dead: () => makeTree('dead'),
   // rocks
   rock: () => makeRock('copper'), rock_copper: () => makeRock('copper'), rock_tin: () => makeRock('tin'), rock_iron: () => makeRock('iron'), rock_coal: () => makeRock('coal'), rock_clay: () => makeRock('clay'),
+  // skill stations
+  anvil: () => makeAnvil(), furnace: () => makeFurnace(), range: () => makeRange(), altar: () => makeAltar(), bank_booth: () => makeBankBooth(), fishing_spot: () => makeFishingSpot(),
   // decor
   fire: () => makeFire(), pond: () => makePond(),
 };

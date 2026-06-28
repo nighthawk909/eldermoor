@@ -19,6 +19,11 @@ Order of build (each: spec → tests-with-impl → manual QA → matrix update):
 12. **Debug admin panel** — spawn/set/teleport/tick-step/inspect.
 **Exit criteria:** all 12 rows `Done`; full slice playable in-browser; `npm test` + CI green.
 
+**Live-deploy switch (DECIDED 2026-06-28):** flip `index.html` to the new tile/tick client and
+Vercel to `vite build` **as soon as movement + one gathering skill work** — do NOT wait for full
+parity with the old tutorial. The old tutorial moves to `prototypes/` at that point. So the live URL
+will show the in-progress slice early (acceptable per the owner).
+
 ## Phase 2 — Core MMO systems
 Server-authoritative tick (move sim server-side), networking (intents + state sync), accounts/login,
 more skills (Mining/Smithing/Fishing/Cooking + the gather/process pairs), Magic/Prayer/Ranged,

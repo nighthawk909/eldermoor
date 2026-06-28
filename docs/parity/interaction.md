@@ -5,13 +5,14 @@ NPC/object/screen does nothing and gives no haptic feedback. Done only when ever
 AND Josh confirms the mobile boxes on his phone. Built sub-feature by sub-feature.
 
 ## Input modes (must all work)
-- [ ] **Desktop left-click** = run the target's DEFAULT (first) action
-- [ ] **Desktop right-click** = open the full "Choose option" menu
-- [ ] **Mobile short tap** = run the DEFAULT action (this is the broken one — fix first)
-- [ ] **Mobile long-press (~450ms, no drag)** = open the "Choose option" menu
-- [ ] Tap-vs-drag/camera distinguished (a stationary tap never gets eaten by camera drag)
-- [ ] **Haptic** (`navigator.vibrate`) on a successful action; distinct pattern on menu-open (mobile)
-- [ ] Visual tap acknowledgement (ripple/marker) + selected-target highlight
+- [x] **Desktop left-click** = run the target's DEFAULT (first) action (verified on /play)
+- [ ] **Desktop right-click** = open the full "Choose option" menu (step D)
+- [x] **Mobile short tap** = run the DEFAULT action — FIXED: tap NPC → walk-adjacent → Talk-to +
+      dialogue + haptic verified; Josh to confirm the buzz on a real phone
+- [ ] **Mobile long-press (~450ms, no drag)** = open the "Choose option" menu (step D)
+- [x] Tap-vs-drag/camera distinguished (drag threshold; stationary tap is never eaten by drag)
+- [x] **Haptic** on a successful action (`navigator.vibrate(12)`, feature-detected — fires; buzz is device-only)
+- [ ] Visual tap acknowledgement (ripple/marker) + selected-target highlight (step D)
 
 ## Targets and their option sets (default action listed first)
 - [ ] **Ground/tile** → Walk here

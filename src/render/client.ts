@@ -96,6 +96,18 @@ function questEvent(ev: QuestEvent): void {
   const wasDone = questState.done; questState = next; renderObjective(); haptic(20);
   log(questState.done && !wasDone ? 'Tutorial complete! Explore the island freely.' : 'Objective complete.');
 }
+// pulsing ring on the current step's target (entity for talk/interact, tile for reach)
+const targetMarker = new THREE.Mesh(new THREE.RingGeometry(0.5, 0.66, 28),
+  new THREE.MeshBasicMaterial({ color: new THREE.Color('#ffd24a'), transparent: true, opacity: 0.85, side: THREE.DoubleSide, depthTest: false }));
+targetMarker.rotation.x = -Math.PI / 2; targetMarker.renderOrder = 998; targetMarker.visible = false; scene.add(targetMarker);
+function activeTargetWorld(): { x: number; z: number } | null {
+  const step = currentStep(tutorialQuest, questState);
+  if (!step) return null;
+  const c = step.condition;
+  if (c.type === 'reach') return { x: TW(c.x), z: TZ(c.y) };
+  const m = meshes.get(c.target);
+  return m ? { x: m.position.x, z: m.position.z } : null;
+}
 renderObjective();
 
 /* ---------- interaction ---------- */
@@ -248,6 +260,11 @@ function animate() {
     lastReachX = player.tile.x; lastReachY = player.tile.y;
     questEvent({ type: 'reach', x: player.tile.x, y: player.tile.y });
   }
+
+  // pulse the active-objective highlight on its target
+  const tp = activeTargetWorld();
+  if (tp) { targetMarker.visible = true; targetMarker.position.set(tp.x, 0.09, tp.z); const ps = 0.85 + Math.sin(t * 4) * 0.18; targetMarker.scale.set(ps, ps, ps); }
+  else targetMarker.visible = false;
 
   // orbit follow camera (drag/pinch/wheel controlled)
   camT.lerp(new THREE.Vector3(wx, 1.0, wz), 0.15);

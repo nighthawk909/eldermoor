@@ -42,7 +42,7 @@ export const tutorialIsland: MapDef = {
     // a choppable tree by the start
     { id: 'tree1', kind: 'tree_oak', entityType: 'object', tile: { x: 17, y: 14 }, obj: 'tree', name: 'Tree', examine: 'A sturdy oak — good for logs.' },
     // skill stations (one per zone)
-    { id: 'fishing_spot', kind: 'fishing_spot', entityType: 'object', tile: { x: 11, y: 28 }, obj: 'fishing_spot', name: 'Fishing spot', examine: 'Fish ripple beneath the surface.' },
+    { id: 'fishing_spot', kind: 'fishing_spot', entityType: 'object', tile: { x: 12, y: 27 }, obj: 'fishing_spot', name: 'Fishing spot', examine: 'Fish ripple beneath the surface.' },
     { id: 'range', kind: 'range', entityType: 'object', tile: { x: 25, y: 22 }, obj: 'range', name: 'Cooking range', examine: 'A stone range for cooking.' },
     { id: 'furnace', kind: 'furnace', entityType: 'object', tile: { x: 28, y: 10 }, obj: 'furnace', name: 'Furnace', examine: 'For smelting ore into bars.' },
     { id: 'anvil', kind: 'anvil', entityType: 'object', tile: { x: 29, y: 12 }, obj: 'anvil', name: 'Anvil', examine: 'Hammer bars into gear here.' },

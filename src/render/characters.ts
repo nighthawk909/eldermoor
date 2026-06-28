@@ -184,6 +184,10 @@ export const NPC_PRESETS: Record<string, NPCOpts> = {
   guide: { tunic: '#3a6b3a', leg: '#3a3026', hair: '#cfcfcf', beard: '#bdbdbd' },
   wizard: { tunic: '#2e3a8c', sleeve: '#2e3a8c', robe: '#2e3a8c', hat: '#2e3a8c', hair: '#e8e8e8', beard: '#e8e8e8' },
   merchant: { tunic: '#7a4a2c', apron: '#c8a24a', hair: '#3a2a1c', beard: null },
+  guard: { tunic: '#5a6470', sleeve: '#4a525e', leg: '#3a3f47', hair: '#2a2a2a', beard: '#2a2a2a' },
+  townsfolk_m: { tunic: '#7a5a8c', leg: '#3a3026', hair: '#5a3a2a', beard: null },
+  townsfolk_f: { tunic: '#a85274', robe: '#a85274', hair: '#7a4a2a', beard: null },
+  skiller: { tunic: '#6b5a3a', apron: '#8a7a5a', leg: '#3a3026', hair: '#3a2a1c', beard: '#4a3420' },
 };
 
 /* ---------------- animation ---------------- */
@@ -230,5 +234,67 @@ export function makeBrute(): THREE.Group {
   g.add(cone(0.04, 0.16, [0.1, 1.46, 0.34], tusk, 5, [D(200), 0, 0])); g.add(cone(0.04, 0.16, [-0.1, 1.46, 0.34], tusk, 5, [D(200), 0, 0])); // tusks
   g.add(cyl(0.05, 0.08, 0.75, [0.62, 0.7, 0.2], wood, 6, [D(25), 0, D(18)])); // club
   g.scale.setScalar(1.25);
+  return g;
+}
+
+/** Giant spider: bulbous abdomen + cephalothorax, 8 angled legs, clustered eyes. */
+export function makeSpider(): THREE.Group {
+  const g = new THREE.Group();
+  const body = mat('#2a2420', { rough: 0.9 }), joint = mat('#1a1612', { rough: 0.8 }), eyeM = mat('#b53030', { rough: 0.3 });
+  g.add(ico(0.34, [0, 0.3, -0.18], body, 1, [1.1, 0.85, 1.25]));   // abdomen
+  g.add(ico(0.22, [0, 0.28, 0.22], body, 1, [1, 0.9, 1]));         // cephalothorax
+  for (const sx of [1, -1]) for (let i = 0; i < 4; i++) {
+    const leg = new THREE.Group(); leg.position.set(0.12 * sx, 0.3, 0.16 - i * 0.13);
+    leg.add(cyl(0.025, 0.03, 0.46, [0.22 * sx, -0.04, 0], joint, 5, [0, 0, D(58 * sx)]));
+    leg.rotation.y = D((i - 1.5) * 14 * sx); g.add(leg);
+  }
+  for (const sx of [0.07, -0.07, 0.13, -0.13]) g.add(box([0.04, 0.04, 0.02], [sx, 0.34, 0.42], eyeM)); // eyes
+  return g;
+}
+
+/** Goblin: small hunched green humanoid, big ears + nose, loincloth. */
+export function makeGoblin(): THREE.Group {
+  const g = new THREE.Group();
+  const skin = mat('#6f8a3a', { rough: 0.9 }), cloth = mat('#7a4a2c', { rough: 0.95 }), eyeM = mat('#caa23a', { rough: 0.4 });
+  for (const s of [1, -1]) g.add(cyl(0.07, 0.085, 0.34, [0.1 * s, 0.18, 0], skin, 6)); // legs
+  g.add(box([0.3, 0.16, 0.2], [0, 0.42, 0], cloth));               // loincloth
+  g.add(cyl(0.16, 0.2, 0.42, [0, 0.62, 0.02], skin, 8, [D(8), 0, 0])); // hunched torso
+  for (const s of [1, -1]) g.add(cyl(0.05, 0.06, 0.36, [0.21 * s, 0.6, 0.04], skin, 6, [D(20), 0, D(8 * s)])); // arms
+  g.add(ico(0.18, [0, 0.92, 0.06], skin, 1, [1.05, 0.95, 1.05]));  // head
+  for (const s of [1, -1]) g.add(cone(0.07, 0.2, [0.18 * s, 0.95, 0], skin, 4, [0, 0, D(70 * s)])); // ears
+  g.add(cone(0.05, 0.13, [0, 0.9, 0.18], skin, 5, [D(95), 0, 0])); // nose
+  for (const s of [1, -1]) g.add(box([0.05, 0.05, 0.02], [0.07 * s, 0.95, 0.16], eyeM)); // eyes
+  return g;
+}
+
+/** Imp: tiny red demon, horns, pointed tail, stubby wings. */
+export function makeImp(): THREE.Group {
+  const g = new THREE.Group();
+  const red = mat('#a8362a', { rough: 0.85 }), dark = mat('#5a1a16', { rough: 0.8 }), eyeM = mat('#f0d030', { rough: 0.3 });
+  g.add(ico(0.2, [0, 0.34, 0], red, 1, [1, 1.15, 1]));             // body
+  g.add(ico(0.17, [0, 0.6, 0.02], red, 1, [1.1, 1, 1.05]));        // head
+  for (const s of [1, -1]) g.add(cone(0.04, 0.13, [0.08 * s, 0.74, 0], dark, 4, [0, 0, D(-12 * s)])); // horns
+  for (const s of [1, -1]) g.add(box([0.05, 0.05, 0.02], [0.06 * s, 0.62, 0.15], eyeM)); // eyes
+  for (const s of [1, -1]) g.add(cyl(0.03, 0.04, 0.22, [0.13 * s, 0.28, 0], red, 5)); // legs
+  for (const s of [1, -1]) g.add(cyl(0.025, 0.035, 0.2, [0.18 * s, 0.36, 0.02], red, 5, [0, 0, D(28 * s)])); // arms
+  for (const s of [1, -1]) g.add(box([0.02, 0.16, 0.12], [0.18 * s, 0.42, -0.08], dark, [0, D(20 * s), 0])); // wings
+  g.add(cyl(0.02, 0.035, 0.34, [0, 0.26, -0.18], red, 5, [D(-35), 0, 0])); // tail
+  g.add(cone(0.05, 0.1, [0, 0.1, -0.32], dark, 4, [D(-50), 0, 0]));  // tail barb
+  return g;
+}
+
+/** Cow: blocky body with brown/white patches, head, horns, legs, udder. */
+export function makeCow(): THREE.Group {
+  const g = new THREE.Group();
+  const hide = mat('#c9b08a', { rough: 0.95 }), patch = mat('#3a2a1c', { rough: 0.95 });
+  const horn = mat('#e8e0c8', { rough: 0.7 }), eyeM = mat('#201a16', { rough: 0.5 }), udder = mat('#d98a8a', { rough: 0.9 });
+  g.add(box([0.55, 0.5, 0.95], [0, 0.7, 0], hide));               // body
+  g.add(box([0.3, 0.2, 0.4], [0.12, 0.78, 0.2], patch));          // patch
+  g.add(box([0.36, 0.34, 0.34], [0, 0.78, 0.62], hide));          // head
+  g.add(box([0.18, 0.16, 0.18], [0, 0.66, 0.8], patch));          // muzzle
+  for (const s of [1, -1]) g.add(cone(0.05, 0.16, [0.13 * s, 0.96, 0.6], horn, 5, [0, 0, D(40 * s)])); // horns
+  for (const s of [1, -1]) g.add(box([0.06, 0.06, 0.04], [0.1 * s, 0.84, 0.76], eyeM)); // eyes
+  for (const sx of [1, -1]) for (const sz of [0.32, -0.32]) g.add(box([0.13, 0.5, 0.13], [0.18 * sx, 0.25, sz], hide)); // legs
+  g.add(box([0.18, 0.14, 0.2], [0, 0.42, -0.2], udder));          // udder
   return g;
 }

@@ -11,14 +11,25 @@ anywhere by data — never re-model inline. See `docs/Technical_Architecture.md`
 - `assets/pipeline/build_hero_v2.py`, `make_face_tex.py`, `face_tex.png` — variants / face texture.
 
 ## Realtime factories (built from the playbook — CLAUDE.md §4 palette + faceted flat-shading)
-| Asset | Factory (`src/render/`) | Status |
-|-------|-------------------------|--------|
-| Hero (player) | `characters.ts → makeHero()` | ⬜ building (parity:characters) |
-| Human NPC (Guide/Wizard/Merchant) | `characters.ts → makeNPC(opts)` | ⬜ |
-| Monster — Giant rat | `characters.ts → makeRat()` | ⬜ |
-| Monster — Forest brute | `characters.ts → makeBrute()` | ⬜ |
-| Props (tree/rock/fire/anvil/…) | `props.ts` | ⬜ (port from prototype factories) |
+
+Every asset is registered by a string `kind` id in `src/world/assetRegistry.ts` and declared in
+`ASSET_KINDS` (`src/world/mapTypes.ts`). Maps place assets by that id. **27 kinds** registered.
+
+| Asset | Factory (`src/render/`) | Registry kind(s) | Status |
+|-------|-------------------------|------------------|--------|
+| Hero (player) | `characters.ts → makeHero()` | `hero` | ✅ |
+| Human NPCs (data-driven palettes) | `characters.ts → makeNPC(NPC_PRESETS[..])` | `guide` `wizard` `merchant` `guard` `townsfolk_m` `townsfolk_f` `skiller` | ✅ 7 presets |
+| Monster — Giant rat | `characters.ts → makeRat()` | `rat` | ✅ |
+| Monster — Giant spider | `characters.ts → makeSpider()` | `spider` | ✅ |
+| Monster — Goblin | `characters.ts → makeGoblin()` | `goblin` | ✅ |
+| Monster — Imp | `characters.ts → makeImp()` | `imp` | ✅ |
+| Monster — Cow | `characters.ts → makeCow()` | `cow` | ✅ |
+| Monster — Forest brute | `characters.ts → makeBrute()` | `brute` | ✅ |
+| Trees (parametric `makeTree(variant)`) | `props.ts → TREE_VARIANTS` | `tree`(=oak) `tree_oak` `tree_willow` `tree_pine` `tree_dead` | ✅ 4 variants |
+| Rocks (parametric `makeRock(ore)`) | `props.ts → ROCK_VARIANTS` | `rock`(=copper) `rock_copper` `rock_tin` `rock_iron` `rock_coal` `rock_clay` | ✅ 5 ores |
+| Decor — campfire / pond | `props.ts → makeFire()/makePond()` | `fire` `pond` | ✅ |
 
 ## Rule
-Adding a creature/prop = a new factory entry here + a `data/` row that places it by `kind`. New world
-content is data, not new modelling code.
+Adding a creature/prop = a new factory + register it in `assetRegistry.ts` + add its id to
+`ASSET_KINDS`. Trees/rocks are **parametric** (one factory + a variant table) — add a variant row,
+not a new function. New world content is data (a `MapDef` row), never new modelling code inline.

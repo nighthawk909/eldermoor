@@ -16,7 +16,8 @@ _Last updated: 2026-06-28._
 | Feature | Parity checklist | Status |
 |---------|------------------|--------|
 | Characters (hero + NPCs + monsters match Blender asset) `parity:characters` | `docs/parity/characters.md` | **BUILD COMPLETE — pending Josh's mobile sign-off** (hero+NPCs+monsters+walk anim shipped; stays open until the mobile QA boxes are confirmed) |
-| Interaction / clicking — mobile+desktop parity (tap/long-press/right-click, all options, haptics) `parity:interaction` | `docs/parity/interaction.md` | **NEXT — right after characters** (fixes "tap does nothing on mobile") |
+| Interaction / clicking — mobile+desktop parity (tap/long-press/right-click, all options, haptics) `parity:interaction` | `docs/parity/interaction.md` | **BUILD COMPLETE — pending Josh's mobile sign-off** (tap/long-press/right-click menu + haptics + tap marker shipped) |
+| Overworld + Tutorial Island (data-driven map, asset library, multi-room island, quest flow) `parity:overworld` | `docs/parity/overworld.md` | **In Progress** — increment 1 (data layer + registry) ✅ PR#20; increment 2 (asset breadth, 27 kinds) ✅; next: bigger multi-room island |
 | Inventory UX (open/use/wield/eat/drop/bury/examine/use-on/drag) `parity:inventory` | `docs/parity/inventory.md` | Not Started |
 | Equipment UX (open/view/remove/wield + right-click/long-press) `parity:equipment` | `docs/parity/equipment.md` | Not Started |
 | Skilling UX (Woodcutting/Firemaking interactions) `parity:skilling` | _to author_ | Not Started |

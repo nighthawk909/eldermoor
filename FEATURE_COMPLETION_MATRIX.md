@@ -10,7 +10,7 @@ _Last updated: 2026-06-28._
 ## Phase 1 — Single-player vertical slice (ACTIVE)
 | # | Module | Spec | Status | Notes / next step |
 |---|--------|------|--------|-------------------|
-| 1 | Tick engine | `docs/modules/Tick.md` ✅ | Not Started | Build first; everything depends on it. |
+| 1 | Tick engine | `docs/modules/Tick.md` ✅ | **Done (2026-06-28, tests: 7)** | Headless deterministic engine (`src/sim/tick.ts`). 7 Vitest tests = all 6 acceptance criteria + auto-pause edge case. Browser-verified via `tick-harness.html`: 0.6s cadence, Pause freezes, Step +1. |
 | 2 | World + entities + RNG | _to author_ | Not Started | Tile grid, entity store, seeded PRNG. |
 | 3 | Movement (tiles, pathing) | `docs/modules/Movement.md` ✅ | Not Started | Depends on Tick + World. |
 | 4 | Items + Inventory (28) | _to author_ | Not Started | |
@@ -22,7 +22,7 @@ _Last updated: 2026-06-28._
 | 10 | Banking | _to author_ | Not Started | |
 | 11 | Persistence (save/load) | _to author_ | Not Started | |
 | 12 | Debug admin panel | _to author_ | Not Started | |
-| 13 | Automated test suite (Vitest+CI) | _cross-cutting_ | Not Started | tests authored with each module; CI gate added with module 1. |
+| 13 | Automated test suite (Vitest+CI) | _cross-cutting_ | In Progress | TS+Vite+Vitest scaffolded; `tests/sim/tick.test.ts` (7) passing; CI runs `npm test` + `typecheck` + smoke. Grows with each module. |
 
 ## Phase 2+ — full system catalogue (Not Started; tracked, not skipped)
 | System | Phase | Status |

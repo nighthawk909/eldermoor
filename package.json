@@ -2,10 +2,20 @@
   "name": "eldermoor",
   "version": "0.1.0",
   "private": true,
-  "description": "Eldermoor — an original early-RuneScape-style browser game.",
+  "description": "Eldermoor — an original OSRS-inspired instant-play browser MMORPG.",
   "type": "module",
   "scripts": {
-    "check": "node scripts/smoke-check.mjs",
-    "dev": "npx serve ."
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "smoke": "node scripts/smoke-check.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10",
+    "vitest": "^2.1.4"
   }
 }

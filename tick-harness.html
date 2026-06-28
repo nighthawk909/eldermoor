@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Eldermoor — Tick Harness</title>
+<style>
+  body{font-family:system-ui,sans-serif;background:#0c1014;color:#f3e9cf;padding:28px;}
+  #tick{font-size:72px;font-weight:bold;color:#7fe07f;}
+  .row{margin:10px 0;font-size:18px;}
+  button{font-size:16px;padding:8px 16px;margin:4px;border-radius:8px;border:1px solid #5b6470;
+    background:#1a1f26;color:#f3e9cf;cursor:pointer;}
+</style>
+</head>
+<body>
+  <h1>Tick Engine — manual QA harness</h1>
+  <div class="row">tick: <span id="tick">0</span></div>
+  <div class="row">status: <b id="status">–</b></div>
+  <div class="row">
+    <button id="pause">Pause</button>
+    <button id="step">Step +1</button>
+    <button id="resume">Resume</button>
+  </div>
+  <p class="row">Expect: counter rises ~every 0.6s while running; Pause freezes it; Step adds exactly 1.</p>
+  <script type="module" src="/src/dev/tick-harness.ts"></script>
+</body>
+</html>

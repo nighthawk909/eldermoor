@@ -1,19 +1,20 @@
 # HANDOFF — current state
 
-**Status:** Phases 1–3 essentially done. Repo is live and **public** at
-https://github.com/nighthawk909/eldermoor with CI; the game is modularized under `src/` and
-the smoke-check gate (hook + CI) is wired. **One item outstanding: the Vercel live URL**
-(deploy blocked on interactive auth — see Live URL below).
+**Status:** Phases 1–3 complete. Repo is live and **public** at
+https://github.com/nighthawk909/eldermoor with CI; the game is modularized under `src/`; the
+smoke-check gate (hook + CI) is wired; and the game is **deployed live at
+https://eldermoor.vercel.app** (Vercel↔GitHub integration: `main` auto-deploys to production,
+every PR gets a preview link).
 
-**Start here:** read `KICKOFF.md` + `CLAUDE.md` §0. Next real work is Phase 4 features — but
-finish the Vercel deploy first so PRs get preview links.
+**Start here:** read `KICKOFF.md` + `CLAUDE.md` §0. Next real work is **Phase 4 features**
+(branch/worktree per area — see GAME_DESIGN roadmap; pull the top item only).
 
 ## Changelog — 2026-06-27 (Phases 1–3)
 - **Phase 1:** clean monorepo extracted from the kickoff zip; `git init`; force-pushed over the
   earlier private asset-only repo and flipped `nighthawk909/eldermoor` to **public**. Asset files
   preserved under `assets/pipeline/` (build_eldermoor.py carries the sword-grip/boot/clothing fixes).
-  **Vercel deploy NOT done** — CLI needs interactive `vercel login`, no token in env, MCP deploy tool
-  is advisory-only. See Live URL.
+  **Deployed to Vercel** via the GitHub integration → **https://eldermoor.vercel.app** (production on
+  `main`, automatic PR preview deploys). Imported through the dashboard (CLI login is interactive).
 - **Phase 2:** `refactor/modularize` → split `index.html` into 11 `src/` ES modules (clean, cycle-free
   graph; pure skills/inventory via listener hooks). Verified in a local preview: no console errors,
   plays identically. Merged via PR #1.
@@ -37,15 +38,11 @@ finish the Vercel deploy first so PRs get preview links.
 - Data-driven content (STN stations, STEPS quests) so features parallelize cleanly.
 
 ## Next (do in order)
-1. **Finish Vercel deploy** (Phase 1 remainder): connect `nighthawk909/eldermoor` in the Vercel
-   dashboard (Add New → Project → import the repo; framework "Other", root `.`, no build) OR
-   `vercel login` then `vercel --prod` + `vercel git connect`. Enable PR/preview deployments. Paste
-   the production URL below + into CI status.
-2. (Recommended) Add a Playwright headless load test (open page, assert no console errors + objective
+1. (Recommended) Add a Playwright headless load test (open page, assert no console errors + objective
    banner renders) and add it as a CI job — catches runtime errors the syntax-only smoke check misses.
-3. (Optional) Port a Blender render-smoke CI job for `assets/pipeline/` if the asset pipeline keeps changing.
-4. Phase 4 — feature branches/worktrees per area (see GAME_DESIGN roadmap); pull the top item only.
+2. (Optional) Port a Blender render-smoke CI job for `assets/pipeline/` if the asset pipeline keeps changing.
+3. Phase 4 — feature branches/worktrees per area (see GAME_DESIGN roadmap); pull the top item only.
 
 ## Live URL
-_PENDING — Vercel deploy blocked on interactive auth this session. Once connected, paste the
-production URL here._ Local preview confirmed playable (served via `npm run dev`).
+**https://eldermoor.vercel.app** — production (auto-deploys from `main`). PRs get their own preview
+URLs automatically. Verified playable on production this session.

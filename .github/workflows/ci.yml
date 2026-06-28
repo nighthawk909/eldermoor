@@ -25,3 +25,5 @@ jobs:
         run: npm run typecheck
       - name: Prototype smoke check
         run: npm run smoke
+      - name: Parity gate (Definition of Done)
+        run: npm run parity

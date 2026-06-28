@@ -7,6 +7,23 @@ automated tests pass, AND it's been manually QA'd in a real browser. Statuses:
 
 _Last updated: 2026-06-28._
 
+> **REPRIORITIZED 2026-06-28 (Josh):** depth over width, OSRS-parity Definition of Done
+> (`docs/PARITY_STANDARD.md`), **CHARACTERS FIRST.** The engine modules below are tested *building
+> blocks* — NOT finished player features. A player feature is Done only when its `docs/parity/<id>.md`
+> is 100% checked (enforced by `npm run parity`). See `docs/PROCESS_INFRASTRUCTURE.md`.
+
+## Player features — parity-gated (the real Definition of Done)
+| Feature | Parity checklist | Status |
+|---------|------------------|--------|
+| Characters (hero + NPCs + monsters match Blender asset) `parity:characters` | `docs/parity/characters.md` | **ACTIVE — building now** |
+| Inventory UX (open/use/wield/eat/drop/bury/examine/use-on/drag) `parity:inventory` | `docs/parity/inventory.md` | Not Started |
+| Equipment UX (open/view/remove/wield + right-click/long-press) `parity:equipment` | `docs/parity/equipment.md` | Not Started |
+| Skilling UX (Woodcutting/Firemaking interactions) `parity:skilling` | _to author_ | Not Started |
+| Combat UX (attack options, hits, loot pickup) `parity:combat` | _to author_ | Not Started |
+| Banking UX `parity:banking` | _to author_ | Not Started |
+
+## Engine primitives (test-gated building blocks — not player features)
+
 ## Phase 1 — Single-player vertical slice (ACTIVE)
 | # | Module | Spec | Status | Notes / next step |
 |---|--------|------|--------|-------------------|

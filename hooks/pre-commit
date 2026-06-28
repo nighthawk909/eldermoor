@@ -1,11 +1,8 @@
 #!/bin/sh
-# Eldermoor pre-commit hook — blocks commits that break the build.
-# Install once with:  git config core.hooksPath hooks
-echo "[pre-commit] running smoke check…"
-node scripts/smoke-check.mjs
-if [ $? -ne 0 ]; then
-  echo "[pre-commit] BLOCKED: smoke check failed. Fix it or use --no-verify to override (don't)."
-  exit 1
-fi
+# Eldermoor pre-commit gates — block broken/incomplete commits. core.hooksPath=hooks installs it.
+echo "[pre-commit] gates: smoke + tests + parity…"
+npm run smoke   || { echo "[pre-commit] BLOCKED: smoke check failed."; exit 1; }
+npm test        || { echo "[pre-commit] BLOCKED: tests failed."; exit 1; }
+npm run parity  || { echo "[pre-commit] BLOCKED: parity gate failed (a feature marked Done has an unfinished parity checklist)."; exit 1; }
 echo "[pre-commit] ok."
 exit 0

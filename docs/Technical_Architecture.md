@@ -52,21 +52,62 @@ state (required for tests). RNG is a seeded PRNG injected into systems (no `Math
   tables so the swap is mechanical.
 - Chunked region loading + player/NPC/object synchronization: Phase 2+ (`modules/World_Server.md`).
 
-## 5. Repo layout (target)
+## 5. Repo layout (scaled, full-software-dev style)
+**Principle:** every system is its own chunk (sim module + data file + spec + parity checklist),
+content is data not code, and **assets live in one library** that game code references — you build/
+update assets in the library, never re-model inline. This is how it scales to the 35+ system list.
+
 ```
-index.html            # thin shell: canvas + HUD mount + module entry
+assets/                         # ◆ THE DIGITAL ASSET LIBRARY (source of truth) ◆
+  pipeline/                     #   Blender authoring (build_*.py) → high-fidelity renders / future glTF
+  models/                       #   exported glTF/textures used by the game (Phase 5+)
+  ASSET_INDEX.md                #   catalogue: every asset, its id, where it's used
+
 src/
-  sim/                # headless, testable simulation (no DOM/THREE)
-    tick.ts  world.ts  entities.ts  movement.ts  skills.ts  combat.ts
-    inventory.ts  equipment.ts  banking.ts  items.ts  rng.ts  persistence.ts
-  data/               # content tables (items, objects, npcs, skills, drop tables)
-  render/             # Three.js view layer (reads sim, interpolates, draws)
-  ui/                 # HUD/DOM (inventory, equipment, skills, bank, chat, debug panel)
-  main.ts             # wires sim + render + ui + input(intents)
-tests/                # Vitest specs mirroring src/sim/*
-docs/ … FEATURE_COMPLETION_MATRIX.md
-assets/pipeline/      # Blender asset pipeline (unchanged)
+  sim/                          # headless, deterministic, testable (no DOM/THREE) — ONE FILE PER SYSTEM
+    core/      tick.ts world.ts entities.ts rng.ts persistence.ts
+    movement/  movement.ts
+    items/     items.ts inventory.ts equipment.ts
+    skills/    skills.ts woodcutting.ts firemaking.ts …      (one file per skill)
+    combat/    combat.ts
+    npc/       npc_ai.ts
+    quests/    quest_engine.ts                                (state machine, flags)
+    dialogue/  dialogue.ts                                    (tree runner)
+    economy/   shops.ts trading.ts grand_exchange.ts
+    bank/      banking.ts
+  data/                         # CONTENT as data (add content here, not engine code)
+    items.ts  npcs.ts  objects.ts  drop_tables.ts
+    quests/<questId>.ts  dialogue/<npcId>.ts  world/<zoneId>.ts
+  render/                       # Three.js VIEW — reusable asset factories (the realtime art playbook)
+    characters.ts props.ts effects.ts  scene.ts  interpolate.ts
+  ui/                           # HUD/DOM panels (inventory, equipment, skills, bank, chat, context-menu, debug)
+  input/                        # pointer/touch → intents (tap, long-press, drag)
+  main.ts                       # wires sim + render + ui + input
+
+tests/sim/…                     # Vitest, mirrors src/sim/* (one spec per module)
+docs/
+  modules/<System>.md           # one spec per system
+  parity/<feature>.md           # one OSRS-parity checklist per player feature
+  Master_Game_Design_Spec.md  Technical_Architecture.md  Build_Roadmap.md
+  PARITY_STANDARD.md  PROCESS_INFRASTRUCTURE.md  MOBILE_QA.md
+FEATURE_COMPLETION_MATRIX.md    # master status board
 ```
+
+**Rule for adding any system** (enforced via PROCESS_INFRASTRUCTURE): create its `sim/<area>/<x>.ts`
++ `data/…` + `docs/modules/<X>.md` + `docs/parity/<x>.md` + `tests/sim/<x>.test.ts`. Never bolt a
+system into an unrelated file. Assets it needs are authored once in `assets/` + a `render/` factory.
+
+## 5b. Render / asset layer — reuse the art playbook (BINDING)
+The `src/render/` view layer MUST build from a **reusable, data-driven asset library**, not bespoke
+geometry per object:
+- Reuse the established **factory pattern + visual language**: `makeChar / makeRat / makeTree /
+  makeRock / makeFire / …` and the `cube/cyl/cone/ico` helpers, the CLAUDE.md §4 palette + faceted
+  flat-shaded style, and `MODELING_SPEC.md`. Author an asset once; **place it anywhere by data**
+  (a world-object/NPC table maps `kind` → factory + params).
+- New world content = a data row (kind, tile, params), never new modelling code. This is how it
+  scales to a large world and stays visually consistent.
+- The Blender pipeline (`assets/pipeline/`) remains the high-fidelity source; glTF import (Phase 5)
+  swaps factory placeholders for rigged models behind the same data-driven placement.
 
 ## 6. Migration from the current prototype
 1. Stand up `src/sim/` (headless) + tests first — no rendering needed to validate the core.

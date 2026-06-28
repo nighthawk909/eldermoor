@@ -10,6 +10,7 @@ export default defineConfig({
         progress: 'progress.html',          // hub linking everything + status
         tick: 'tick-harness.html',          // new engine: tick heartbeat
         movement: 'movement-harness.html',  // new engine: tile movement demo
+        characters: 'characters-showcase.html', // character factory showcase (hero/NPCs/monsters)
       },
     },
   },

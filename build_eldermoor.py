@@ -102,18 +102,18 @@ def _finish(o, mat, bevel=0.004, flat=True):
     o.data.materials.append(mat)
     if bevel > 0:
         mod = o.modifiers.new("bevel", "BEVEL")
-        mod.width = bevel; mod.segments = 2
-        mod.limit_method = "ANGLE"; mod.angle_limit = radians(35)
+        mod.width = bevel; mod.segments = 3
+        mod.limit_method = "ANGLE"; mod.angle_limit = radians(33)
     return o
 
-def cube(dims, pos, mat, rot=None, bevel=0.004):
+def cube(dims, pos, mat, rot=None, bevel=0.012):
     bpy.ops.mesh.primitive_cube_add(size=1, location=conv(*pos))
     o = bpy.context.active_object
     o.scale = dimsB(*dims)
     if rot: o.rotation_euler = rot
     return _finish(o, mat, bevel)
 
-def cyl(rt, rb, h, pos, mat, verts=10, rot=None, bevel=0.003):
+def cyl(rt, rb, h, pos, mat, verts=10, rot=None, bevel=0.008):
     bpy.ops.mesh.primitive_cone_add(vertices=verts, radius1=rb, radius2=rt, depth=h, location=conv(*pos))
     o = bpy.context.active_object
     if rot: o.rotation_euler = rot
@@ -165,8 +165,8 @@ def build_head(cx, cy, cz):
     def hp(lx, ly, lz): return (cx + lx, cy + ly, cz + lz)
     cube((0.26, 0.045, 0.08), hp(0, 0.05, 0.16), skin, rot=(radians(-8), 0, 0))            # brow
     cone(0.062, 0.18, hp(0, -0.01, 0.17), skin, verts=3, rot=(radians(105), 0, 0), scale=(0.8, 1, 1))  # nose
-    cube((0.09, 0.045, 0.03), hp(0.08, -0.01, 0.17), eye, rot=(0, radians(10), 0))         # eye L
-    cube((0.09, 0.045, 0.03), hp(-0.08, -0.01, 0.17), eye, rot=(0, radians(-10), 0))       # eye R
+    cube((0.09, 0.045, 0.03), hp(0.08, -0.01, 0.17), eye, rot=(0, radians(10), 0), bevel=0.004)    # eye L
+    cube((0.09, 0.045, 0.03), hp(-0.08, -0.01, 0.17), eye, rot=(0, radians(-10), 0), bevel=0.004)  # eye R
     ico(0.205, hp(0, 0.075, -0.02), hair, scale=(1.07, 0.72, 1.09))                        # hair top
     cube((0.28, 0.08, 0.1), hp(0, 0.15, 0.1), hair, rot=(radians(-22), 0, 0))              # fringe
     cube((0.07, 0.22, 0.17), hp(0.185, 0, -0.02), hair)                                    # sideburn L
@@ -177,12 +177,21 @@ def build_head(cx, cy, cz):
     cube((0.08, 0.15, 0.09), hp(-0.135, -0.07, 0.09), beard)                               # beard jaw R
 
 def build_boot(x, ybase):
+    """Rounded shoe: heel + arched sole + tapered upper + rounded toe + ankle cuff."""
     lea = M("leather", LEATHER, 0.8); sole = M("sole", SOLE, 0.9)
     o = (x, ybase, 0)  # boot origin (authored)
-    cube((0.19, 0.16, 0.2), (o[0], o[1] + 0.0, -0.02), lea)     # ankle
-    cube((0.2, 0.12, 0.3), (o[0], o[1] - 0.06, 0.12), lea)      # foot
-    cube((0.18, 0.07, 0.12), (o[0], o[1] - 0.03, 0.28), lea)    # toe
-    cube((0.22, 0.04, 0.44), (o[0], o[1] - 0.115, 0.1), sole)   # sole
+    # raised heel block at the back so the sole isn't a flat plank
+    cube((0.15, 0.065, 0.1), (o[0], o[1] - 0.115, -0.075), sole, bevel=0.02)
+    # thin beveled sole running under the foot
+    cube((0.165, 0.04, 0.32), (o[0], o[1] - 0.10, 0.07), sole, bevel=0.03)
+    # rounded ankle/upper (heavily beveled to lose the box look)
+    cube((0.155, 0.15, 0.19), (o[0], o[1] + 0.02, -0.01), lea, bevel=0.05)
+    # instep narrowing toward the toe
+    cube((0.14, 0.11, 0.15), (o[0], o[1] - 0.015, 0.15), lea, bevel=0.05)
+    # rounded toe cap (sphere reads far softer than a toe cube)
+    ico(0.075, (o[0], o[1] - 0.03, 0.26), lea, subdiv=2, scale=(1.0, 0.8, 1.15))
+    # ankle cuff ring for definition where trouser meets boot
+    cyl(0.105, 0.115, 0.12, (o[0], o[1] + 0.14, -0.015), lea, verts=12)
 
 def build_hero():
     tunic = M("tunic", TUNIC, 0.82); trim = M("trim", TRIM, 0.4, 0.6)
@@ -201,18 +210,31 @@ def build_hero():
     cyl(0.2, 0.27, 0.64, (0, 1.32, 0), tunic, verts=10)
     cyl(0.17, 0.25, 0.17, (0, 1.53, 0), tunic, verts=10)
     cube((0.22, 0.46, 0.04), (0, 1.34, 0.245), trim)
-    # arms + hands
+    # arms (sleeves) + cuffs + rounded leather spaulders to define the shoulders
     for s in (1, -1):
-        cyl(0.085, 0.1, 0.5, (0.3 * s, 1.31, 0), tunic, verts=8)
-        ico(0.085, (0.3 * s, 1.03, 0), skin, scale=(1, 0.9, 1.1), subdiv=1)
-    # neck + head
+        cyl(0.085, 0.1, 0.5, (0.3 * s, 1.31, 0), tunic, verts=8)      # sleeve
+        cyl(0.1, 0.092, 0.07, (0.3 * s, 1.08, 0), leather, verts=10)  # cuff
+        ico(0.135, (0.31 * s, 1.5, 0), leather, subdiv=2, scale=(1.2, 0.8, 1.05))  # spaulder
+    # shield-side (far) hand
+    ico(0.092, (-0.3, 1.02, 0.03), skin, scale=(1.0, 0.95, 1.2), subdiv=2)
+    # neck + rounded collar + head
     cyl(0.07, 0.085, 0.12, (0, 1.66, 0), skin, verts=8)
+    cyl(0.15, 0.175, 0.07, (0, 1.6, 0), leather, verts=12)            # collar
     build_head(0, 1.86, 0)
-    # sword held in near hand, blade upright and forward of the arm
-    cube((0.055, 0.82, 0.015), (0.32, 1.52, 0.16), steel)      # blade
-    cube((0.2, 0.05, 0.05), (0.32, 1.09, 0.16), trim)          # guard
-    cyl(0.028, 0.028, 0.15, (0.32, 1.0, 0.16), leather, verts=8)  # grip
-    ico(0.04, (0.32, 0.92, 0.16), trim, subdiv=1)              # pommel
+    # flared tunic hem over the belt for clothing definition
+    cyl(0.27, 0.31, 0.13, (0, 1.04, 0), tunic, verts=12)
+
+    # --- sword GRIPPED by the near hand, held forward of the shoulder ---
+    hx, hy, hz = 0.33, 1.05, 0.18
+    # forearm bridging the sleeve cuff to the fist (leans forward to the grip)
+    cyl(0.07, 0.075, 0.26, (0.315, 1.07, 0.09), leather, verts=10, rot=(radians(74), 0, 0))
+    ico(0.097, (hx, hy, hz), skin, scale=(1.05, 1.0, 1.3), subdiv=2)           # fist
+    cube((0.1, 0.05, 0.075), (hx, hy + 0.02, hz + 0.05), skin, bevel=0.025)    # knuckles
+    cyl(0.03, 0.03, 0.22, (hx, hy, hz), wood, verts=8)                         # grip through fist
+    cube((0.22, 0.05, 0.055), (hx, hy + 0.15, hz), trim)                       # crossguard above fist
+    cube((0.05, 0.8, 0.018), (hx, hy + 0.56, hz), steel, bevel=0.006)          # blade
+    cone(0.028, 0.17, (hx, hy + 1.045, hz), steel, verts=4, scale=(1, 1, 0.36))  # blade tip
+    ico(0.045, (hx, hy - 0.15, hz), trim, subdiv=2)                            # pommel
     # shield on far arm (disc faces front = -Y)
     cyl(0.28, 0.28, 0.07, (-0.34, 1.02, 0.14), wood, verts=10, rot=(radians(90), 0, 0))
     cyl(0.3, 0.3, 0.03, (-0.34, 1.02, 0.16), steel, verts=10, rot=(radians(90), 0, 0))

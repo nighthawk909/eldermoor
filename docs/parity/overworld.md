@@ -46,8 +46,14 @@ sampler renders every kind with zero build errors.
 - [x] Verified in browser: all 7 stations spawn with meshes at correct tiles, collision-blocked, sim `obj`
       types set (examinable). Skill *actions* on them are separate later features.
 
-### 4. Guided quest flow — ⬜ (next)
-- [ ] Stations gate progression (complete a step → next area opens), à la OSRS Tutorial Island.
+### 4. Guided quest flow — 🔨 in progress
+**4a. Quest sim module — ✅** — `src/sim/quest.ts` (QuestDef/Step/Condition/State + start/current/
+applyEvent/progress): headless, deterministic, immutable step machine; conditions talk/interact/reach.
+8 tests (`tests/sim/quest.test.ts`), doc `docs/modules/Quest.md`.
+**4b. Client wiring + objective HUD — ⬜ (next)** — feed talk/interact/reach events from the client;
+show `currentStep().instruction`; highlight the active target.
+**4c. Full Tutorial Island step list + polish — ⬜** — author the talk→survival→fishing→cooking→
+mining→smithing→combat→prayer→magic→bank→done sequence in data; QC the full run.
 
 ## Rules
 - Data-driven: new content is a `MapDef` edit, not new code. New asset = factory + registry + kind.

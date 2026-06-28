@@ -1,39 +1,47 @@
 ---
 name: game-feature
 description: >
-  Build or extend an Eldermoor game feature (a skill, map area, quest, dialogue, combat change, UI panel).
-  Use whenever the task is "add/build/implement a <skill|map|quest|story|dialogue|combat|item> feature."
-  Enforces branch → small chunks → smoke check → play-test in preview → PR with honest notes → merge.
+  Build ONE Eldermoor player feature to full OSRS parity, depth-first, no shortcuts. Use for any
+  "build/extend the <equipment|inventory|combat|skill|quest|dialogue|bank|characters> feature."
+  Enforces: research parity → enumerate sub-features → build+QA each sub-feature SEQUENTIALLY →
+  gate → merge. Read docs/PARITY_STANDARD.md + docs/PROCESS_INFRASTRUCTURE.md first.
 ---
 
-# Eldermoor — Game Feature Build Loop
+# Eldermoor — Deep Feature Build (parity-gated, sub-feature-sequential)
 
-Read `GAME_DESIGN.md` and `CLAUDE.md` (§0 operating law) before starting. Match the existing low-poly
-style and the data-driven structure. Never copy Jagex specifics — original content only.
+This is how we build, every time. Treat it as a shippable product. No lean, no half-built, no
+"good enough." Address the owner as **Josh**.
 
-## The loop (one feature = one branch = one PR)
-1. **Scope.** Pick ONE backlog item from `GAME_DESIGN.md` → Roadmap. State the smallest shippable chunk.
-2. **Branch.** `git checkout -b feature/<area>` (or a worktree). Touch your area's module + add content as
-   **data** in `world.js`/`quests.js`. Don't edit other features' modules.
-3. **Build in small steps.** After each step, serve and load the page; verify it still plays. Commit
-   per concern (`feat: …`).
-4. **Gate.** `npm run check` (smoke check must pass). Fix anything it flags.
-5. **Play-test.** Actually walk through the affected flow in the browser/preview deploy. Confirm:
-   - no console errors,
-   - the tutorial still completes (no regression),
-   - the new thing works and feels right.
-6. **Self-critique.** Write down what's still weak. If it isn't good enough, keep iterating — don't ship
-   a stub and call it done.
-7. **PR.** `gh pr create` with: what changed · how you tested (preview URL + "played through X") · known
-   gaps. Confirm the preview deployment is green.
-8. **Merge** to `main` after green, delete the branch, update `GAME_DESIGN.md`/`HANDOFF.md`.
+## Step 1 — RESEARCH parity
+Research how Old School RuneScape actually does this feature. Write down the full behavior:
+every interaction, every right-click (desktop) / long-press (mobile) option, every edge case.
+(Use prior knowledge; web-research if unsure. Original IP only — match behavior, not assets/names.)
+
+## Step 2 — ENUMERATE sub-features (the QA checklist)
+Turn the research into `docs/parity/<id>.md`: a checklist where **each box is one micro-feature**
+that must independently work + be tested + QA'd. This is the QA contract. Example (equipment):
+open interface · show slots · wield from inventory · remove to inventory (full-inv guard) · examine ·
+right-click/long-press menu · bonuses panel updates · etc. — each its own box.
+
+## Step 3 — BUILD + QC each sub-feature SEQUENTIALLY (the inner loop)
+For micro-feature #1, then #2, … in order — **do not start the next until the current is done**:
+1. Implement just that micro-feature (sim + render/ui as needed).
+2. Test it (Vitest for logic).
+3. **QA it like a player** in the browser (real clicks; phone-width for touch).
+4. For device-only items (tap/long-press/**haptics**), post it to Josh's mobile QA list; he confirms.
+5. Check its box in `docs/parity/<id>.md`. Only then move to the next.
+
+## Step 4 — GATE + DONE
+When every box is checked: `npm run smoke && npm test && npm run typecheck && npm run parity` green,
+matrix row → `Done`, commit/PR/merge with green CI. `npm run parity` will refuse "Done" if any box
+is unchecked — that's the safety net.
+
+## Architecture (per docs/Technical_Architecture.md §5)
+One chunk per system: `src/sim/<area>/<x>.ts` + `src/data/…` + `docs/modules/<X>.md` +
+`docs/parity/<x>.md` + `tests/sim/<x>.test.ts`. Assets come from the `assets/` library via `render/`
+factories — author once, place by data, never re-model inline.
 
 ## Hard don'ts
-- No copied assets, names, maps, or UI from RuneScape/Jagex.
-- No merging with a failing smoke check or console errors.
-- No engine rewrites smuggled inside a feature PR — refactors are their own PR.
-- No leaving TODO stubs in merged code.
-
-## Definition of Done
-Smoke check passes · plays in the preview deploy with no console errors · tutorial flow unbroken ·
-docs updated · PR describes real state honestly.
+- Don't build sub-features 1–10 in parallel; one fully done at a time, QC along the way.
+- Don't mark a box/feature done off a console call — player-level QA required (Josh confirms device-only).
+- Don't start a new feature while the current parity checklist has an unchecked box.

@@ -36,6 +36,17 @@ grounditem → [Take, Examine, Walk here]; tile → [Walk here].
 - Menu stays on-screen (clamp to viewport); dismiss on outside tap; one menu at a time.
 - Pointer/touch events use Pointer Events (unified mouse+touch); `touch-action:none` on the canvas.
 
+## Feedback — haptics + visual (REQUIRED; reported by owner)
+- **Haptic feedback** via `navigator.vibrate` on meaningful touch actions: short tap (~10ms) on a
+  successful tap/select; a distinct pattern on context-menu open (long-press) and on
+  action-complete/level-up. Guard with feature-detection (`'vibrate' in navigator`); no-op on
+  unsupported devices/desktop. Respect a settings toggle (default on).
+- **Visual tap feedback**: a brief ripple/marker at the tap point + highlight of the selected target,
+  so a tap is always acknowledged even where haptics are unavailable.
+- **Reality check**: `navigator.vibrate` only fires on real mobile hardware. Automated/emulated QA
+  can assert the call is made (spy on `navigator.vibrate`); the actual buzz is confirmed by the
+  owner on a physical phone before this is marked done.
+
 ## Acceptance criteria (testable)
 1. (sim) Pick returns the correct NPC/object for a tile on or adjacent to it within tolerance.
 2. (sim) Default action for each kind is the documented first option.

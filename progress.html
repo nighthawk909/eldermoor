@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Eldermoor — Build Progress</title>
+<style>
+  body{margin:0;min-height:100%;background:#0c1014;color:#f3e9cf;
+    font-family:"Trebuchet MS",system-ui,sans-serif;padding:22px;line-height:1.5;}
+  h1{color:#e7c64f;margin:0 0 4px;font-size:22px;}
+  .sub{color:#9fb0c0;font-size:13px;margin-bottom:18px;}
+  a.card{display:block;text-decoration:none;color:#f3e9cf;background:rgba(24,28,34,.9);
+    border:1px solid #5b6470;border-radius:12px;padding:14px 16px;margin:10px 0;}
+  a.card:active{transform:scale(.99);}
+  .card h2{margin:0 0 4px;font-size:16px;color:#7fd0ff;}
+  .card p{margin:0;font-size:13px;color:#cdbf98;}
+  .tag{display:inline-block;font-size:11px;padding:2px 7px;border-radius:6px;margin-left:6px;}
+  .live{background:#2e5f2e;color:#bfe9bf;}
+  .wip{background:#5a4a20;color:#f0d98a;}
+  ul{font-size:13px;color:#cdbf98;padding-left:18px;}
+  code{color:#9fe0ff;}
+</style>
+</head>
+<body>
+  <h1>Eldermoor — build progress</h1>
+  <div class="sub">What's playable right now vs. the new tick/tile engine being built. Open on mobile to test taps.</div>
+
+  <a class="card" href="/index.html">
+    <h2>▶ Current game <span class="tag live">PLAYABLE</span></h2>
+    <p>The Tutorial Island prototype (real-time). This is the version you've been testing.</p>
+  </a>
+
+  <a class="card" href="/movement-harness.html">
+    <h2>🧭 New engine — tile movement <span class="tag wip">IN PROGRESS</span></h2>
+    <p>Tap a tile to walk. Grid + 0.6s tick + pathfinding that routes around walls. Top-down debug view.</p>
+  </a>
+
+  <a class="card" href="/tick-harness.html">
+    <h2>⏱ New engine — tick heartbeat <span class="tag wip">IN PROGRESS</span></h2>
+    <p>The 0.6s game-tick the whole new sim runs on. Pause / step / resume.</p>
+  </a>
+
+  <h3 style="color:#e7c64f;margin-top:20px;font-size:14px;">Phase-1 status</h3>
+  <ul>
+    <li>Done (tested): Tick · World/grid · Movement · Inventory · Equipment</li>
+    <li>Next: Interaction (incl. mobile tap + long-press + haptics) · Woodcutting · then the 3D client + live flip</li>
+    <li>Full board: <code>FEATURE_COMPLETION_MATRIX.md</code> in the repo</li>
+  </ul>
+</body>
+</html>

@@ -57,7 +57,20 @@ function click(px, py) {
     let o = hit[0].object; while (o.parent && !STN.find(s => s.obj === o)) o = o.parent;
     const st = STN.find(s => s.obj === o); if (st) { player.target = new THREE.Vector2(st.pos.x, st.pos.z); player.pending = st; hideDlg(); return; }
   }
-  const g = ray.intersectObject(groundMesh); if (g.length) { player.target = new THREE.Vector2(g[0].point.x, g[0].point.z); player.pending = null; }
+  const g = ray.intersectObject(groundMesh);
+  if (g.length) {
+    const p = g[0].point;
+    // Forgiving targeting: a tap on or near a station interacts with it (low-poly
+    // objects are small on screen; a near-miss should not silently walk you past them).
+    let near = null, nd = Infinity;
+    for (const s of STN) {
+      if (s.kind === 'deco' || s.alive === false) continue;
+      const dd = Math.hypot(s.pos.x - p.x, s.pos.z - p.z);
+      if (dd < (s.hitR || 1.6) && dd < nd) { nd = dd; near = s; }
+    }
+    if (near) { player.target = new THREE.Vector2(near.pos.x, near.pos.z); player.pending = near; hideDlg(); return; }
+    player.target = new THREE.Vector2(p.x, p.z); player.pending = null;
+  }
 }
 
 let action = null; // { st, t, dur }
@@ -100,7 +113,7 @@ function animate() {
   else { u.legL.rotation.x *= 0.8; u.legR.rotation.x *= 0.8; u.armL.rotation.x *= 0.8; u.armR.rotation.x *= 0.8; }
   // action progress
   if (action) {
-    action.t += dt; setProgress(Math.min(100, action.t / action.dur * 100));
+    action.t += dt * 1000; setProgress(Math.min(100, action.t / action.dur * 100)); // dur is in ms; dt is seconds
     u.armR.rotation.x = Math.sin(t * 16) * 0.7; // working motion
     if (action.t >= action.dur) { const st = action.st; action = null; hideProgress(); finishAction(st); }
   }
@@ -119,3 +132,8 @@ function animate() {
 
 showStep(); updCam(); animate();
 setTimeout(() => { const h = document.getElementById('hint'); h.style.opacity = 0; setTimeout(() => h.remove(), 600); }, 4200);
+
+// dev hook (localhost or ?dbg) — for debugging/automation only; inert in production
+if (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.search.includes('dbg')) {
+  window.__EM = { STN, player, startAction, dialog, checkStep, click, camera, groundMesh, scene, get action() { return action; } };
+}

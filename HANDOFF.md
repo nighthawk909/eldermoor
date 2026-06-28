@@ -9,6 +9,18 @@ every PR gets a preview link).
 **Start here:** read `KICKOFF.md` + `CLAUDE.md` §0. Next real work is **Phase 4 features**
 (branch/worktree per area — see GAME_DESIGN roadmap; pull the top item only).
 
+## Changelog — 2026-06-27 (playability fix)
+- **fix/playable-actions:** the game was effectively unplayable — found two bugs by driving the
+  live build in a real browser:
+  1. **Action timer unit mismatch (critical):** `action.t` accumulated in *seconds* (`dt`) but station
+     `dur` values are in *milliseconds*, so every timed skill (woodcutting/fishing/mining/smithing/
+     cooking/crafting/ranged/magic/prayer/melee) would take ~27 min to finish. Fixed: `action.t += dt*1000`.
+  2. **Finicky click targets:** low-poly stations are small on screen; a near-miss silently became a
+     ground-move. Added forgiving targeting — a tap within ~1.6 units of a station interacts with it.
+  Verified end-to-end: all 13 tutorial steps now complete (woodcutting → … → board boat), items are
+  produced, combat kills the rat and drops bones, prayer/ranged/magic/crafting all advance.
+  (`src/main.js` also has a localhost/`?dbg`-guarded `window.__EM` hook for browser-driven testing.)
+
 ## Changelog — 2026-06-27 (Phases 1–3)
 - **Phase 1:** clean monorepo extracted from the kickoff zip; `git init`; force-pushed over the
   earlier private asset-only repo and flipped `nighthawk909/eldermoor` to **public**. Asset files

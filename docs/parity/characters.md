@@ -9,10 +9,10 @@ Bar: the in-game hero, human NPCs, and monsters must read at the quality of our 
       hem, leather spaulders, belt, **rounded boots**, gripped sword, round shield — matches the render
       (ported from build_eldermoor.py; verified front + side in the showcase)
 - [x] Faceted flat-shaded style + the locked palette (CLAUDE.md §4); warm 3-point lighting
-- [ ] `makeNPC(opts)` variants from the SAME factory (e.g. Guide, Wizard, Merchant) by params/data
-- [ ] At least one **monster** (`makeRat`, and a `makeBrute`) that is clearly not a box
+- [x] `makeNPC(opts)` variants from the SAME factory — Guide/Wizard/Merchant by data (NPC_PRESETS); verified in lineup
+- [x] At least one **monster** (`makeRat` + `makeBrute`) that is clearly not a box; verified in lineup
 - [ ] Animation rig retained (limb groups exist in userData) — wire walk/attack + verify
-- [ ] Reusable: a character is defined by a DATA entry (kind → factory + params), placeable anywhere
+- [x] Reusable: a character is a DATA entry (NPC_PRESETS / factory by kind), placeable anywhere
 - [x] Showcase page (turntable/lineup) deployed so it can be viewed + rotated (`/characters-showcase`)
 
 ## Mobile QA — Josh confirms on a real phone

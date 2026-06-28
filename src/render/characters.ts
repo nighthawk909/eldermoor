@@ -32,10 +32,11 @@ const ico = (r: number, pos: V3, m: THREE.Material, detail = 1, scale?: V3) =>
   place(new THREE.Mesh(new THREE.IcosahedronGeometry(r, detail), m), pos, undefined, scale);
 const D = (deg: number) => (deg * Math.PI) / 180;
 
+interface HeadOpts { skin?: string; hair?: string; beard?: string | null; hat?: string | null; }
 /** Sculpted, tapered head: pinched chin + brow/nose/eyes/hair/beard. Authored at (cx,cy,cz), +Z = front. */
-function buildHead(parent: THREE.Group, cx: number, cy: number, cz: number): void {
-  const skin = mat(PAL.skin, { rough: 0.62 }), hair = mat(PAL.hair, { rough: 0.95 });
-  const eye = mat(PAL.eye, { rough: 0.5 }), beard = mat(PAL.beard, { rough: 1 });
+function buildHead(parent: THREE.Group, cx: number, cy: number, cz: number, o: HeadOpts = {}): void {
+  const skin = mat(o.skin ?? PAL.skin, { rough: 0.62 }), hair = mat(o.hair ?? PAL.hair, { rough: 0.95 });
+  const eye = mat(PAL.eye, { rough: 0.5 }), beard = mat(o.beard ?? PAL.beard, { rough: 1 });
 
   const g = new THREE.IcosahedronGeometry(0.2, 2);
   const p = g.getAttribute('position') as THREE.BufferAttribute;
@@ -55,14 +56,22 @@ function buildHead(parent: THREE.Group, cx: number, cy: number, cz: number): voi
   parent.add(cone(0.062, 0.18, hp(0, -0.01, 0.18), skin, 3, [D(100), 0, 0], [0.8, 1, 1])); // nose
   parent.add(box([0.09, 0.045, 0.03], hp(0.08, -0.01, 0.17), eye, [0, D(10), 0]));     // eye L
   parent.add(box([0.09, 0.045, 0.03], hp(-0.08, -0.01, 0.17), eye, [0, D(-10), 0]));   // eye R
-  parent.add(ico(0.205, hp(0, 0.075, -0.02), hair, 1, [1.07, 0.72, 1.09]));            // hair top
-  parent.add(box([0.28, 0.08, 0.1], hp(0, 0.15, 0.1), hair, [D(-22), 0, 0]));          // fringe
+  if (o.hat) {
+    const hatMat = mat(o.hat, { rough: 0.8 });
+    parent.add(cone(0.34, 0.6, hp(0, 0.34, 0), hatMat, 10));                            // pointed hat (wizard)
+    parent.add(cyl(0.3, 0.3, 0.05, hp(0, 0.06, 0), hatMat, 12));                        // brim
+  } else {
+    parent.add(ico(0.205, hp(0, 0.075, -0.02), hair, 1, [1.07, 0.72, 1.09]));          // hair top
+    parent.add(box([0.28, 0.08, 0.1], hp(0, 0.15, 0.1), hair, [D(-22), 0, 0]));        // fringe
+  }
   parent.add(box([0.07, 0.22, 0.17], hp(0.185, 0, -0.02), hair));                      // sideburn L
   parent.add(box([0.07, 0.22, 0.17], hp(-0.185, 0, -0.02), hair));                     // sideburn R
   parent.add(box([0.27, 0.2, 0.1], hp(0, 0.02, -0.16), hair));                         // back
-  parent.add(box([0.2, 0.1, 0.09], hp(0, -0.16, 0.11), beard));                        // beard chin
-  parent.add(box([0.08, 0.15, 0.09], hp(0.135, -0.07, 0.09), beard));                  // beard jaw L
-  parent.add(box([0.08, 0.15, 0.09], hp(-0.135, -0.07, 0.09), beard));                 // beard jaw R
+  if (o.beard !== null) {
+    parent.add(box([0.2, 0.1, 0.09], hp(0, -0.16, 0.11), beard));                      // beard chin
+    parent.add(box([0.08, 0.15, 0.09], hp(0.135, -0.07, 0.09), beard));                // beard jaw L
+    parent.add(box([0.08, 0.15, 0.09], hp(-0.135, -0.07, 0.09), beard));               // beard jaw R
+  }
 }
 
 /** Rounded shoe: heel + arched sole + tapered upper + spherical toe + ankle cuff. */
@@ -131,5 +140,75 @@ export function makeHero(): THREE.Group {
   void cape;
 
   g.userData = { legL, legR, armL, armR };
+  return g;
+}
+
+/* ---------------- NPC variants (same factory, data-driven) ---------------- */
+export interface NPCOpts {
+  tunic: string; sleeve?: string; leg?: string; skin?: string; hair?: string;
+  beard?: string | null; hat?: string | null; robe?: string | null; apron?: string | null;
+}
+export function makeNPC(o: NPCOpts): THREE.Group {
+  const g = new THREE.Group();
+  const tunicM = mat(o.tunic, { rough: 0.85 }), skin = mat(o.skin ?? PAL.skin, { rough: 0.62 });
+  const leather = mat(PAL.leather, { rough: 0.7 });
+  const legL = new THREE.Group(), legR = new THREE.Group(), armL = new THREE.Group(), armR = new THREE.Group();
+
+  if (o.robe) {
+    g.add(cyl(0.22, 0.42, 1.05, [0, 0.52, 0], mat(o.robe, { rough: 0.85 }), 12)); // long flared robe
+  } else {
+    for (const [s, leg] of [[1, legL], [-1, legR]] as [number, THREE.Group][]) {
+      leg.add(cyl(0.1, 0.12, 0.62, [0.15 * s, 0.51, 0], mat(o.leg ?? PAL.trouser, { rough: 0.85 }), 8));
+      buildBoot(leg, 0.15 * s, 0.16); g.add(leg);
+    }
+    g.add(box([0.4, 0.16, 0.26], [0, 0.88, 0], leather)); // belt
+  }
+  g.add(cyl(0.2, 0.26, 0.62, [0, 1.31, 0], tunicM, 10));   // torso
+  g.add(cyl(0.17, 0.24, 0.16, [0, 1.52, 0], tunicM, 10));  // yoke
+  if (o.apron) g.add(box([0.24, 0.5, 0.04], [0, 1.3, 0.2], mat(o.apron, { rough: 0.9 }))); // apron
+  for (const [s, arm] of [[1, armL], [-1, armR]] as [number, THREE.Group][]) {
+    arm.add(cyl(0.082, 0.1, 0.52, [0.3 * s, 1.3, 0], mat(o.sleeve ?? o.tunic, { rough: 0.85 }), 8)); // sleeve
+    arm.add(ico(0.085, [0.3 * s, 1.0, 0.02], skin, 2, [1, 0.95, 1.15]));                            // hand
+    g.add(arm);
+  }
+  g.add(cyl(0.07, 0.085, 0.12, [0, 1.65, 0], skin, 8));    // neck
+  buildHead(g, 0, 1.85, 0, { skin: o.skin, hair: o.hair, beard: o.beard, hat: o.hat });
+  g.userData = { legL, legR, armL, armR };
+  return g;
+}
+export const NPC_PRESETS: Record<string, NPCOpts> = {
+  guide: { tunic: '#3a6b3a', leg: '#3a3026', hair: '#cfcfcf', beard: '#bdbdbd' },
+  wizard: { tunic: '#2e3a8c', sleeve: '#2e3a8c', robe: '#2e3a8c', hat: '#2e3a8c', hair: '#e8e8e8', beard: '#e8e8e8' },
+  merchant: { tunic: '#7a4a2c', apron: '#c8a24a', hair: '#3a2a1c', beard: null },
+};
+
+/* ---------------- monsters ---------------- */
+export function makeRat(): THREE.Group {
+  const g = new THREE.Group();
+  const fur = mat('#6b6258', { rough: 1 }), pink = mat('#caa39a', { rough: 0.9 }), dark = mat('#201a16', { rough: 0.5 });
+  g.add(ico(0.3, [0, 0.28, 0], fur, 1, [1.4, 0.85, 1.0]));         // body
+  g.add(ico(0.18, [0, 0.32, 0.42], fur, 1, [1, 0.95, 1.1]));       // head
+  g.add(cone(0.09, 0.18, [0, 0.3, 0.6], fur, 6, [D(90), 0, 0]));   // snout
+  g.add(ico(0.07, [0.1, 0.46, 0.4], fur, 1, [1, 1.2, 0.4]));       // ear L
+  g.add(ico(0.07, [-0.1, 0.46, 0.4], fur, 1, [1, 1.2, 0.4]));      // ear R
+  g.add(box([0.04, 0.04, 0.02], [0.07, 0.34, 0.56], dark));        // eye L
+  g.add(box([0.04, 0.04, 0.02], [-0.07, 0.34, 0.56], dark));       // eye R
+  g.add(cyl(0.01, 0.05, 0.6, [0, 0.28, -0.5], pink, 5, [D(70), 0, 0])); // tail
+  for (const sx of [1, -1]) for (const sz of [0.25, -0.25]) g.add(cyl(0.04, 0.04, 0.18, [0.16 * sx, 0.1, sz], fur, 5)); // legs
+  return g;
+}
+export function makeBrute(): THREE.Group {
+  const g = new THREE.Group();
+  const hide = mat('#6f7d5a', { rough: 1 }), dark = mat('#3a3326', { rough: 0.9 });
+  const tusk = mat('#e8e0c8', { rough: 0.7 }), wood = mat(PAL.wood, { rough: 0.8 }), eyeM = mat('#caa23a', { rough: 0.4 });
+  for (const s of [1, -1]) { g.add(cyl(0.16, 0.2, 0.7, [0.22 * s, 0.5, 0], hide, 8)); g.add(box([0.3, 0.14, 0.4], [0.22 * s, 0.12, 0.06], dark)); } // legs+feet
+  const torso = cyl(0.36, 0.5, 0.9, [0, 1.25, 0.08], hide, 10); torso.rotation.x = D(12); g.add(torso); // hunched torso
+  for (const s of [1, -1]) { g.add(cyl(0.14, 0.17, 0.8, [0.5 * s, 1.2, 0.05], hide, 8)); g.add(ico(0.17, [0.55 * s, 0.78, 0.1], hide, 1)); } // arms+fists
+  g.add(ico(0.26, [0, 1.62, 0.18], hide, 1, [1.1, 1, 1.05]));      // head
+  g.add(box([0.34, 0.16, 0.1], [0, 1.58, 0.34], hide, [D(-8), 0, 0])); // brow
+  g.add(box([0.05, 0.06, 0.03], [0.08, 1.59, 0.42], eyeM)); g.add(box([0.05, 0.06, 0.03], [-0.08, 1.59, 0.42], eyeM)); // eyes
+  g.add(cone(0.04, 0.16, [0.1, 1.46, 0.34], tusk, 5, [D(200), 0, 0])); g.add(cone(0.04, 0.16, [-0.1, 1.46, 0.34], tusk, 5, [D(200), 0, 0])); // tusks
+  g.add(cyl(0.05, 0.08, 0.75, [0.62, 0.7, 0.2], wood, 6, [D(25), 0, D(18)])); // club
+  g.scale.setScalar(1.25);
   return g;
 }

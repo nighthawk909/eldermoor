@@ -4,6 +4,55 @@ Durable project context for Claude Code. Read this first every session.
 
 ---
 
+## 0. Operating law (NON-NEGOTIABLE)
+
+These override convenience, speed, and token cost. If a step would violate one, stop.
+
+1. **Claude-built only.** All geometry, meshes, UVs, textures, materials, shaders, and
+   code are produced by Claude (by scripting Blender/Python/etc.). No outsourced human
+   modeling, no stock assets, no asset-store purchases, no image-to-3D black boxes.
+2. **No shortcuts, ever.** Never silently lower the bar to fit a constraint. If hardware
+   (e.g. a sandbox with no GPU) blocks full quality, say so and route around it (render on
+   the Victus GPU) — do not quietly ship the lesser thing and call it done.
+3. **Fully baked.** Every thought, decision, plan, and increment is reasoned to completion
+   with rationale and tradeoffs recorded (in HANDOFF.md / MANIFEST.md). No hand-waving, no
+   "good enough for now" that hides debt.
+4. **Small verified chunks — never one-shot.** Build ONE increment from the manifest at a
+   time. Each increment has a written Definition of Done and is rendered, inspected, and
+   critiqued against reference BEFORE advancing. Do not attempt a whole character or system
+   in one pass.
+5. **Reference-driven.** Judge every increment against the OSRS-era reference for the
+   register. Write down what specifically reads wrong, then fix that.
+6. **Name the ceiling.** When a method plateaus, state it plainly and define the next
+   method. Honesty about limits is part of the work.
+
+## The Build Loop (run for every chunk)
+
+```
+PLAN    → fully spec the chunk + its Definition of Done (write it down)
+BUILD   → implement exactly that one chunk, nothing more
+RENDER  → render/run it (GPU)
+INSPECT → actually view the output
+CRITIQUE→ compare to reference + DoD; list concrete defects
+DECIDE  → defects? fix and re-loop. clean? mark done in MANIFEST, advance
+LOG     → update HANDOFF.md / MANIFEST.md with result + next chunk
+```
+
+## Definition of Done (per asset, unless the chunk says otherwise)
+
+> The measurable standard lives in **MODELING_SPEC.md**. A chunk is done only when the
+> relevant items of its **Acceptance Checklist (MODELING_SPEC §7)** pass against the
+> reference. Summary:
+
+- Silhouette matches the approved proportions (MODELING_SPEC §2).
+- Forms are **continuous** — no stacked-primitive seams, no gaps at joints.
+- Materials read as their **substance** (cloth/leather/steel/skin), not flat plastic.
+- Faces/skin are **textured** (painted map), not bare geometry.
+- Passes a side-by-side reference comparison for the register.
+- Renders clean on GPU at production settings.
+
+---
+
 ## 1. What this is
 
 **Eldermoor** is an original game in the visual register of early-2000s RuneScape

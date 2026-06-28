@@ -18,7 +18,7 @@ export function renderSkills() {
   const g = document.getElementById('skillGrid'); g.innerHTML = ''; let tot = 0;
   SKILLS.forEach(([s, ic]) => {
     const lv = levelFromXp(skill[s].xp); tot += lv;
-    g.insertAdjacentHTML('beforeend', `<div class="sk"><span class="ic">${ic}</span>${s.slice(0, 4)}<span class="lv">${lv}</span></div>`);
+    g.insertAdjacentHTML('beforeend', `<div class="sk"><span class="ic">${ic}</span><span class="nm">${s}</span><span class="lv">${lv}</span></div>`);
   });
   document.getElementById('totalLv').textContent = `Total level: ${tot}`;
 }

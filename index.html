@@ -32,15 +32,16 @@
   .btn .ic{font-size:20px;line-height:1;}
   .btn.active{border-color:#e7c64f;background:rgba(60,50,20,.85);}
   /* panels */
-  .panel{position:fixed;right:10px;bottom:74px;width:min(86%,320px);max-height:62%;overflow:auto;
+  .panel{position:fixed;right:10px;bottom:84px;width:min(92%,360px);max-height:62%;overflow:auto;
     background:rgba(18,22,28,.94);border:1px solid #5b6470;border-radius:12px;padding:12px;
     pointer-events:auto;display:none;box-shadow:0 10px 40px rgba(0,0,0,.5);}
   .panel.show{display:block;}
   .panel h3{margin:0 0 8px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#e7c64f;}
   .skills{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
-  .sk{display:flex;align-items:center;gap:7px;background:rgba(40,46,54,.6);border-radius:7px;padding:5px 8px;font-size:12px;}
-  .sk .ic{font-size:15px;}
-  .sk .lv{margin-left:auto;font-weight:bold;color:#fff;}
+  .sk{display:flex;align-items:center;gap:6px;background:rgba(40,46,54,.6);border-radius:7px;padding:5px 8px;font-size:12px;}
+  .sk .ic{font-size:15px;flex:none;}
+  .sk .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .sk .lv{flex:none;margin-left:4px;font-weight:bold;color:#fff;}
   .sk .lv small{color:#9fb0c0;font-weight:normal;}
   .total{margin-top:8px;text-align:center;font-size:12px;color:#cdbf98;}
   .inv{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}

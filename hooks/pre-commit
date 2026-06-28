@@ -1,0 +1,11 @@
+#!/bin/sh
+# Eldermoor pre-commit hook — blocks commits that break the build.
+# Install once with:  git config core.hooksPath hooks
+echo "[pre-commit] running smoke check…"
+node scripts/smoke-check.mjs
+if [ $? -ne 0 ]; then
+  echo "[pre-commit] BLOCKED: smoke check failed. Fix it or use --no-verify to override (don't)."
+  exit 1
+fi
+echo "[pre-commit] ok."
+exit 0

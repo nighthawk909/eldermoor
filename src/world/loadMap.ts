@@ -4,8 +4,9 @@
 import type * as THREE from 'three';
 import type { Entity, World } from '../sim/world.js';
 import { setBlocked } from '../sim/world.js';
-import type { MapDef, SpawnDef } from './mapTypes.js';
+import { type MapDef, type SpawnDef, WALKABLE_TERRAIN } from './mapTypes.js';
 import { buildAsset } from './assetRegistry.js';
+import { makeTerrainPlane } from '../render/structures.js';
 
 export interface LoadCtx {
   world: World;
@@ -29,7 +30,18 @@ function entityFromSpawn(s: SpawnDef): Entity {
 }
 
 export function loadMap(map: MapDef, ctx: LoadCtx): void {
-  // explicit collision footprint (e.g. pond) first, so scatter respects it
+  // terrain: when present, the whole grid starts blocked (ocean) and walkable rects open it.
+  if (map.terrain && map.terrain.length) {
+    ctx.world.grid.blocked.fill(1);
+    for (const t of map.terrain) {
+      const plane = makeTerrainPlane(t.kind, t.w, t.h);
+      ctx.place(plane, t.x + (t.w - 1) / 2, t.y + (t.h - 1) / 2); // center of the rect
+      const walkable = WALKABLE_TERRAIN[t.kind]; // walkable clears collision; water re-blocks (lakes over grass)
+      for (let yy = t.y; yy < t.y + t.h; yy++) for (let xx = t.x; xx < t.x + t.w; xx++) setBlocked(ctx.world.grid, xx, yy, !walkable);
+    }
+  }
+
+  // explicit collision footprint (e.g. pond) — applied after terrain so it can re-block
   for (const [x, y] of map.blockedTiles ?? []) setBlocked(ctx.world.grid, x, y, true);
 
   for (const s of map.spawns) {

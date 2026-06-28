@@ -23,20 +23,20 @@ renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadow
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
 const scene = new THREE.Scene(); scene.background = new THREE.Color('#cfe6f2');
-scene.fog = new THREE.Fog(new THREE.Color('#cfe6f2'), 22, 46);
+scene.fog = new THREE.Fog(new THREE.Color('#cfe6f2'), 30, 72);
 const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 200);
 
 scene.add(new THREE.HemisphereLight(new THREE.Color('#bcd6ff'), new THREE.Color('#5a4a32'), 0.75));
 const sun = new THREE.DirectionalLight(new THREE.Color('#ffe7bd'), 2.1);
 sun.position.set(-8, 14, 6); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
 const sc = sun.shadow.camera as THREE.OrthographicCamera;
-sc.near = 1; sc.far = 60; sc.left = -16; sc.right = 16; sc.top = 16; sc.bottom = -16; scene.add(sun);
+sc.near = 1; sc.far = 70; sc.left = -24; sc.right = 24; sc.top = 24; sc.bottom = -24; scene.add(sun);
 scene.add(new THREE.DirectionalLight(new THREE.Color('#cfe0ff'), 0.5).translateX(8));
 
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(GW, GH),
   new THREE.MeshStandardMaterial({ color: new THREE.Color(MAP.groundColor), roughness: 1 }));
 ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
-const grid = new THREE.GridHelper(GW, GH, 0x2c5a24, 0x3a6b2e); (grid.material as THREE.Material).opacity = 0.35; (grid.material as THREE.Material).transparent = true; scene.add(grid);
+const grid = new THREE.GridHelper(GW, GH, 0x2c5a24, 0x3a6b2e); (grid.material as THREE.Material).opacity = 0.1; (grid.material as THREE.Material).transparent = true; grid.position.y = 0.008; scene.add(grid);
 
 /* ---------- sim world + entities ---------- */
 const world = makeWorld(GW, GH);

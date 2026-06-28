@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ASSET_KINDS, type AssetKind } from '../../src/world/mapTypes.js';
+import { ASSET_KINDS, WALKABLE_TERRAIN, type AssetKind } from '../../src/world/mapTypes.js';
 import { REGISTERED_KINDS } from '../../src/world/assetRegistry.js';
 import { tutorialIsland } from '../../src/world/maps/tutorialIsland.js';
 
@@ -47,5 +47,22 @@ describe('Tutorial Island map data', () => {
       expect(sc.count).toBeGreaterThan(0);
       expect(sc.count).toBeLessThan(m.width * m.height);
     }
+  });
+
+  it('every terrain rect lies fully inside the grid', () => {
+    for (const t of m.terrain ?? []) {
+      expect(t.x).toBeGreaterThanOrEqual(0);
+      expect(t.y).toBeGreaterThanOrEqual(0);
+      expect(t.x + t.w).toBeLessThanOrEqual(m.width);
+      expect(t.y + t.h).toBeLessThanOrEqual(m.height);
+      expect(t.w).toBeGreaterThan(0);
+      expect(t.h).toBeGreaterThan(0);
+    }
+  });
+
+  it('player start sits on a walkable terrain tile (not ocean/lake)', () => {
+    const walkableAt = (x: number, y: number) =>
+      (m.terrain ?? []).some((t) => WALKABLE_TERRAIN[t.kind] && x >= t.x && x < t.x + t.w && y >= t.y && y < t.y + t.h);
+    if ((m.terrain ?? []).length) expect(walkableAt(m.start.x, m.start.y)).toBe(true);
   });
 });

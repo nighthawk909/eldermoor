@@ -21,6 +21,15 @@ export type AssetKind = (typeof ASSET_KINDS)[number];
 
 export type EntityKind = 'player' | 'npc' | 'object' | 'grounditem';
 
+/** Terrain paint + collision. A rect of tiles of one kind. Walkable kinds clear collision;
+ *  water blocks. When a map declares ANY terrain, all tiles start blocked (ocean) and only
+ *  walkable terrain rects open them up — so the island's shape is exactly its land rects. */
+export type TerrainKind = 'grass' | 'path' | 'sand' | 'floor' | 'water';
+export const WALKABLE_TERRAIN: Record<TerrainKind, boolean> = {
+  grass: true, path: true, sand: true, floor: true, water: false,
+};
+export interface TerrainRect { kind: TerrainKind; x: number; y: number; w: number; h: number; }
+
 /** A spawn that becomes BOTH a mesh (via the registry) and a sim Entity. */
 export interface SpawnDef {
   id: string;
@@ -62,8 +71,9 @@ export interface MapDef {
   name: string;
   width: number;
   height: number;
-  groundColor: string;
+  groundColor: string;       // base plane (ocean when terrain is used)
   start: { x: number; y: number };
+  terrain?: TerrainRect[];   // painted + collision regions; presence ⇒ ocean-by-default
   spawns: SpawnDef[];
   decor?: DecorDef[];
   scatter?: ScatterDef[];

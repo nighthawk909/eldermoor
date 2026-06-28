@@ -193,10 +193,10 @@ export function animateWalk(char: THREE.Object3D, phase: number, moving = true):
   const u = char.userData as Limbs;
   if (!u.legL || !u.legR) return;
   if (moving) {
-    const s = Math.sin(phase * 9) * 0.6;
+    const s = Math.sin(phase * 9) * 0.78;            // bigger stride so it reads as walking, not gliding
     u.legL.rotation.x = s; u.legR.rotation.x = -s;
-    if (u.armL) u.armL.rotation.x = -s * 0.5;
-    if (u.armR) u.armR.rotation.x = s * 0.5;
+    if (u.armL) u.armL.rotation.x = -s * 0.55;
+    if (u.armR) u.armR.rotation.x = s * 0.55;
   } else {
     for (const g of [u.legL, u.legR, u.armL, u.armR]) if (g) g.rotation.x *= 0.8;
   }

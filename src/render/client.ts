@@ -211,7 +211,7 @@ function animate() {
   }
   if (mv && (mv.path.length > 0 || mv.sinceTick === engine.tickCount)) moving = true;
   const heroMesh = meshes.get('player')!;
-  heroMesh.position.set(wx, moving ? Math.abs(Math.sin(t * 9)) * 0.07 : 0, wz); // walk bob
+  heroMesh.position.set(wx, moving ? Math.abs(Math.sin(t * 9)) * 0.13 : 0, wz); // walk bob (each footfall dips)
   if (mv && mv.from && mv.to) heroMesh.rotation.y = Math.atan2(mv.to.x - mv.from.x, mv.to.y - mv.from.y);
   animateWalk(heroMesh, t, moving);
 

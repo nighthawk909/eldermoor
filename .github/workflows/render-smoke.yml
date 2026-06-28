@@ -1,0 +1,46 @@
+name: render-smoke
+
+# Fast headless render to verify build_eldermoor.py still builds the scene and
+# renders without errors. Runs on CPU (GitHub runners have no GPU) at tiny
+# resolution / low samples so it finishes in well under a minute of render time.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Blender 4.2 LTS
+        run: |
+          set -euo pipefail
+          BLENDER_VER=4.2.3
+          URL="https://download.blender.org/release/Blender4.2/blender-${BLENDER_VER}-linux-x64.tar.xz"
+          echo "Downloading $URL"
+          curl -fsSL "$URL" -o blender.tar.xz
+          mkdir -p "$HOME/blender"
+          tar -xf blender.tar.xz -C "$HOME/blender" --strip-components=1
+          echo "$HOME/blender" >> "$GITHUB_PATH"
+
+      - name: Verify Blender
+        run: blender --version
+
+      - name: Smoke render (CPU)
+        run: |
+          blender --background --python build_eldermoor.py -- \
+            --samples 8 --res 160 200 --device CPU --out ci_smoke.png
+
+      - name: Confirm output was written
+        run: test -s ci_smoke.png && echo "ci_smoke.png rendered OK"
+
+      - name: Upload smoke render artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-smoke-render
+          path: ci_smoke.png
+          if-no-files-found: error

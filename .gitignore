@@ -1,0 +1,15 @@
+# Blender temp / backup files
+*.blend1
+*.blend2
+*.blend@
+/tmp/
+__pycache__/
+
+# CI smoke-render output (regenerated each run, not worth versioning)
+ci_smoke.png
+
+# OS cruft
+Thumbs.db
+.DS_Store
+
+# NOTE: rendered hero/preview PNGs ARE committed on purpose (visual lineage).

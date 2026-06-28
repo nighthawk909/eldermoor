@@ -16,6 +16,7 @@ _Last updated: 2026-06-28._
 | Feature | Parity checklist | Status |
 |---------|------------------|--------|
 | Characters (hero + NPCs + monsters match Blender asset) `parity:characters` | `docs/parity/characters.md` | **ACTIVE — building now** |
+| Interaction / clicking — mobile+desktop parity (tap/long-press/right-click, all options, haptics) `parity:interaction` | `docs/parity/interaction.md` | **NEXT — right after characters** (fixes "tap does nothing on mobile") |
 | Inventory UX (open/use/wield/eat/drop/bury/examine/use-on/drag) `parity:inventory` | `docs/parity/inventory.md` | Not Started |
 | Equipment UX (open/view/remove/wield + right-click/long-press) `parity:equipment` | `docs/parity/equipment.md` | Not Started |
 | Skilling UX (Woodcutting/Firemaking interactions) `parity:skilling` | _to author_ | Not Started |

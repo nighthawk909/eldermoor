@@ -14,7 +14,7 @@ _Last updated: 2026-06-28._
 | 2 | World + entities + tile grid | `docs/modules/World.md` ✅ | **Done (2026-06-28, tests: 7)** | Grid w/ passability, entity store (id/type/tile/components), `entitiesAt`, stable serialize. RNG landed in #1. 7 Vitest tests. Headless data module — on-screen QA arrives with Movement (#3). |
 | 3 | Movement (tiles, pathing) | `docs/modules/Movement.md` ✅ | **Done (2026-06-28, tests: 7)** | BFS pathfinding (8-dir, no corner-cut), tick-stepped walk/run, collision, render-interp hints. 7 Vitest tests (all 7 AC). **Browser-verified** in `movement-harness`: real tap-to-walk routes around walls, never enters a blocked tile, arrives at target (mid-detour screenshot confirmed). |
 | 4 | Items + Inventory (28) | `docs/modules/Inventory.md` ✅ | **Done (2026-06-28, tests: 7)** | Item data table + 28-slot container: stack/non-stack add/remove/count/move/examine. 7 Vitest tests (28 total), typecheck clean. Headless — UI QA when the inventory panel is wired to the sim. |
-| 5 | Equipment | _to author_ | Not Started | |
+| 5 | Equipment | `docs/modules/Equipment.md` ✅ | **Done (2026-06-28, tests: 7)** | Slots + equip/unequip (clean swap, full-inventory guard), `totalBonuses` aggregation. 7 Vitest tests (35 total), typecheck clean. Headless — UI QA with the equipment panel. |
 | 6 | Item/World interaction + context menu | `docs/modules/Interaction.md` ✅ | Spec | Default action + option menu; item-on-object. **Captures the reported mobile bugs as binding criteria: reliable touch tap-to-talk + long-press menu.** Needs the client render+input layer. |
 | 7 | Skills + Woodcutting (gather) | _to author_ | Not Started | |
 | 8 | Firemaking (process) | _to author_ | Not Started | |

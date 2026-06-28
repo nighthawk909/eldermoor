@@ -29,6 +29,10 @@ export const ITEMS: Record<string, ItemDef> = {
     id: 'bronze_dagger', name: 'Bronze dagger', stackable: false, examine: 'A small but sharp blade.',
     equipable: true, slot: 'weapon', bonuses: { attack: 4, strength: 3 }, value: 10,
   },
+  wooden_shield: {
+    id: 'wooden_shield', name: 'Wooden shield', stackable: false, examine: 'A sturdy wooden shield.',
+    equipable: true, slot: 'shield', bonuses: { defence: 5 }, value: 20,
+  },
   bones: { id: 'bones', name: 'Bones', stackable: false, examine: 'Eurgh, dem bones.', value: 1 },
   raw_shrimp: { id: 'raw_shrimp', name: 'Raw shrimp', stackable: false, examine: 'I should cook this first.', value: 2 },
   shrimp: { id: 'shrimp', name: 'Shrimp', stackable: false, examine: 'Some nicely cooked shrimp.', value: 3 },

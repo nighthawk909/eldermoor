@@ -30,6 +30,19 @@ export const WALKABLE_TERRAIN: Record<TerrainKind, boolean> = {
 };
 export interface TerrainRect { kind: TerrainKind; x: number; y: number; w: number; h: number; }
 
+/** A straight run of fence: `len` tiles from (x,y) along the axis. Blocks its line of tiles. */
+export interface FenceDef { x: number; y: number; len: number; dir: 'h' | 'v'; color?: string; }
+
+/** A rectangular building: walls block the footprint perimeter except the single `door` tile;
+ *  the interior is a walkable floor. Optional roof + colors. */
+export interface BuildingDef {
+  x: number; y: number; w: number; h: number;
+  door: { x: number; y: number };
+  wall?: string;
+  roof?: string;
+  floor?: TerrainKind;
+}
+
 /** A spawn that becomes BOTH a mesh (via the registry) and a sim Entity. */
 export interface SpawnDef {
   id: string;
@@ -74,6 +87,8 @@ export interface MapDef {
   groundColor: string;       // base plane (ocean when terrain is used)
   start: { x: number; y: number };
   terrain?: TerrainRect[];   // painted + collision regions; presence ⇒ ocean-by-default
+  fences?: FenceDef[];
+  buildings?: BuildingDef[];
   spawns: SpawnDef[];
   decor?: DecorDef[];
   scatter?: ScatterDef[];

@@ -11,9 +11,9 @@ clicks, long-press, screenshots) → only then check it off and commit → next 
 ## P0 — Core is broken/unusable (fix first)
 - [x] **1. Chat log readability.** Solid translucent panel + high-contrast cream text, raised
       above the HUD row. Verified in browser: 4 chat lines clearly legible over the world.
-- [ ] **2. HUD buttons placement.** `#btns` is `position:static` (CSS bug) so Skills/Items
-      render full-width bottom-left and are hard to find. Make them a fixed, clearly visible
-      corner cluster that works on mobile.
+- [x] **2. HUD buttons placement.** Root cause: `#btns` had no `position` so `right/bottom`
+      were ignored. Set `position:fixed`, larger touch targets, active state. Verified in browser:
+      Skills/Items visible bottom-right on load; each opens its panel via a real click; toggle works.
 - [ ] **3. Reliable tap-to-interact.** Tapping an NPC/object should interact on the first try.
       Verify: tap the Guide once → he is talked to and dialogue shows.
 

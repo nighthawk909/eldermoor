@@ -6,11 +6,13 @@ import { TickEngine } from '../sim/tick.js';
 import { makeRNG } from '../sim/rng.js';
 import { makeWorld, addEntity, setBlocked, type Entity } from '../sim/world.js';
 import { movementSystem, walkTo, type MoveState } from '../sim/movement.js';
-import { makeHero, makeNPC, NPC_PRESETS, makeRat, animateWalk } from './characters.js';
-import { makeTree, makeRock, makeFire, makePond } from './props.js';
+import { makeHero, animateWalk } from './characters.js';
 import { optionsFor, defaultOption, examineText, type ActionId, type InteractOption } from '../sim/interaction.js';
+import { tutorialIsland } from '../world/maps/tutorialIsland.js';
+import { loadMap } from '../world/loadMap.js';
 
-const GW = 24, GH = 24, CX = 12, CY = 12;           // grid + center offset (tile→world)
+const MAP = tutorialIsland;
+const GW = MAP.width, GH = MAP.height, CX = (GW / 2) | 0, CY = (GH / 2) | 0; // grid + center offset (tile→world)
 const TW = (x: number) => x - CX, TZ = (y: number) => y - CY;
 
 /* ---------- renderer / scene ---------- */
@@ -32,7 +34,7 @@ sc.near = 1; sc.far = 60; sc.left = -16; sc.right = 16; sc.top = 16; sc.bottom =
 scene.add(new THREE.DirectionalLight(new THREE.Color('#cfe0ff'), 0.5).translateX(8));
 
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(GW, GH),
-  new THREE.MeshStandardMaterial({ color: new THREE.Color('#4f8a3c'), roughness: 1 }));
+  new THREE.MeshStandardMaterial({ color: new THREE.Color(MAP.groundColor), roughness: 1 }));
 ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
 const grid = new THREE.GridHelper(GW, GH, 0x2c5a24, 0x3a6b2e); (grid.material as THREE.Material).opacity = 0.35; (grid.material as THREE.Material).transparent = true; scene.add(grid);
 
@@ -44,26 +46,12 @@ function spawn(e: Entity, mesh: THREE.Object3D, blocked = false): void {
   addEntity(world, e); mesh.position.set(TW(e.tile!.x), 0, TZ(e.tile!.y)); scene.add(mesh); meshes.set(e.id, mesh);
   if (blocked) setBlocked(world.grid, e.tile!.x, e.tile!.y, true);
 }
-const player = { id: 'player', type: 'player' as const, tile: { x: CX, y: CY } };
-spawn(player, makeHero());
-spawn({ id: 'guide', type: 'npc', npc: 'guide', name: 'Guide', examine: 'He shows new arrivals the ropes.', dlg: ['Welcome to Eldermoor! Tap the ground to walk.', 'Long-press things to see more options.'], tile: { x: 15, y: 12 } }, faceCam(makeNPC(NPC_PRESETS.guide as never)), true);
-spawn({ id: 'wizard', type: 'npc', npc: 'wizard', name: 'Wizard', examine: 'His robes smell faintly of runes.', dlg: ['Magic flows through the runes, traveller.'], tile: { x: 9, y: 15 } }, faceCam(makeNPC(NPC_PRESETS.wizard as never)), true);
-spawn({ id: 'merchant', type: 'npc', npc: 'merchant', name: 'Merchant', examine: 'Always looking for a deal.', dlg: ['Finest wares in all of Eldermoor!'], tile: { x: 16, y: 16 } }, faceCam(makeNPC(NPC_PRESETS.merchant as never)), true);
-spawn({ id: 'rat', type: 'npc', npc: 'rat', combat: true, name: 'Giant rat', examine: 'A large, mangy rodent.', tile: { x: 13, y: 17 } }, makeRat(), true);
-spawn({ id: 'tree1', type: 'object', obj: 'tree', name: 'Tree', examine: 'A sturdy tree — good for logs.', tile: { x: 10, y: 10 } }, makeTree(), true);
-spawn({ id: 'rock1', type: 'object', obj: 'rock', name: 'Copper rock', examine: 'A rock streaked with copper.', tile: { x: 17, y: 9 } }, makeRock(), true);
-// pond (decor) + lit campfire for a more populated scene
-const pond = makePond(); pond.position.set(TW(6), 0, TZ(18)); scene.add(pond);
-for (const [px, py] of [[5, 17], [5, 18], [6, 17], [6, 18], [7, 18], [6, 19]] as [number, number][]) setBlocked(world.grid, px, py, true);
-const fire = makeFire(); fire.position.set(TW(18), 0, TZ(14)); scene.add(fire); setBlocked(world.grid, 18, 14, true);
-// scatter decor trees (block their tiles)
-for (let i = 0; i < 18; i++) {
-  const x = 1 + rng.int(GW - 2), y = 1 + rng.int(GH - 2);
-  if (Math.abs(x - CX) < 3 && Math.abs(y - CY) < 3) continue;
-  if (world.grid.blocked[y * GW + x]) continue;
-  const t = makeTree(); t.position.set(TW(x), 0, TZ(y)); t.scale.setScalar(0.8 + rng.next() * 0.5); scene.add(t); setBlocked(world.grid, x, y, true);
-}
 function faceCam(o: THREE.Object3D): THREE.Object3D { o.rotation.y = Math.PI; return o; } // NPCs face -Z toward the player/camera
+function place(mesh: THREE.Object3D, x: number, y: number): void { mesh.position.set(TW(x), 0, TZ(y)); scene.add(mesh); }
+const player = { id: 'player', type: 'player' as const, tile: { x: MAP.start.x, y: MAP.start.y } };
+spawn(player, makeHero());
+// everything else (NPCs, monsters, resources, decor, scatter) comes from the map data
+loadMap(MAP, { world, spawn, place, faceCam, rng });
 
 /* ---------- tick ---------- */
 const engine = new TickEngine({ world, rng, systems: [movementSystem] });

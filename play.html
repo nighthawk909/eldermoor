@@ -10,11 +10,25 @@
   #hint{position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:2;
     font-family:system-ui,sans-serif;font-size:13px;color:#f3e9cf;
     background:rgba(12,16,22,.78);padding:6px 12px;border-radius:8px;border:1px solid #4a525e;}
+  .ui{font-family:"Trebuchet MS",system-ui,sans-serif;color:#f6eed6;}
+  #log{position:fixed;left:10px;bottom:10px;width:min(72%,380px);font-size:13.5px;line-height:1.5;
+    background:rgba(12,16,22,.78);border:1px solid #4a525e;border-radius:9px;padding:8px 11px;
+    z-index:2;max-height:32%;overflow:hidden;}
+  #log:empty{display:none;} #log div{text-shadow:0 1px 2px #000;margin:1px 0;}
+  #dlg{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);width:min(92%,460px);display:none;
+    background:rgba(18,22,28,.96);border:1px solid #c8a24a;border-radius:12px;padding:14px 16px;z-index:3;}
+  #dlg .who{color:#e7c64f;font-weight:bold;margin-bottom:5px;font-size:13px;}
+  #dlg .tx{font-size:14px;line-height:1.5;}
+  #dlg .go{margin-top:10px;text-align:right;}
+  #dlg button{background:#3a6f8c;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;}
 </style>
 </head>
 <body>
-  <div id="hint">Tap the ground to walk · new tile/tick engine (interaction coming next)</div>
+  <div id="hint">Tap to walk · tap an NPC/object to interact · (long-press menu coming next)</div>
   <canvas id="c"></canvas>
+  <div id="log" class="ui"></div>
+  <div id="dlg" class="ui"><div class="who" id="dlgwho"></div><div class="tx" id="dlgtx"></div>
+    <div class="go"><button id="dlgbtn">Continue</button></div></div>
   <script type="module" src="/src/render/client.ts"></script>
 </body>
 </html>

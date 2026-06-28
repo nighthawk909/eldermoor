@@ -9,8 +9,8 @@ clicks, long-press, screenshots) → only then check it off and commit → next 
 > that a function returned the right value in a console.
 
 ## P0 — Core is broken/unusable (fix first)
-- [ ] **1. Chat log readability.** The chat text is near-invisible over the world. Give it a
-      solid translucent panel, padding, higher-contrast text, readable size, max lines.
+- [x] **1. Chat log readability.** Solid translucent panel + high-contrast cream text, raised
+      above the HUD row. Verified in browser: 4 chat lines clearly legible over the world.
 - [ ] **2. HUD buttons placement.** `#btns` is `position:static` (CSS bug) so Skills/Items
       render full-width bottom-left and are hard to find. Make them a fixed, clearly visible
       corner cluster that works on mobile.

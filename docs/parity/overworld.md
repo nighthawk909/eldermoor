@@ -38,10 +38,15 @@ sampler renders every kind with zero build errors.
       interior gets a walkable floor. Verified in browser: bank hut + house render with pitched roofs,
       collision probe confirms walls/fences block, doorways + interiors walkable.
 - [x] Tests: building fits grid + door on perimeter; fence run in bounds (52 tests).
-**3c. Skill-station rooms — ⬜** — anvil/furnace/range/altar/bank/fishing-spot props; one room per
-      station (survival/fishing, cooking, mining/smithing, combat, quest guide, bank, prayer, magic).
+**3c. Skill-station props + zones — ✅**
+- [x] New station factories in `props.ts`: `makeAnvil/makeFurnace/makeRange/makeAltar/makeBankBooth/makeFishingSpot`
+      (emissive furnace/range/altar candles), registered as kinds `anvil/furnace/range/altar/bank_booth/fishing_spot`.
+- [x] Placed by data across zones: fishing spot (lake), cooking range, smithing (ore rocks + furnace + anvil, NE),
+      prayer altar + magic rune altar, bank booth (inside the bank hut), combat field, quest guide (start).
+- [x] Verified in browser: all 7 stations spawn with meshes at correct tiles, collision-blocked, sim `obj`
+      types set (examinable). Skill *actions* on them are separate later features.
 
-### 4. Guided quest flow — ⬜
+### 4. Guided quest flow — ⬜ (next)
 - [ ] Stations gate progression (complete a step → next area opens), à la OSRS Tutorial Island.
 
 ## Rules

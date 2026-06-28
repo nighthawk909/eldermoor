@@ -16,6 +16,20 @@ export function makeTree(): THREE.Group {
   return g;
 }
 
+export function makeFire(): THREE.Group {
+  const g = new THREE.Group();
+  for (let i = 0; i < 5; i++) { const a = (i / 5) * Math.PI * 2; const lg = P(new THREE.CylinderGeometry(0.05, 0.05, 0.6, 5), mat('#5a3f28'), Math.cos(a) * 0.2, 0.1, Math.sin(a) * 0.2); lg.rotation.z = 1; g.add(lg); }
+  const fl = P(new THREE.ConeGeometry(0.25, 0.7, 6), new THREE.MeshStandardMaterial({ color: new THREE.Color('#ff8a2c'), emissive: new THREE.Color('#ff7a1c'), emissiveIntensity: 1.4, flatShading: true }), 0, 0.45, 0);
+  g.add(fl); const L = new THREE.PointLight(new THREE.Color('#ff9a3c'), 6, 6, 2); L.position.y = 0.7; g.add(L);
+  return g;
+}
+export function makePond(): THREE.Group {
+  const g = new THREE.Group();
+  const w = new THREE.Mesh(new THREE.CircleGeometry(1.6, 24), new THREE.MeshStandardMaterial({ color: new THREE.Color('#2c6a82'), roughness: 0.2, metalness: 0.1, transparent: true, opacity: 0.9 }));
+  w.rotation.x = -Math.PI / 2; w.position.y = 0.04; w.receiveShadow = true; g.add(w);
+  return g;
+}
+
 export function makeRock(): THREE.Group {
   const g = new THREE.Group();
   const r = P(new THREE.IcosahedronGeometry(0.6, 0), mat('#7d8089', { rough: 1 }), 0, 0.35, 0);

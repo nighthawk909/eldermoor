@@ -7,8 +7,8 @@ import { makeRNG } from '../sim/rng.js';
 import { makeWorld, addEntity, setBlocked, type Entity } from '../sim/world.js';
 import { movementSystem, walkTo, type MoveState } from '../sim/movement.js';
 import { makeHero, makeNPC, NPC_PRESETS, makeRat, animateWalk } from './characters.js';
-import { makeTree, makeRock } from './props.js';
-import { defaultOption, examineText, type ActionId } from '../sim/interaction.js';
+import { makeTree, makeRock, makeFire, makePond } from './props.js';
+import { optionsFor, defaultOption, examineText, type ActionId, type InteractOption } from '../sim/interaction.js';
 
 const GW = 24, GH = 24, CX = 12, CY = 12;           // grid + center offset (tile→world)
 const TW = (x: number) => x - CX, TZ = (y: number) => y - CY;
@@ -52,12 +52,16 @@ spawn({ id: 'merchant', type: 'npc', npc: 'merchant', name: 'Merchant', examine:
 spawn({ id: 'rat', type: 'npc', npc: 'rat', combat: true, name: 'Giant rat', examine: 'A large, mangy rodent.', tile: { x: 13, y: 17 } }, makeRat(), true);
 spawn({ id: 'tree1', type: 'object', obj: 'tree', name: 'Tree', examine: 'A sturdy tree — good for logs.', tile: { x: 10, y: 10 } }, makeTree(), true);
 spawn({ id: 'rock1', type: 'object', obj: 'rock', name: 'Copper rock', examine: 'A rock streaked with copper.', tile: { x: 17, y: 9 } }, makeRock(), true);
+// pond (decor) + lit campfire for a more populated scene
+const pond = makePond(); pond.position.set(TW(6), 0, TZ(18)); scene.add(pond);
+for (const [px, py] of [[5, 17], [5, 18], [6, 17], [6, 18], [7, 18], [6, 19]] as [number, number][]) setBlocked(world.grid, px, py, true);
+const fire = makeFire(); fire.position.set(TW(18), 0, TZ(14)); scene.add(fire); setBlocked(world.grid, 18, 14, true);
 // scatter decor trees (block their tiles)
-for (let i = 0; i < 10; i++) {
+for (let i = 0; i < 18; i++) {
   const x = 1 + rng.int(GW - 2), y = 1 + rng.int(GH - 2);
   if (Math.abs(x - CX) < 3 && Math.abs(y - CY) < 3) continue;
   if (world.grid.blocked[y * GW + x]) continue;
-  const t = makeTree(); t.position.set(TW(x), 0, TZ(y)); t.scale.setScalar(0.8 + rng.next() * 0.4); scene.add(t); setBlocked(world.grid, x, y, true);
+  const t = makeTree(); t.position.set(TW(x), 0, TZ(y)); t.scale.setScalar(0.8 + rng.next() * 0.5); scene.add(t); setBlocked(world.grid, x, y, true);
 }
 function faceCam(o: THREE.Object3D): THREE.Object3D { o.rotation.y = Math.PI; return o; } // NPCs face -Z toward the player/camera
 
@@ -77,6 +81,15 @@ function nextDlg(): void { const line = dlgQueue.shift(); if (line === undefined
 document.getElementById('dlgbtn')!.addEventListener('click', (e) => { e.stopPropagation(); nextDlg(); });
 function haptic(ms = 12): void { try { (navigator as unknown as { vibrate?: (n: number) => void }).vibrate?.(ms); } catch { /* unsupported */ } }
 
+/* ---------- click-feedback marker (OSRS-style tap flash) ---------- */
+const markers: { mesh: THREE.Mesh; born: number }[] = [];
+const markerGeo = new THREE.RingGeometry(0.22, 0.4, 22);
+function flashAt(wx: number, wz: number, color: string): void {
+  const m = new THREE.Mesh(markerGeo, new THREE.MeshBasicMaterial({ color: new THREE.Color(color), transparent: true, side: THREE.DoubleSide, depthTest: false }));
+  m.rotation.x = -Math.PI / 2; m.position.set(wx, 0.06, wz); m.renderOrder = 999; scene.add(m);
+  markers.push({ mesh: m, born: clock.elapsedTime });
+}
+
 /* ---------- interaction ---------- */
 let pending: { id: string; action: ActionId } | null = null;
 function entityIdAt(obj: THREE.Object3D | null): string | null {
@@ -86,8 +99,19 @@ function entityIdAt(obj: THREE.Object3D | null): string | null {
 }
 function interactWith(id: string): void {
   const ent = world.entities.get(id); if (!ent || !ent.tile) return;
-  pending = { id, action: defaultOption(ent).action };
-  walkTo(player as unknown as Entity, world.grid, ent.tile.x, ent.tile.y, { adjacent: true });
+  runOption(defaultOption(ent), ent);
+}
+/** Run a chosen option against a target entity (or a ground tile for 'walk'). */
+function runOption(opt: InteractOption, ent: Entity | null, tile?: { x: number; y: number }): void {
+  if (opt.action === 'walk') {
+    pending = null;
+    const t = ent?.tile ?? tile; if (t) walkTo(player as unknown as Entity, world.grid, t.x, t.y);
+  } else if (opt.action === 'examine' && ent) {
+    runAction('examine', ent); // examine is instant — no walking
+  } else if (ent && ent.tile) {
+    pending = { id: ent.id, action: opt.action };
+    walkTo(player as unknown as Entity, world.grid, ent.tile.x, ent.tile.y, { adjacent: true });
+  }
 }
 function runAction(action: ActionId, ent: Entity): void {
   haptic();
@@ -100,23 +124,75 @@ function runAction(action: ActionId, ent: Entity): void {
   else if (action === 'examine') log(examineText(ent));
 }
 
-/* ---------- input: tap (entity → default action, ground → walk) ---------- */
+/* ---------- input: tap = default action · long-press / right-click = options menu ---------- */
 const ray = new THREE.Raycaster();
-let downX = 0, downY = 0, dragged = false;
-canvas.addEventListener('pointerdown', (e) => { downX = e.clientX; downY = e.clientY; dragged = false; });
-canvas.addEventListener('pointermove', (e) => { if (Math.hypot(e.clientX - downX, e.clientY - downY) > 8) dragged = true; });
-canvas.addEventListener('pointerup', (e) => {
-  if (dragged) return;
-  const ndc = new THREE.Vector2((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+interface Pick { ent?: Entity; tile?: { x: number; y: number }; }
+function pickAt(clientX: number, clientY: number): Pick {
+  const ndc = new THREE.Vector2((clientX / innerWidth) * 2 - 1, -(clientY / innerHeight) * 2 + 1);
   ray.setFromCamera(ndc, camera);
   const entObjs = [...meshes.entries()].filter(([id]) => id !== 'player').map(([, m]) => m);
   const eh = ray.intersectObjects(entObjs, true)[0];
-  if (eh) { const id = entityIdAt(eh.object); if (id) { interactWith(id); return; } }
-  const hit = ray.intersectObject(ground)[0];
-  if (!hit) return;
-  pending = null;
-  walkTo(player as unknown as Entity, world.grid, Math.round(hit.point.x) + CX, Math.round(hit.point.z) + CY);
+  if (eh) { const id = entityIdAt(eh.object); if (id) { const ent = world.entities.get(id); if (ent) return { ent }; } }
+  const gh = ray.intersectObject(ground)[0];
+  if (gh) return { tile: { x: Math.round(gh.point.x) + CX, y: Math.round(gh.point.z) + CY } };
+  return {};
+}
+
+const ctxEl = document.getElementById('ctx')!;
+let menuOpen = false;
+function closeMenu(): void { ctxEl.style.display = 'none'; menuOpen = false; }
+function openMenu(clientX: number, clientY: number): void {
+  const p = pickAt(clientX, clientY);
+  const opts: InteractOption[] = p.ent ? optionsFor(p.ent) : p.tile ? [{ label: 'Walk here', action: 'walk' }] : [];
+  if (!opts.length) return;
+  ctxEl.innerHTML = '<div class="h">Choose option</div>';
+  for (const o of opts) {
+    const row = document.createElement('div'); row.className = 'i'; row.textContent = o.label;
+    row.addEventListener('pointerup', (ev) => { ev.stopPropagation(); closeMenu(); runOption(o, p.ent ?? null, p.tile); });
+    ctxEl.appendChild(row);
+  }
+  ctxEl.style.display = 'block';
+  const mw = ctxEl.offsetWidth || 160, mh = ctxEl.offsetHeight || 160;
+  ctxEl.style.left = Math.min(clientX, innerWidth - mw - 4) + 'px';
+  ctxEl.style.top = Math.min(clientY, innerHeight - mh - 4) + 'px';
+  menuOpen = true; haptic(18);
+}
+document.addEventListener('pointerdown', (e) => { if (menuOpen && !ctxEl.contains(e.target as Node)) closeMenu(); }, true);
+
+// orbit camera state (drag to look, pinch / wheel to zoom — ported from the original prototype)
+const sph = { r: 13, th: 0.7, phi: 0.95 };
+const camT = new THREE.Vector3(TW(CX), 1, TZ(CY));
+const clampR = () => { sph.r = Math.max(6, Math.min(30, sph.r)); };
+const ptr = new Map<number, { x: number; y: number }>();
+let down: { x: number; y: number } | null = null, dragged = false, longPressed = false, pinch: number | null = null;
+let lpTimer: ReturnType<typeof setTimeout> | null = null;
+const clearLP = () => { if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; } };
+const pinchDist = () => { const v = [...ptr.values()]; return Math.hypot(v[0]!.x - v[1]!.x, v[0]!.y - v[1]!.y); };
+function tap(x: number, y: number): void {
+  const p = pickAt(x, y);
+  if (p.ent && p.ent.tile) { flashAt(TW(p.ent.tile.x), TZ(p.ent.tile.y), '#cf4a3a'); interactWith(p.ent.id); }
+  else if (p.tile) { flashAt(TW(p.tile.x), TZ(p.tile.y), '#e7c64f'); pending = null; walkTo(player as unknown as Entity, world.grid, p.tile.x, p.tile.y); }
+}
+canvas.addEventListener('pointerdown', (e) => {
+  canvas.setPointerCapture(e.pointerId); ptr.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (ptr.size === 1) { down = { x: e.clientX, y: e.clientY }; dragged = false; longPressed = false; clearLP(); lpTimer = setTimeout(() => { longPressed = true; openMenu(down!.x, down!.y); }, 450); }
+  else { clearLP(); if (ptr.size === 2) pinch = pinchDist(); }
 });
+canvas.addEventListener('pointermove', (e) => {
+  if (!ptr.has(e.pointerId)) return;
+  const prev = ptr.get(e.pointerId)!; const dx = e.clientX - prev.x, dy = e.clientY - prev.y;
+  ptr.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (ptr.size >= 2) { const d = pinchDist(); if (pinch) { sph.r *= pinch / d; clampR(); } pinch = d; clearLP(); return; } // pinch-zoom
+  if (down && Math.hypot(e.clientX - down.x, e.clientY - down.y) > 12) { dragged = true; clearLP(); }
+  if (dragged) { sph.th -= dx * 0.005; sph.phi = Math.max(0.35, Math.min(1.4, sph.phi - dy * 0.005)); } // orbit
+});
+canvas.addEventListener('pointerup', (e) => {
+  const two = ptr.size === 2; ptr.delete(e.pointerId); if (ptr.size < 2) pinch = null; clearLP();
+  if (!two && !dragged && !longPressed && down && e.button === 0) tap(down.x, down.y);
+  if (ptr.size === 0) down = null;
+});
+canvas.addEventListener('wheel', (e) => { sph.r *= 1 + e.deltaY * 0.0012; clampR(); e.preventDefault(); }, { passive: false }); // zoom
+canvas.addEventListener('contextmenu', (e) => { e.preventDefault(); openMenu(e.clientX, e.clientY); });
 
 /* ---------- render loop ---------- */
 function resize() { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
@@ -135,9 +211,17 @@ function animate() {
   }
   if (mv && (mv.path.length > 0 || mv.sinceTick === engine.tickCount)) moving = true;
   const heroMesh = meshes.get('player')!;
-  heroMesh.position.set(wx, 0, wz);
+  heroMesh.position.set(wx, moving ? Math.abs(Math.sin(t * 9)) * 0.07 : 0, wz); // walk bob
   if (mv && mv.from && mv.to) heroMesh.rotation.y = Math.atan2(mv.to.x - mv.from.x, mv.to.y - mv.from.y);
   animateWalk(heroMesh, t, moving);
+
+  // fade out click markers
+  for (let i = markers.length - 1; i >= 0; i--) {
+    const mk = markers[i]!; const age = t - mk.born; const s = 1 + age * 3;
+    mk.mesh.scale.set(s, s, s);
+    (mk.mesh.material as THREE.MeshBasicMaterial).opacity = Math.max(0, 1 - age / 0.5);
+    if (age > 0.5) { scene.remove(mk.mesh); markers.splice(i, 1); }
+  }
 
   // run a pending interaction once we've walked adjacent to the target
   if (pending && (!mv || mv.path.length === 0)) {
@@ -148,9 +232,13 @@ function animate() {
     pending = null;
   }
 
-  // follow camera
-  camera.position.set(wx + 0.01, 11, wz + 11);
-  camera.lookAt(wx, 1, wz);
+  // orbit follow camera (drag/pinch/wheel controlled)
+  camT.lerp(new THREE.Vector3(wx, 1.0, wz), 0.15);
+  camera.position.set(
+    camT.x + sph.r * Math.sin(sph.phi) * Math.sin(sph.th),
+    camT.y + sph.r * Math.cos(sph.phi),
+    camT.z + sph.r * Math.sin(sph.phi) * Math.cos(sph.th));
+  camera.lookAt(camT);
   renderer.render(scene, camera);
 }
 animate();

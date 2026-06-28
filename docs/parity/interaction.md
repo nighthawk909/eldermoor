@@ -6,13 +6,15 @@ AND Josh confirms the mobile boxes on his phone. Built sub-feature by sub-featur
 
 ## Input modes (must all work)
 - [x] **Desktop left-click** = run the target's DEFAULT (first) action (verified on /play)
-- [ ] **Desktop right-click** = open the full "Choose option" menu (step D)
+- [x] **Desktop right-click** = open the full "Choose option" menu (verified on /play)
 - [x] **Mobile short tap** = run the DEFAULT action — FIXED: tap NPC → walk-adjacent → Talk-to +
       dialogue + haptic verified; Josh to confirm the buzz on a real phone
-- [ ] **Mobile long-press (~450ms, no drag)** = open the "Choose option" menu (step D)
-- [x] Tap-vs-drag/camera distinguished (drag threshold; stationary tap is never eaten by drag)
+- [x] **Long-press (~450ms, no drag) / desktop right-click** = open the "Choose option" menu — menu
+      verified opening on /play (right-click → "Choose option"); long-press uses the same path (12px drag
+      cancels it so it never also walks); Josh to confirm the 450ms hold on a real phone
+- [x] Tap-vs-drag/camera distinguished (drag threshold; stationary tap is never eaten by drag/orbit)
 - [x] **Haptic** on a successful action (`navigator.vibrate(12)`, feature-detected — fires; buzz is device-only)
-- [ ] Visual tap acknowledgement (ripple/marker) + selected-target highlight (step D)
+- [x] Visual tap acknowledgement (expanding ring marker via `flashAt`, gold=walk / red=interact, fades ~0.5s)
 
 ## Targets and their option sets (default action listed first)
 - [ ] **Ground/tile** → Walk here

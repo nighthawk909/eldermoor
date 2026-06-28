@@ -5,14 +5,15 @@ Bar: the in-game hero, human NPCs, and monsters must read at the quality of our 
 **reusable, data-driven factory** (`src/render/characters.ts`) so any NPC/monster is a data row.
 
 ## Build (each must be done + look right on screen)
-- [ ] `makeHero()` — sculpted tapered head (chin/brow/nose/hair/beard), rounded limbs, tunic + flared
+- [x] `makeHero()` — sculpted tapered head (chin/brow/nose/hair/beard), rounded limbs, tunic + flared
       hem, leather spaulders, belt, **rounded boots**, gripped sword, round shield — matches the render
-- [ ] Faceted flat-shaded style + the locked palette (CLAUDE.md §4); warm 3-point-ish lighting
+      (ported from build_eldermoor.py; verified front + side in the showcase)
+- [x] Faceted flat-shaded style + the locked palette (CLAUDE.md §4); warm 3-point lighting
 - [ ] `makeNPC(opts)` variants from the SAME factory (e.g. Guide, Wizard, Merchant) by params/data
 - [ ] At least one **monster** (`makeRat`, and a `makeBrute`) that is clearly not a box
-- [ ] Animation rig retained (limb groups) so walk/attack still animate
+- [ ] Animation rig retained (limb groups exist in userData) — wire walk/attack + verify
 - [ ] Reusable: a character is defined by a DATA entry (kind → factory + params), placeable anywhere
-- [ ] Showcase page (turntable/lineup) deployed so it can be viewed + rotated
+- [x] Showcase page (turntable/lineup) deployed so it can be viewed + rotated (`/characters-showcase`)
 
 ## Mobile QA — Josh confirms on a real phone
 - [ ] Hero/NPCs/monster look good (not blocky) on the phone, side-by-side with the Blender render

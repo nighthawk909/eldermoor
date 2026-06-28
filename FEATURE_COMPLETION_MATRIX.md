@@ -15,7 +15,7 @@ _Last updated: 2026-06-28._
 ## Player features — parity-gated (the real Definition of Done)
 | Feature | Parity checklist | Status |
 |---------|------------------|--------|
-| Characters (hero + NPCs + monsters match Blender asset) `parity:characters` | `docs/parity/characters.md` | **ACTIVE — building now** |
+| Characters (hero + NPCs + monsters match Blender asset) `parity:characters` | `docs/parity/characters.md` | **BUILD COMPLETE — pending Josh's mobile sign-off** (hero+NPCs+monsters+walk anim shipped; stays open until the mobile QA boxes are confirmed) |
 | Interaction / clicking — mobile+desktop parity (tap/long-press/right-click, all options, haptics) `parity:interaction` | `docs/parity/interaction.md` | **NEXT — right after characters** (fixes "tap does nothing on mobile") |
 | Inventory UX (open/use/wield/eat/drop/bury/examine/use-on/drag) `parity:inventory` | `docs/parity/inventory.md` | Not Started |
 | Equipment UX (open/view/remove/wield + right-click/long-press) `parity:equipment` | `docs/parity/equipment.md` | Not Started |

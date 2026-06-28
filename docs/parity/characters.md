@@ -11,7 +11,8 @@ Bar: the in-game hero, human NPCs, and monsters must read at the quality of our 
 - [x] Faceted flat-shaded style + the locked palette (CLAUDE.md §4); warm 3-point lighting
 - [x] `makeNPC(opts)` variants from the SAME factory — Guide/Wizard/Merchant by data (NPC_PRESETS); verified in lineup
 - [x] At least one **monster** (`makeRat` + `makeBrute`) that is clearly not a box; verified in lineup
-- [ ] Animation rig retained (limb groups exist in userData) — wire walk/attack + verify
+- [x] Animation: limb groups pivot at hip/shoulder; `animateWalk` walk cycle wired + verified
+      animating in the showcase (leg angle changes frame-to-frame; mid-stride confirmed)
 - [x] Reusable: a character is a DATA entry (NPC_PRESETS / factory by kind), placeable anywhere
 - [x] Showcase page (turntable/lineup) deployed so it can be viewed + rotated (`/characters-showcase`)
 

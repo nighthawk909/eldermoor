@@ -1,6 +1,6 @@
 // Showcase/manual-QA for the character factory. Warm 3-point lighting + turntable, mobile-friendly.
 import * as THREE from 'three';
-import { makeHero, makeNPC, NPC_PRESETS, makeRat, makeBrute } from '../render/characters.js';
+import { makeHero, makeNPC, NPC_PRESETS, makeRat, makeBrute, animateWalk } from '../render/characters.js';
 
 const canvas = document.getElementById('c') as HTMLCanvasElement;
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -33,7 +33,8 @@ ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground)
 
 // cast lineup on a turntable
 const pivot = new THREE.Group(); scene.add(pivot);
-const place = (m: THREE.Object3D, x: number) => { m.position.x = x; pivot.add(m); };
+const cast: THREE.Object3D[] = [];
+const place = (m: THREE.Object3D, x: number) => { m.position.x = x; pivot.add(m); cast.push(m); };
 const hero = makeHero(); place(hero, 0);
 place(makeBrute(), -3.3);
 place(makeNPC(NPC_PRESETS.wizard as never), -2.0);
@@ -58,6 +59,8 @@ const clock = new THREE.Clock();
 function animate() {
   requestAnimationFrame(animate);
   const dt = clock.getDelta();
+  const t = clock.elapsedTime;
+  for (const m of cast) animateWalk(m, t, true); // walk-in-place to show the limb animation
   if (autoSpin) pivot.rotation.y += dt * 0.5;
   else if (!dragging) { pivot.rotation.y += vel; vel *= 0.92; }
   renderer.render(scene, camera);

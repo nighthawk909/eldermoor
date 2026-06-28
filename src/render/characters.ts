@@ -97,8 +97,9 @@ export function makeHero(): THREE.Group {
   const armL = new THREE.Group(), armR = new THREE.Group();
 
   for (const [s, leg] of [[1, legL], [-1, legR]] as [number, THREE.Group][]) {
-    leg.add(cyl(0.1, 0.12, 0.62, [0.15 * s, 0.51, 0], trouser, 8));
-    buildBoot(leg, 0.15 * s, 0.16);
+    leg.position.set(0.15 * s, 0.82, 0);              // hip pivot (so the leg swings about the hip)
+    leg.add(cyl(0.1, 0.12, 0.62, [0, -0.31, 0], trouser, 8));
+    buildBoot(leg, 0, -0.66);
     g.add(leg);
   }
   g.add(box([0.42, 0.18, 0.28], [0, 0.88, 0], leather));            // pelvis/belt
@@ -107,10 +108,11 @@ export function makeHero(): THREE.Group {
   g.add(cyl(0.17, 0.25, 0.17, [0, 1.53, 0], tunic, 10));            // shoulder yoke
   g.add(box([0.22, 0.46, 0.04], [0, 1.34, 0.245], trim));          // tabard
   for (const [s, arm] of [[1, armL], [-1, armR]] as [number, THREE.Group][]) {
-    arm.add(cyl(0.085, 0.1, 0.5, [0.3 * s, 1.31, 0], tunic, 8));    // sleeve
-    arm.add(cyl(0.1, 0.092, 0.07, [0.3 * s, 1.08, 0], leather, 10)); // cuff
+    arm.position.set(0.3 * s, 1.42, 0);              // shoulder pivot
+    arm.add(cyl(0.085, 0.1, 0.5, [0, -0.11, 0], tunic, 8));    // sleeve
+    arm.add(cyl(0.1, 0.092, 0.07, [0, -0.34, 0], leather, 10)); // cuff
     g.add(arm);
-    g.add(ico(0.135, [0.31 * s, 1.5, 0], leather, 2, [1.2, 0.8, 1.05])); // spaulder
+    g.add(ico(0.135, [0.31 * s, 1.5, 0], leather, 2, [1.2, 0.8, 1.05])); // spaulder (on body)
   }
   g.add(ico(0.092, [-0.3, 1.02, 0.03], skin, 2, [1.0, 0.95, 1.2])); // shield-side hand
   g.add(cyl(0.07, 0.085, 0.12, [0, 1.66, 0], skin, 8));             // neck
@@ -158,8 +160,9 @@ export function makeNPC(o: NPCOpts): THREE.Group {
     g.add(cyl(0.22, 0.42, 1.05, [0, 0.52, 0], mat(o.robe, { rough: 0.85 }), 12)); // long flared robe
   } else {
     for (const [s, leg] of [[1, legL], [-1, legR]] as [number, THREE.Group][]) {
-      leg.add(cyl(0.1, 0.12, 0.62, [0.15 * s, 0.51, 0], mat(o.leg ?? PAL.trouser, { rough: 0.85 }), 8));
-      buildBoot(leg, 0.15 * s, 0.16); g.add(leg);
+      leg.position.set(0.15 * s, 0.82, 0);            // hip pivot
+      leg.add(cyl(0.1, 0.12, 0.62, [0, -0.31, 0], mat(o.leg ?? PAL.trouser, { rough: 0.85 }), 8));
+      buildBoot(leg, 0, -0.66); g.add(leg);
     }
     g.add(box([0.4, 0.16, 0.26], [0, 0.88, 0], leather)); // belt
   }
@@ -167,8 +170,9 @@ export function makeNPC(o: NPCOpts): THREE.Group {
   g.add(cyl(0.17, 0.24, 0.16, [0, 1.52, 0], tunicM, 10));  // yoke
   if (o.apron) g.add(box([0.24, 0.5, 0.04], [0, 1.3, 0.2], mat(o.apron, { rough: 0.9 }))); // apron
   for (const [s, arm] of [[1, armL], [-1, armR]] as [number, THREE.Group][]) {
-    arm.add(cyl(0.082, 0.1, 0.52, [0.3 * s, 1.3, 0], mat(o.sleeve ?? o.tunic, { rough: 0.85 }), 8)); // sleeve
-    arm.add(ico(0.085, [0.3 * s, 1.0, 0.02], skin, 2, [1, 0.95, 1.15]));                            // hand
+    arm.position.set(0.3 * s, 1.42, 0);              // shoulder pivot
+    arm.add(cyl(0.082, 0.1, 0.52, [0, -0.12, 0], mat(o.sleeve ?? o.tunic, { rough: 0.85 }), 8)); // sleeve
+    arm.add(ico(0.085, [0, -0.42, 0.02], skin, 2, [1, 0.95, 1.15]));                              // hand
     g.add(arm);
   }
   g.add(cyl(0.07, 0.085, 0.12, [0, 1.65, 0], skin, 8));    // neck
@@ -181,6 +185,22 @@ export const NPC_PRESETS: Record<string, NPCOpts> = {
   wizard: { tunic: '#2e3a8c', sleeve: '#2e3a8c', robe: '#2e3a8c', hat: '#2e3a8c', hair: '#e8e8e8', beard: '#e8e8e8' },
   merchant: { tunic: '#7a4a2c', apron: '#c8a24a', hair: '#3a2a1c', beard: null },
 };
+
+/* ---------------- animation ---------------- */
+interface Limbs { legL?: THREE.Group; legR?: THREE.Group; armL?: THREE.Group; armR?: THREE.Group; }
+/** Walk cycle: swing legs/arms about their hip/shoulder pivots. `phase` is a running clock (seconds). */
+export function animateWalk(char: THREE.Object3D, phase: number, moving = true): void {
+  const u = char.userData as Limbs;
+  if (!u.legL || !u.legR) return;
+  if (moving) {
+    const s = Math.sin(phase * 9) * 0.6;
+    u.legL.rotation.x = s; u.legR.rotation.x = -s;
+    if (u.armL) u.armL.rotation.x = -s * 0.5;
+    if (u.armR) u.armR.rotation.x = s * 0.5;
+  } else {
+    for (const g of [u.legL, u.legR, u.armL, u.armR]) if (g) g.rotation.x *= 0.8;
+  }
+}
 
 /* ---------------- monsters ---------------- */
 export function makeRat(): THREE.Group {

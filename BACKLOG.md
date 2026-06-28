@@ -17,6 +17,9 @@ clicks, long-press, screenshots) → only then check it off and commit → next 
 - [ ] **3. Reliable tap-to-interact.** Tapping an NPC/object should interact on the first try.
       Verify: tap the Guide once → he is talked to and dialogue shows.
 
+- [x] **3b. Skill names truncated.** Removed `s.slice(0,4)`; full names in a flex cell (ellipsis
+      fallback), wider panel. Verified at 414px phone width: all 14 names full & readable, banner not clipped.
+
 ## P1 — Interaction model (RuneScape-style)
 - [ ] **4. Context menu — desktop right-click.** Right-click a target → "Choose option" menu.
 - [ ] **5. Context menu — mobile long-press.** ~450ms press (no drag) → same menu. Tap = default action.
@@ -34,6 +37,15 @@ clicks, long-press, screenshots) → only then check it off and commit → next 
 - [ ] **10. Click-to-move marker.** A brief ground marker where you tapped to walk.
 - [ ] **11. Hover/selort target highlight.** Indicate what you're about to interact with.
 - [ ] **12. Action/idle feedback.** Clear progress + "what am I doing" cue.
+
+## P4 — Character art (decided: "do both: in-code now, glTF later"; AFTER interaction items)
+- [ ] **13. Rebuild realtime characters to match the Blender hero look.** Replace the placeholder
+      box `makeChar` with richer faceted geometry (sculpted head, rounded limbs, gear, real
+      proportions) in the style of the Cycles render — keeping the limb-group walk/combat animation.
+      Apply to the player + all human NPCs (Guide, Wizard). Realtime lighting won't equal the
+      path-traced still, but the blockiness goes away.
+- [ ] **14. Blender → glTF rigged-asset pipeline (later milestone).** Rig + skin the Blender hero,
+      export glTF, load via THREE.GLTFLoader with animation clips. Highest fidelity; bigger task.
 
 ## Notes
 - Test matrix per item: desktop click, desktop right-click, touch tap, touch long-press

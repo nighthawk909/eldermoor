@@ -7,11 +7,15 @@
 /** Every renderable asset id. The registry MUST cover all of these (enforced by a test). */
 export const ASSET_KINDS = [
   // characters
-  'hero', 'guide', 'wizard', 'merchant',
+  'hero', 'guide', 'wizard', 'merchant', 'guard', 'townsfolk_m', 'townsfolk_f', 'skiller',
   // monsters
-  'rat',
-  // resources / props
-  'tree', 'rock', 'fire', 'pond',
+  'rat', 'spider', 'goblin', 'imp', 'cow', 'brute',
+  // trees (variants)
+  'tree', 'tree_oak', 'tree_willow', 'tree_pine', 'tree_dead',
+  // rocks (ore variants)
+  'rock', 'rock_copper', 'rock_tin', 'rock_iron', 'rock_coal', 'rock_clay',
+  // decor / props
+  'fire', 'pond',
 ] as const;
 export type AssetKind = (typeof ASSET_KINDS)[number];
 

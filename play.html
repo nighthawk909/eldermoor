@@ -11,6 +11,12 @@
   #hint{position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:2;
     font-family:system-ui,sans-serif;font-size:13px;color:#f3e9cf;
     background:rgba(12,16,22,.78);padding:6px 12px;border-radius:8px;border:1px solid #4a525e;}
+  #objective{position:fixed;top:44px;left:50%;transform:translateX(-50%);z-index:2;
+    font-family:"Trebuchet MS",system-ui,sans-serif;font-size:13.5px;color:#f6eed6;text-align:center;
+    background:rgba(28,32,20,.86);padding:7px 14px;border-radius:9px;border:1px solid #c8a24a;
+    max-width:88%;box-shadow:0 4px 16px rgba(0,0,0,.4);}
+  #objective .lbl{color:#e7c64f;font-size:11px;letter-spacing:.09em;text-transform:uppercase;display:block;margin-bottom:2px;}
+  #objective:empty{display:none;}
   .ui{font-family:"Trebuchet MS",system-ui,sans-serif;color:#f6eed6;}
   #log{position:fixed;left:10px;bottom:10px;width:min(72%,380px);font-size:13.5px;line-height:1.5;
     background:rgba(12,16,22,.78);border:1px solid #4a525e;border-radius:9px;padding:8px 11px;
@@ -31,7 +37,8 @@
 </style>
 </head>
 <body>
-  <div id="hint">Tap to walk · tap an NPC/object to interact · (long-press menu coming next)</div>
+  <div id="hint">Tap to walk · tap an NPC/object to interact · long-press for options</div>
+  <div id="objective" class="ui"></div>
   <canvas id="c"></canvas>
   <div id="log" class="ui"></div>
   <div id="dlg" class="ui"><div class="who" id="dlgwho"></div><div class="tx" id="dlgtx"></div>

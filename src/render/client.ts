@@ -10,6 +10,8 @@ import { makeHero, animateWalk } from './characters.js';
 import { optionsFor, defaultOption, examineText, type ActionId, type InteractOption } from '../sim/interaction.js';
 import { tutorialIsland } from '../world/maps/tutorialIsland.js';
 import { loadMap } from '../world/loadMap.js';
+import { tutorialQuest } from '../world/quests/tutorialQuest.js';
+import { startQuest, currentStep, applyEvent, progress, type QuestEvent } from '../sim/quest.js';
 
 const MAP = tutorialIsland;
 const GW = MAP.width, GH = MAP.height, CX = (GW / 2) | 0, CY = (GH / 2) | 0; // grid + center offset (tile→world)
@@ -78,6 +80,24 @@ function flashAt(wx: number, wz: number, color: string): void {
   markers.push({ mesh: m, born: clock.elapsedTime });
 }
 
+/* ---------- quest objective HUD ---------- */
+let questState = startQuest(tutorialQuest);
+let lastReachX = player.tile.x, lastReachY = player.tile.y;
+const objEl = document.getElementById('objective')!;
+function renderObjective(): void {
+  const step = currentStep(tutorialQuest, questState);
+  if (!step) { objEl.innerHTML = '<span class="lbl">Tutorial Island</span>Complete — explore the island freely!'; return; }
+  const p = progress(tutorialQuest, questState);
+  objEl.innerHTML = `<span class="lbl">Objective ${p.current + 1} / ${p.total}</span>${step.instruction}`;
+}
+function questEvent(ev: QuestEvent): void {
+  const next = applyEvent(tutorialQuest, questState, ev);
+  if (next === questState) return;            // no advance
+  const wasDone = questState.done; questState = next; renderObjective(); haptic(20);
+  log(questState.done && !wasDone ? 'Tutorial complete! Explore the island freely.' : 'Objective complete.');
+}
+renderObjective();
+
 /* ---------- interaction ---------- */
 let pending: { id: string; action: ActionId } | null = null;
 function entityIdAt(obj: THREE.Object3D | null): string | null {
@@ -110,6 +130,9 @@ function runAction(action: ActionId, ent: Entity): void {
   else if (action === 'mine') log(`You mine the ${n}…`);
   else if (action === 'take') log(`You take the ${n}.`);
   else if (action === 'examine') log(examineText(ent));
+  // feed the guided quest: talking vs interacting with a station/object
+  if (action === 'talk') questEvent({ type: 'talk', target: ent.id });
+  else questEvent({ type: 'interact', target: ent.id });
 }
 
 /* ---------- input: tap = default action · long-press / right-click = options menu ---------- */
@@ -220,6 +243,12 @@ function animate() {
     pending = null;
   }
 
+  // feed the quest a 'reach' event whenever the player settles on a new tile
+  if (player.tile.x !== lastReachX || player.tile.y !== lastReachY) {
+    lastReachX = player.tile.x; lastReachY = player.tile.y;
+    questEvent({ type: 'reach', x: player.tile.x, y: player.tile.y });
+  }
+
   // orbit follow camera (drag/pinch/wheel controlled)
   camT.lerp(new THREE.Vector3(wx, 1.0, wz), 0.15);
   camera.position.set(
@@ -231,4 +260,4 @@ function animate() {
 }
 animate();
 
-(window as unknown as { __game: unknown }).__game = { engine, world, player, meshes };
+(window as unknown as { __game: unknown }).__game = { engine, world, player, meshes, camera };

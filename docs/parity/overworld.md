@@ -50,8 +50,13 @@ sampler renders every kind with zero build errors.
 **4a. Quest sim module — ✅** — `src/sim/quest.ts` (QuestDef/Step/Condition/State + start/current/
 applyEvent/progress): headless, deterministic, immutable step machine; conditions talk/interact/reach.
 8 tests (`tests/sim/quest.test.ts`), doc `docs/modules/Quest.md`.
-**4b. Client wiring + objective HUD — ⬜ (next)** — feed talk/interact/reach events from the client;
-show `currentStep().instruction`; highlight the active target.
+**4b. Client wiring + objective HUD — ✅**
+- [x] Objective banner (`#objective` in play.html, top-center, gold-bordered) shows `Objective n/total`
+      + the current instruction; completion message when done.
+- [x] Client emits QuestEvents into `applyEvent`: talk (runAction talk), interact (runAction non-talk
+      on a station/object), reach (player settles on a new tile). Advance fires a log line + haptic.
+- [x] Verified in browser: banner shows step 1; tapping the Guide advanced it 1→2 with dialogue;
+      out-of-order events don't advance; talk→reach→interact ran to the Complete state.
 **4c. Full Tutorial Island step list + polish — ⬜** — author the talk→survival→fishing→cooking→
 mining→smithing→combat→prayer→magic→bank→done sequence in data; QC the full run.
 

@@ -23,13 +23,18 @@ sampler renders every kind with zero build errors.
 - **Monsters**: rat, spider, goblin, imp, cow, brute.
 - **Decor**: campfire, pond.
 
-### 3. Bigger Tutorial Island — ⬜ (next)
-- [ ] Expand the grid; author a larger multi-room island in map data.
-- [ ] Paths, water/coastline, fences, buildings (collision via `blockedTiles`/decor).
-- [ ] Skill stations: survival/fishing, cooking, mining/smithing, combat, quest guide, bank,
-      prayer, magic — each a room with its station prop + NPC, placed by data.
-- [ ] Populate with the new asset variety (varied trees/rocks/NPCs/monsters per region).
-- [ ] Verify in the browser: walkable, no collision gaps, reads as an island.
+### 3. Bigger Tutorial Island — 🔨 in progress
+**3a. Terrain + bigger island — ✅**
+- [x] Grid expanded to 40×40; island authored purely in map data.
+- [x] Terrain layer (`TerrainRect` + `WALKABLE_TERRAIN`, rendered by `structures.ts → makeTerrainPlane`):
+      ocean base, sand coastline, grass landmass, dirt **path cross**, inland **lake**.
+- [x] Collision: terrain-present ⇒ ocean-by-default; walkable rects open, water blocks. Verified in
+      browser — ocean/lake blocked, paths/grass/sand walkable, no gaps (40×40 grid probe).
+- [x] Populated with the new asset variety across zones (mining cluster, SW monster field, SE village,
+      mixed-variant forests).
+**3b. Buildings + fences — ⬜ (next)** — wall/building schema + `structures.ts` factories.
+**3c. Skill-station rooms — ⬜** — anvil/furnace/range/altar/bank/fishing-spot props; one room per
+      station (survival/fishing, cooking, mining/smithing, combat, quest guide, bank, prayer, magic).
 
 ### 4. Guided quest flow — ⬜
 - [ ] Stations gate progression (complete a step → next area opens), à la OSRS Tutorial Island.

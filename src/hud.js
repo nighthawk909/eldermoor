@@ -106,7 +106,8 @@ export function initHud(){
       panel.innerHTML='<h4>Skills</h4><div class="emsk"></div><div class="emtot"></div>';
       const g=panel.querySelector('.emsk');
       SK.skills.forEach(s=>{ const lv=levelFromXp(skillXp[s.id]||0);
-        g.insertAdjacentHTML('beforeend', `<div class="sk" title="${s.name}: ${Math.floor(skillXp[s.id]||0)} xp"><span>${s.icon}</span><span class="lv">${lv}</span></div>`); });
+        g.insertAdjacentHTML('beforeend', `<div class="sk" data-sk="${s.id}" style="cursor:pointer" title="${s.name}: ${Math.floor(skillXp[s.id]||0)} xp — click for the skill guide"><span>${s.icon}</span><span class="lv">${lv}</span></div>`); });
+      g.querySelectorAll('[data-sk]').forEach(c=>c.onclick=()=>{ if(window.EMSKILLGUIDE) EMSKILLGUIDE.open(c.dataset.sk); });
       panel.querySelector('.emtot').textContent='Total level: '+totalLevel();
     } else if(curTab==='equip'){
       const slots=['head','cape','neck','weapon','body','shield','legs','hands','feet','ring','ammo'];

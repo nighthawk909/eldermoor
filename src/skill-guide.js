@@ -486,6 +486,17 @@ function openPopupForSkill(skill) {
   backdrop.addEventListener('click', closePopup);
 }
 
+// Open the guide popup from a `.emsk .sk` cell (Stats-tab click delegation).
+function openPopup(cell) {
+  openPopupForSkill(skillForCell(cell));
+}
+
+// Public: open the guide popup directly by skill id, e.g. 'mining'. This is
+// what a Skills-tab UI (or anything else) calls without needing a DOM cell.
+function openById(skillId) {
+  openPopupForSkill(skillById(skillId));
+}
+
 /* --- delegation wiring --------------------------------------------------- */
 
 // Find the `.emsk .sk` cell from an arbitrary event target, or null.
@@ -550,7 +561,16 @@ export function initSkillGuide() {
 }
 
 function publicApi() {
-  const api = { open: openPopup, close: closePopup, isOpen: () => popupOpen };
+  // open()/tooltip() take a skillId (e.g. 'attack', 'mining') per the
+  // EMSKILLGUIDE contract - this is what HUD's skills tab calls. The
+  // tooltip() call is read-only: it returns data/HTML, it does not show
+  // anything itself (rendering/positioning stays the caller's job).
+  const api = {
+    open: openById,
+    tooltip: tooltipFor,
+    close: closePopup,
+    isOpen: () => popupOpen
+  };
   if (typeof window !== 'undefined') window.EMSKILLGUIDE = api;
   return api;
 }

@@ -21,20 +21,68 @@
 const KEY = 'eldermoor:devtest';
 
 // The test kit. `equip:true` items are auto-worn (when their slot is free) so
-// they leave the bag and combat is ready to go.
+// they leave the bag and combat is ready to go. Unknown ids (not yet in
+// items.json) are skipped safely by ensureKit() and will start flowing in
+// automatically the moment the items-data chunk adds them - no code change
+// needed here, so list every tier/rune the game is *meant* to have.
 const KIT = [
+  // ----- melee weapons / armour (one of every tier currently in items.json,
+  //       plus higher-tier ids reserved for when those land) -----
   { id: 'bronze-sword',   qty: 1,     equip: true },
-  { id: 'wooden-shield',  qty: 1,     equip: true },
-  { id: 'leather-body',   qty: 1,     equip: true },
-  { id: 'leather-gloves', qty: 1,     equip: true },
-  { id: 'tutorial-cape',  qty: 1,     equip: true },
-  { id: 'shortbow',       qty: 1 },
-  { id: 'bronze-arrows',  qty: 500 },
+  { id: 'iron-sword',     qty: 1 },
+  { id: 'steel-sword',    qty: 1 },
+  { id: 'mithril-sword',  qty: 1 },
   { id: 'bronze-dagger',  qty: 1 },
-  { id: 'air-rune',       qty: 1000 },
-  { id: 'mind-rune',      qty: 1000 },
-  { id: 'cooked-shrimp',  qty: 5 },
-  { id: 'bones',          qty: 5 },
+  { id: 'iron-dagger',    qty: 1 },
+  { id: 'steel-dagger',   qty: 1 },
+  { id: 'wooden-shield',  qty: 1,     equip: true },
+  { id: 'bronze-shield',  qty: 1 },
+  { id: 'iron-shield',    qty: 1 },
+  { id: 'steel-shield',   qty: 1 },
+  { id: 'leather-body',   qty: 1,     equip: true },
+  { id: 'hard-leather-body', qty: 1 },
+  { id: 'iron-body',      qty: 1 },
+  { id: 'steel-body',     qty: 1 },
+  { id: 'leather-gloves', qty: 1,     equip: true },
+  { id: 'leather-boots',  qty: 1 },
+  { id: 'leather-cowl',   qty: 1 },
+  { id: 'tutorial-cape',  qty: 1,     equip: true },
+  // ----- ranged -----
+  { id: 'shortbow',       qty: 1 },
+  { id: 'oak-shortbow',   qty: 1 },
+  { id: 'longbow',        qty: 1 },
+  { id: 'bronze-arrows',  qty: 1000 },
+  { id: 'iron-arrows',    qty: 1000 },
+  { id: 'steel-arrows',   qty: 1000 },
+  // ----- runes: full catalogue (magic-tab.js RUNES), large stacks so every
+  //       spell can be cast repeatedly -----
+  { id: 'air-rune',       qty: 5000 },
+  { id: 'water-rune',     qty: 5000 },
+  { id: 'earth-rune',     qty: 5000 },
+  { id: 'fire-rune',      qty: 5000 },
+  { id: 'mind-rune',      qty: 5000 },
+  { id: 'body-rune',      qty: 5000 },
+  { id: 'chaos-rune',     qty: 5000 },
+  { id: 'death-rune',     qty: 5000 },
+  { id: 'law-rune',       qty: 5000 },
+  { id: 'cosmic-rune',    qty: 5000 },
+  // ----- tools -----
+  { id: 'bronze-axe',          qty: 1 },
+  { id: 'bronze-pickaxe',      qty: 1 },
+  { id: 'small-fishing-net',   qty: 1 },
+  { id: 'fishing-rod',         qty: 1 },
+  { id: 'tinderbox',           qty: 1 },
+  { id: 'hammer',               qty: 1 },
+  { id: 'needle',               qty: 1 },
+  { id: 'thread',               qty: 20 },
+  { id: 'chisel',               qty: 1 },
+  { id: 'spade',                qty: 1 },
+  { id: 'knife',                qty: 1 },
+  // ----- food -----
+  { id: 'cooked-shrimp',  qty: 20 },
+  { id: 'bread',          qty: 20 },
+  // ----- misc / currency -----
+  { id: 'bones',          qty: 20 },
   { id: 'coins',          qty: 10000 },
 ];
 

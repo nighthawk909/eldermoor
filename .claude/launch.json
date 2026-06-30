@@ -12,6 +12,12 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "8100", "--directory", "C:/Users/jcoci/OneDrive/Desktop/eldermoor"],
       "port": 8100
+    },
+    {
+      "name": "char-forge",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8123", "--directory", "C:/Users/jcoci/OneDrive/Desktop/eldermoor"],
+      "port": 8123
     }
   ]
 }

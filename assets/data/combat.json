@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "tickMs": 600,
   "xpPerDamage": 4,
   "hpXpPerDamage": 1.33,
@@ -8,32 +8,99 @@
     "zero": "#3a64c8",
     "max": "#36c8c8"
   },
-  "styles": [
+
+  "_comment_styleDefs": "Single source of truth for every combat style: id, display name, a player-facing description, which skill(s) it trains, and how XP splits across those skills when 'trains' has more than one entry (OSRS Controlled = even 3-way split). 'category' groups styles for weaponClasses below.",
+  "styleDefs": {
+    "accurate": {
+      "id": "accurate", "name": "Accurate", "category": "melee",
+      "desc": "Focuses on landing hits. Trains Attack.",
+      "trains": ["attack"], "split": [1]
+    },
+    "aggressive": {
+      "id": "aggressive", "name": "Aggressive", "category": "melee",
+      "desc": "Swings harder. Trains Strength.",
+      "trains": ["strength"], "split": [1]
+    },
+    "defensive": {
+      "id": "defensive", "name": "Defensive", "category": "melee",
+      "desc": "Favours protection over offence. Trains Defence.",
+      "trains": ["defence"], "split": [1]
+    },
+    "controlled": {
+      "id": "controlled", "name": "Controlled", "category": "melee",
+      "desc": "A balanced stance. Splits XP evenly between Attack, Strength and Defence.",
+      "trains": ["attack", "strength", "defence"], "split": [0.3333333333, 0.3333333333, 0.3333333334]
+    },
+    "ranged-accurate": {
+      "id": "ranged-accurate", "name": "Accurate", "category": "ranged",
+      "desc": "Aims with care for better accuracy. Trains Ranged.",
+      "trains": ["ranged"], "split": [1]
+    },
+    "ranged-rapid": {
+      "id": "ranged-rapid", "name": "Rapid", "category": "ranged",
+      "desc": "Fires faster, attack speed +1 tick. Trains Ranged.",
+      "trains": ["ranged"], "split": [1], "attackSpeedTicksDelta": -1
+    },
+    "ranged-longrange": {
+      "id": "ranged-longrange", "name": "Longrange", "category": "ranged",
+      "desc": "Keeps distance and adds defensive footwork. Trains Ranged and Defence.",
+      "trains": ["ranged", "defence"], "split": [0.5, 0.5]
+    },
+    "magic-standard": {
+      "id": "magic-standard", "name": "Cast", "category": "magic",
+      "desc": "Casting a combat spell trains Magic (handled by the spellbook).",
+      "trains": ["magic"], "split": [1]
+    }
+  },
+
+  "_comment_weaponClasses": "Maps an equipped weapon to the set of styles available for it (OSRS parity: every melee weapon class offers Accurate/Aggressive/Defensive/Controlled; bows offer Accurate/Rapid/Longrange; unarmed behaves like melee). 'match' entries are checked against the worn weapon's item id: exact id match first, then substring match, in array order. The 'unarmed' entry has no match list and is the fallback when no weapon is worn.",
+  "weaponClasses": [
     {
-      "id": "accurate",
-      "name": "Accurate",
-      "trains": ["attack"],
-      "xpMode": "attack"
+      "id": "bow",
+      "match": ["shortbow", "bow"],
+      "styles": ["ranged-accurate", "ranged-rapid", "ranged-longrange"],
+      "defaultStyle": "ranged-accurate"
     },
     {
-      "id": "aggressive",
-      "name": "Aggressive",
-      "trains": ["strength"],
-      "xpMode": "strength"
+      "id": "dagger",
+      "match": ["bronze-dagger", "dagger"],
+      "styles": ["accurate", "aggressive", "defensive", "controlled"],
+      "defaultStyle": "accurate"
     },
     {
-      "id": "defensive",
-      "name": "Defensive",
-      "trains": ["defence"],
-      "xpMode": "defence"
+      "id": "sword",
+      "match": ["bronze-sword", "sword"],
+      "styles": ["accurate", "aggressive", "defensive", "controlled"],
+      "defaultStyle": "accurate"
     },
     {
-      "id": "controlled",
-      "name": "Controlled",
-      "trains": ["attack", "strength", "defence"],
-      "xpMode": "shared"
+      "id": "axe",
+      "match": ["bronze-axe", "axe"],
+      "styles": ["accurate", "aggressive", "defensive"],
+      "defaultStyle": "accurate"
+    },
+    {
+      "id": "pickaxe",
+      "match": ["bronze-pickaxe", "pickaxe"],
+      "styles": ["accurate", "aggressive", "defensive"],
+      "defaultStyle": "accurate"
+    },
+    {
+      "id": "unarmed",
+      "match": [],
+      "styles": ["accurate", "aggressive", "defensive", "controlled"],
+      "defaultStyle": "accurate"
     }
   ],
+
+  "_comment_styles_legacy": "Legacy flat list, kept for back-compat with any older reader that expects cfg.styles directly (defaults to the unarmed/standard melee set). New code should use styleDefs + weaponClasses via EMCOMBAT.availableStyles()/style().",
+  "styles": [
+    { "id": "accurate", "name": "Accurate", "trains": ["attack"], "xpMode": "attack" },
+    { "id": "aggressive", "name": "Aggressive", "trains": ["strength"], "xpMode": "strength" },
+    { "id": "defensive", "name": "Defensive", "trains": ["defence"], "xpMode": "defence" },
+    { "id": "controlled", "name": "Controlled", "trains": ["attack", "strength", "defence"], "xpMode": "shared" }
+  ],
+
   "mobs": [
     {
       "id": "giant-rat",

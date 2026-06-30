@@ -1,47 +1,254 @@
 {
-  "updated": 1782854754715,
+  "updated": 1782856619007,
   "version": "v37",
-  "note": "Live fleet board. Single-writer: the orchestrator (or tools/progress.js) updates entries; dashboard.html polls this file (and /api/progress when KV is connected). Statuses: queued | building | review | requeue | done | blocked | failed.",
+  "note": "Live fleet board. Reflects v36 owner QA + browser screenshots. Character art (studio + in-world avatar/creator) owned by a separate chat. Statuses: queued | building | review | requeue | shipped | done | blocked | failed.",
   "board": [
     {
+      "id": "RESEARCH",
+      "epic": "Research",
+      "title": "OSRS parity spec + codebase file-map for QA-v36 domains",
+      "status": "building",
+      "agent": "research",
+      "note": "what parity looks like + where each system lives",
+      "ts": 0
+    },
+    {
+      "id": "UI-OVERHAUL",
+      "epic": "HUD",
+      "title": "HUD/UX overhaul: XP overlap, chat box, stat orbs, tab dock, inventory layout, minimap, tone",
+      "status": "building",
+      "agent": "builder-hud",
+      "note": "Starting HUD/UX overhaul: XP counter reposition, chatbox, orb cluster, tab strip, inventory panel skin, blue->brown tone pass",
+      "ts": 1782856572529
+    },
+    {
+      "id": "CB-STYLES",
+      "epic": "Combat",
+      "title": "Combat styles: trained skill + XP split + weapon-aware + descriptions",
+      "status": "building",
+      "agent": "builder-combat",
+      "note": "QA: styles don't explain/give XP/update with weapon",
+      "ts": 0
+    },
+    {
+      "id": "PR-ROSTER",
+      "epic": "Prayer",
+      "title": "Full OSRS-style prayer roster + level reqs",
+      "status": "building",
+      "agent": "builder-prayer",
+      "note": "prayer roster",
+      "ts": 1782856552051
+    },
+    {
+      "id": "MG-SPELLS",
+      "epic": "Magic",
+      "title": "Spellbook tiers + rune reqs (standard book)",
+      "status": "building",
+      "agent": "builder-magic",
+      "note": "QA: spellbook depth",
+      "ts": 0
+    },
+    {
+      "id": "DEV-RUNES",
+      "epic": "Dev Tools",
+      "title": "Dev character gets ALL runes + every gear tier",
+      "status": "review",
+      "agent": "builder-devtest",
+      "note": "Dev kit expanded: full 10-rune catalogue x5000, all known weapon/armour/ammo tiers, tools, food, bones, coins. Some higher-tier ids reserved (no-op until items.json adds them).",
+      "ts": 1782856619007
+    },
+    {
+      "id": "DEV-TOOLBOX",
+      "epic": "Dev Tools",
+      "title": "Dev toolbox: spawn/give/set/remove items, NPCs, stats, runes, teleport",
+      "status": "building",
+      "agent": "builder-devtools",
+      "note": "QA: need a real dev toolbox",
+      "ts": 0
+    },
+    {
+      "id": "IT-TIERS",
+      "epic": "Items",
+      "title": "Gear + resource tiers (bronze->rune etc.) with examine",
+      "status": "building",
+      "agent": "builder-items",
+      "note": "QA: not a lot of tiers",
+      "ts": 0
+    },
+    {
+      "id": "DLG-UX",
+      "epic": "Dialogue",
+      "title": "Dialogue logic: exit on walk-away + start new chat",
+      "status": "building",
+      "agent": "builder-dialogue",
+      "note": "QA FAIL: can't exit or start a new chat",
+      "ts": 0
+    },
+    {
+      "id": "AUTH-LOGIN",
+      "epic": "Onboarding",
+      "title": "Login/landing flow + fix logout screen",
+      "status": "building",
+      "agent": "builder-login",
+      "note": "login+logout",
+      "ts": 1782856597499
+    },
+    {
+      "id": "ART-AVATAR",
+      "epic": "Character Art (other chat)",
+      "title": "In-world avatar + worn gear quality",
+      "status": "blocked",
+      "agent": "other-chat",
+      "note": "owned by separate chat",
+      "ts": 0
+    },
+    {
+      "id": "ART-CREATOR",
+      "epic": "Character Art (other chat)",
+      "title": "Creator 3D preview + name validation",
+      "status": "blocked",
+      "agent": "other-chat",
+      "note": "owned by separate chat (charcreate.js)",
+      "ts": 0
+    },
+    {
+      "id": "P1.1",
+      "epic": "P1 render",
+      "title": "Terrain map-null",
+      "status": "shipped",
+      "agent": "builder-A",
+      "note": "v37 deployed; awaiting your playtest",
+      "ts": 0
+    },
+    {
+      "id": "P1.2",
+      "epic": "P1 render",
+      "title": "Water renderOrder",
+      "status": "shipped",
+      "agent": "builder-A",
+      "note": "v37 deployed; awaiting your playtest",
+      "ts": 0
+    },
+    {
+      "id": "P1.5",
+      "epic": "P1 render",
+      "title": "Material roles",
+      "status": "shipped",
+      "agent": "builder-A",
+      "note": "v37 deployed; awaiting your playtest",
+      "ts": 0
+    },
+    {
+      "id": "P1.6",
+      "epic": "P1 render",
+      "title": "Roof wiring (dormant)",
+      "status": "shipped",
+      "agent": "orchestrator",
+      "note": "v37 deployed; awaiting your playtest",
+      "ts": 0
+    },
+    {
+      "id": "P1.7",
+      "epic": "P1 render",
+      "title": "Sky tone-map + altar glow",
+      "status": "shipped",
+      "agent": "orchestrator",
+      "note": "v37 deployed; awaiting your playtest",
+      "ts": 0
+    },
+    {
+      "id": "P1.8",
+      "epic": "P1 render",
+      "title": "Loader counts all loads",
+      "status": "shipped",
+      "agent": "builder-C",
+      "note": "v37 deployed; awaiting your playtest",
+      "ts": 0
+    },
+    {
+      "id": "P1.3",
+      "epic": "P1 render",
+      "title": "Nameplates depth",
+      "status": "shipped",
+      "agent": "builder-B",
+      "note": "v37 deployed; awaiting your playtest",
+      "ts": 0
+    },
+    {
+      "id": "P1.4",
+      "epic": "P1 render",
+      "title": "Imported meshes keep normals",
+      "status": "shipped",
+      "agent": "builder-C",
+      "note": "v37 deployed; awaiting your playtest",
+      "ts": 0
+    },
+    {
+      "id": "C5",
+      "epic": "HUD",
+      "title": "Inventory ops",
+      "status": "requeue",
+      "agent": null,
+      "note": "owner QA FAIL -> folded into UI-OVERHAUL",
+      "ts": 0
+    },
+    {
+      "id": "C8",
+      "epic": "HUD",
+      "title": "HUD orbs",
+      "status": "requeue",
+      "agent": null,
+      "note": "owner QA FAIL (overlap) -> UI-OVERHAUL",
+      "ts": 0
+    },
+    {
+      "id": "C6",
+      "epic": "HUD",
+      "title": "Skills tab guide + tooltip",
+      "status": "queued",
+      "agent": null,
+      "note": "",
+      "ts": 0
+    },
+    {
+      "id": "C9",
+      "epic": "Camera",
+      "title": "Camera arrow/WASD + MMB",
+      "status": "queued",
+      "agent": null,
+      "note": "",
+      "ts": 0
+    },
+    {
+      "id": "C11",
+      "epic": "Interaction",
+      "title": "Scenery forgiving-tap",
+      "status": "queued",
+      "agent": null,
+      "note": "",
+      "ts": 0
+    },
+    {
+      "id": "C12",
+      "epic": "Inventory",
+      "title": "Use op on remaining items",
+      "status": "queued",
+      "agent": null,
+      "note": "",
+      "ts": 0
+    },
+    {
       "id": "1C",
-      "epic": "P0 / Mobile",
-      "title": "Combat smoke: path to mob → attack → death → respawn",
+      "epic": "Mobile",
+      "title": "Combat loop path->attack->death->respawn",
       "status": "queued",
       "agent": null,
-      "note": "FAILED v35 owner QA",
-      "ts": 0
-    },
-    {
-      "id": "LP",
-      "epic": "P0 / Mobile",
-      "title": "Landscape panel clipping polish",
-      "status": "queued",
-      "agent": null,
-      "note": "FAILED v35 owner QA",
-      "ts": 0
-    },
-    {
-      "id": "3DP",
-      "epic": "P8 / Creator",
-      "title": "Replace 2D creator preview with live 3D avatar",
-      "status": "queued",
-      "agent": null,
-      "note": "avatar.js already renders in-world",
-      "ts": 0
-    },
-    {
-      "id": "1B",
-      "epic": "P0 / Mobile",
-      "title": "Inventory + Equipment mobile interactions",
-      "status": "queued",
-      "agent": null,
-      "note": "gated by on-device QA",
+      "note": "QA FAIL: combat smoke garbage",
       "ts": 0
     },
     {
       "id": "1D",
-      "epic": "P0 / Mobile",
+      "epic": "Mobile",
       "title": "Tutorial progression on mobile",
       "status": "queued",
       "agent": null,
@@ -50,174 +257,12 @@
     },
     {
       "id": "1E",
-      "epic": "P0 / Mobile",
-      "title": "Audio/settings/prayer/save/logout on mobile",
+      "epic": "Mobile",
+      "title": "Audio/settings/save/logout on mobile",
       "status": "queued",
       "agent": null,
       "note": "",
       "ts": 0
-    },
-    {
-      "id": "C3",
-      "epic": "P2",
-      "title": "Hover affordance: action text + cursor + highlight",
-      "status": "shipped",
-      "agent": "",
-      "note": "v20 integrated + deployed; awaiting your playtest",
-      "ts": 1782854753825
-    },
-    {
-      "id": "C4",
-      "epic": "P3",
-      "title": "Chatbox channel filters + right-click cycle + .sys fix",
-      "status": "queued",
-      "agent": "",
-      "note": "",
-      "ts": 1782853163512
-    },
-    {
-      "id": "C5",
-      "epic": "P3",
-      "title": "Inventory right-click ops + wield/drop/examine",
-      "status": "shipped",
-      "agent": "",
-      "note": "v20 integrated + deployed; awaiting your playtest",
-      "ts": 1782854754138
-    },
-    {
-      "id": "C6",
-      "epic": "P3",
-      "title": "Skills tab: skill-guide panel + XP-to-next tooltip",
-      "status": "queued",
-      "agent": null,
-      "note": "",
-      "ts": 0
-    },
-    {
-      "id": "C7",
-      "epic": "P3",
-      "title": "Minimap: click-to-walk + terrain + typed blips",
-      "status": "queued",
-      "agent": null,
-      "note": "",
-      "ts": 0
-    },
-    {
-      "id": "C8",
-      "epic": "P3",
-      "title": "HUD orbs (HP/Prayer/Run/Spec) + run energy",
-      "status": "shipped",
-      "agent": "",
-      "note": "v20 integrated + deployed; awaiting your playtest",
-      "ts": 1782854754424
-    },
-    {
-      "id": "C9",
-      "epic": "P3",
-      "title": "Camera: arrow/WASD + MMB drag + FPS-independent follow",
-      "status": "queued",
-      "agent": null,
-      "note": "",
-      "ts": 0
-    },
-    {
-      "id": "C10",
-      "epic": "P3",
-      "title": "Fill empty tabs with real panels (Music remaining)",
-      "status": "shipped",
-      "agent": "",
-      "note": "v20 integrated + deployed; awaiting your playtest",
-      "ts": 1782854754715
-    },
-    {
-      "id": "C11",
-      "epic": "P2",
-      "title": "Scenery forgiving-tap: pickAt proximity fallback",
-      "status": "queued",
-      "agent": null,
-      "note": "from QA finding R1",
-      "ts": 0
-    },
-    {
-      "id": "C12",
-      "epic": "P3",
-      "title": "Add Use op to remaining items",
-      "status": "queued",
-      "agent": null,
-      "note": "from QA finding R2",
-      "ts": 0
-    },
-    {
-      "id": "P1.5",
-      "epic": "P1 / render (Batch A engine.js)",
-      "title": "Explicit per-mesh material roles (replace substring matching)",
-      "status": "shipped",
-      "agent": "builder-A",
-      "note": "material-role map; boot-verified",
-      "ts": 1782854750826
-    },
-    {
-      "id": "P1.1",
-      "epic": "P1 / render (Batch A engine.js)",
-      "title": "Terrain: null m.map so vertex colours don't multiply a texture",
-      "status": "shipped",
-      "agent": "builder-A",
-      "note": "terrain map nulled; boot-verified",
-      "ts": 1782854751164
-    },
-    {
-      "id": "P1.2",
-      "epic": "P1 / render (Batch A engine.js)",
-      "title": "Water: depthWrite=false + renderOrder (stop holes in floor)",
-      "status": "shipped",
-      "agent": "builder-A",
-      "note": "water renderOrder; boot-verified",
-      "ts": 1782854751462
-    },
-    {
-      "id": "P1.6",
-      "epic": "P1 / render (Batch A engine.js)",
-      "title": "Seal interiors: roof hides on entry + kill z-fight gap",
-      "status": "shipped",
-      "agent": "orchestrator",
-      "note": "wired in player.js; dormant until a roofed building exists",
-      "ts": 1782854751749
-    },
-    {
-      "id": "P1.7",
-      "epic": "P1 / render (Batch A engine.js)",
-      "title": "Sky tone-map fix + altar-glow decay fix",
-      "status": "shipped",
-      "agent": "orchestrator",
-      "note": "sky toneMapped + decayExp glow; boot-verified",
-      "ts": 1782854752506
-    },
-    {
-      "id": "P1.3",
-      "epic": "P1 / render (Batch B npc.js)",
-      "title": "Nameplates: drop depthTest:false (names show through walls)",
-      "status": "shipped",
-      "agent": "builder-B",
-      "note": "already correct in npc.js (no change)",
-      "ts": 1782854752864
-    },
-    {
-      "id": "P1.4",
-      "epic": "P1 / render (Batch C meshes)",
-      "title": "Stop flatShading player/NPC meshes (keep smooth normals)",
-      "status": "shipped",
-      "agent": "builder-C",
-      "note": "no-op verified (imported meshes keep normals)",
-      "ts": 1782854753163
-    },
-    {
-      "id": "P1.8",
-      "epic": "P1 / render (Batch C meshes)",
-      "title": "Loader: count ALL async loads so the fade waits",
-      "status": "shipped",
-      "agent": "builder-C",
-      "note": "loader counts content-data + 20s backstop; boot-verified",
-      "ts": 1782854753504
     }
   ]
 }

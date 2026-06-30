@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Eldermoor — Character Forge Preview</title>
+<style>
+  html,body{margin:0;height:100%;background:#33312e;overflow:hidden;font-family:Trebuchet MS,system-ui,sans-serif;}
+  #c{display:block;width:100vw;height:100vh;}
+  #hint{position:fixed;left:12px;top:10px;color:#d8cba8;font-size:13px;opacity:.7;letter-spacing:.5px;}
+  #names{position:fixed;left:0;right:0;bottom:8px;color:#d8cba8;opacity:.65;font-size:12px;text-align:center;}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="hint">ELDERMOOR · procedural character forge · drag to orbit</div>
+<div id="names"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script type="module">
+import { ROSTER, buildRoster } from './src/char/character-factory.js';
+
+const THREE = window.THREE;
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#33312e').convertSRGBToLinear();
+
+const camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 0.1, 100);
+camera.position.set(0, 3.6, 11.5);
+
+const controls = new THREE.OrbitControls(camera, canvas);
+controls.target.set(0, 1.3, 1.2);
+controls.enableDamping = true;
+
+/* art-bible three-point-ish flat light */
+const key = new THREE.DirectionalLight(0xfff0d8, 1.5); key.position.set(4, 8, 6); scene.add(key);
+const fill = new THREE.DirectionalLight(0x9fb6d8, 0.55); fill.position.set(-6, 3, 2); scene.add(fill);
+const rim = new THREE.DirectionalLight(0xffe0b0, 0.5); rim.position.set(0, 4, -8); scene.add(rim);
+scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+
+/* ground */
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(40, 40),
+  new THREE.MeshStandardMaterial({ color: new THREE.Color('#3c3a36').convertSRGBToLinear(), roughness: 1 }));
+ground.rotation.x = -Math.PI / 2; scene.add(ground);
+
+/* lay the roster out: 6 columns x 2 rows */
+const COLS = 6, GAPX = 1.85, GAPZ = 2.6;
+const built = buildRoster(THREE);
+built.forEach((b, i) => {
+  const col = i % COLS, row = Math.floor(i / COLS);
+  b.char.group.position.set((col - (COLS - 1) / 2) * GAPX, 0, row * GAPZ);
+  b.char.group.rotation.y = Math.PI; // face the camera (+Z)
+  scene.add(b.char.group);
+});
+
+document.getElementById('names').textContent = ROSTER.map((r) => r.name).join('  ·  ');
+
+let t0 = performance.now();
+function loop() {
+  const t = (performance.now() - t0) / 1000;
+  built.forEach((b) => b.char.update(t, b.spec.animation));
+  controls.update();
+  renderer.render(scene, camera);
+  requestAnimationFrame(loop);
+}
+loop();
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+</script>
+</body>
+</html>

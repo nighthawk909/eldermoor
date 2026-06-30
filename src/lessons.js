@@ -30,6 +30,13 @@
 
 const STORAGE_KEY = 'eldermoor:progress';
 const POLL_MS = 600;
+// Anti-brick grace window: when the instructor's scripted "go do it" dialogue
+// beat fires (em-lesson complete:LN) but the lesson's action predicate
+// (has:/lit:/killed:/cast:) hasn\'t resolved yet, we wait this long for the
+// real action to satisfy it via polling before forcing completion anyway.
+// Keeps the chain moving even while a downstream system (combat kill flag,
+// fire-lighting flag, spell-cast flag) isn\'t wired in yet.
+const ACTION_GRACE_MS = 15000;
 
 /* ------------------------------------------------------------ environment */
 function hud() {
@@ -89,6 +96,8 @@ function saveProgress(p) {
 let progress = defaultProgress();
 let pollTimer = null;
 let started = false;
+let graceTimer = null;       // pending anti-brick force-complete for the current lesson
+let graceLessonId = null;    // which lesson the pending grace timer belongs to
 
 /* ------------------------------------------------------------ data helpers */
 function lessonByIndex(i) {
@@ -142,9 +151,16 @@ function flagSet(name) {
   return !!progress.flags[name];
 }
 
-// Evaluate one atom: `flag:x`, `has:item`, `lesson:LN` (lesson completed).
-// Unknown verbs (lit:, killed:, cast:, object:, ...) are dialogue/event-driven
-// and never auto-satisfy here - they advance via the `em-lesson` event.
+// Evaluate one atom: `flag:x`, `has:item`, `lesson:LN` (lesson completed),
+// plus the action-event verbs `lit:`, `killed:`, `cast:` (e.g. `lit:fire`,
+// `killed:giant_rat`, `cast:wind_strike`). Those three are namespaced flags -
+// any system can satisfy them by dispatching the existing `em-flag` event
+// with the FULL atom as the flag name, e.g.
+//   window.dispatchEvent(new CustomEvent('em-flag', { detail: 'killed:giant_rat' }))
+// so combat/magic/firemaking systems can wire in later with zero changes
+// here. Until something sets them, they simply read false (no soft-lock:
+// onLessonEvent's dialogue fallback still carries the chain forward - see
+// below). Any other unknown verb (object:, ...) also reads false.
 function evalAtom(atom) {
   const t = (atom || '').trim();
   if (!t) return false;
@@ -155,6 +171,9 @@ function evalAtom(atom) {
     case 'flag': return flagSet(arg);
     case 'has': return hasItem(arg);
     case 'lesson': return progress.completed.indexOf(arg) !== -1;
+    case 'lit':
+    case 'killed':
+    case 'cast': return flagSet(t); // namespaced flag keyed by the whole atom
     default: return false;
   }
 }
@@ -213,9 +232,16 @@ function advanceStep() {
   return completeLesson();
 }
 
+function clearGrace() {
+  if (graceTimer != null && typeof clearTimeout !== 'undefined') clearTimeout(graceTimer);
+  graceTimer = null;
+  graceLessonId = null;
+}
+
 function completeLesson() {
   const l = currentLesson();
   if (!l) return false;
+  clearGrace();
   const completed = progress.completed.indexOf(l.id) === -1
     ? progress.completed.concat(l.id)
     : progress.completed.slice();
@@ -258,7 +284,22 @@ function reconcile() {
 }
 
 /* ------------------------------------------------------------ event wiring */
-// dialogue.js dispatches CustomEvent('em-lesson', { detail: 'complete:LN' }).
+// dialogue.js dispatches CustomEvent('em-lesson', { detail: 'complete:LN' })
+// from the instructor\'s final scripted dialogue node - i.e. the moment the
+// NPC finishes explaining/assigning the task, which is BEFORE the player has
+// necessarily performed it. We must not let that line alone finish a lesson
+// whose `complete_when` is an action predicate (has:/lit:/killed:/cast:) -
+// otherwise e.g. L2 "Woodcutting" would complete the instant Maeve says
+// "go chop a tree", before any logs are in the bag (GATE+2).
+//
+//   - flag-style predicates (or no complete_when): the dialogue beat IS the
+//     taught lesson (e.g. Halric explaining controls) - set the flag now and
+//     complete immediately.
+//   - action-style predicates (has:/lit:/killed:/cast:): complete immediately
+//     ONLY if the predicate already holds (player already did it); otherwise
+//     push the player at the actionable step and arm a bounded anti-brick
+//     grace timer so the chain still advances if the action never resolves
+//     (e.g. no kill/cast/light system wired in yet for this lesson).
 function onLessonEvent(ev) {
   const action = ev && ev.detail;
   if (typeof action !== 'string') return;
@@ -273,8 +314,54 @@ function onLessonEvent(ev) {
     // event for an already-completed lesson - ignore; for a future one, ignore.
     return;
   }
-  // Dialogue says this lesson\'s scripted beat is done: drive to lesson complete.
-  completeLesson();
+
+  const pred = (typeof l.complete_when === 'string') ? l.complete_when.trim() : '';
+  const isFlagPred = !pred || pred.split('&').every(p => p.trim().indexOf('flag:') === 0);
+
+  if (isFlagPred) {
+    // The scripted beat itself teaches the lesson - mark its flag(s) satisfied.
+    if (pred) {
+      pred.split('&').forEach(p => {
+        const part = p.trim();
+        if (part.indexOf('flag:') === 0) {
+          const name = part.slice('flag:'.length);
+          if (name) progress = Object.assign({}, progress, { flags: Object.assign({}, progress.flags, { [name]: true }) });
+        }
+      });
+      saveProgress(progress);
+    }
+    completeLesson();
+    return;
+  }
+
+  // Action-style predicate: only finish now if it already holds.
+  if (evalPredicate(pred)) { completeLesson(); return; }
+
+  // Not yet done - move the objective onto the actionable step (if not
+  // already there) so the player sees what to actually go do, and arm the
+  // anti-brick grace timer so this lesson cannot stall forever waiting on
+  // an action system that may not be wired up yet.
+  if (progress.stepIndex < stepsOf(l).length - 1) {
+    progress = Object.assign({}, progress, { stepIndex: stepsOf(l).length - 1 });
+    saveProgress(progress);
+  }
+  pushObjective();
+
+  if (graceLessonId !== l.id) {
+    clearGrace();
+    graceLessonId = l.id;
+    if (typeof setTimeout !== 'undefined') {
+      graceTimer = setTimeout(() => {
+        graceTimer = null;
+        // re-check we\'re still on the same, still-incomplete lesson before forcing it.
+        const cur = currentLesson();
+        if (cur && cur.id === graceLessonId && !progress.done) {
+          graceLessonId = null;
+          completeLesson();
+        }
+      }, ACTION_GRACE_MS);
+    }
+  }
 }
 
 // Allow the rest of the game to set tutorial flags (appearance_confirmed, ...)
@@ -358,6 +445,7 @@ export function initLessons() {
     setFlag(name, value) { setFlag(name, value === undefined ? true : !!value); },
     // Wipe progress and restart the chain (debug / new character).
     reset() {
+      clearGrace();
       progress = defaultProgress();
       saveProgress(progress);
       reconcile(); pushObjective(); check();

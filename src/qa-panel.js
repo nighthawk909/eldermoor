@@ -19,10 +19,15 @@
    ===================================================================== */
 
 const QA_FILE = 'assets/data/qa.json';
+const SYNC_URL = '/api/qa';            // serverless KV sync endpoint (api/qa.js)
 const BTN_ID = 'emqa-btn';
 const OV_ID = 'emqa-ov';
 
 function storeKey(ver){ return 'eldermoor:qa:' + (ver || 'dev'); }
+function deviceId(){
+  try { let d = localStorage.getItem('eldermoor:qa:device'); if(!d){ d = 'dev-' + Math.random().toString(36).slice(2, 8); localStorage.setItem('eldermoor:qa:device', d); } return d; }
+  catch (e) { return 'dev'; }
+}
 function haptic(kind){ try { const h = window.EMHAPTIC; if (h && h[kind]) h[kind](); } catch (e) {} }
 function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
@@ -120,6 +125,7 @@ export function initQaPanel(){
     results[id] = Object.assign({}, cur, { status: cur.status === status ? null : status });
     saveResults(spec.version, results);
     haptic(status === 'fail' ? 'error' : 'select');
+    syncSoon();
     render();
   }
   function setNote(id, note){
@@ -127,7 +133,28 @@ export function initQaPanel(){
     results[id] = Object.assign({}, cur, { note });
     saveResults(spec.version, results);
     const rep = ov.querySelector('.rep'); if (rep) rep.value = buildReport();
+    syncSoon();
     badge();
+  }
+
+  /* ---- live sync: POST results to the KV-backed endpoint so the dev reads them
+     without a manual paste. Debounced; failures are silent (no backend / KV not
+     configured just shows "not synced" — the Copy/Share report still works). ---- */
+  let syncTimer = null, syncState = '';
+  function paintSync(){ const el = ov.querySelector('.synced'); if (el) el.textContent = syncState ? (' · ' + syncState) : ''; }
+  function syncSoon(){ if (syncTimer) clearTimeout(syncTimer); syncTimer = setTimeout(syncNow, 2500); }
+  function syncNow(){
+    if (typeof fetch !== 'function') return;
+    const c = counts();
+    const payload = {
+      version: spec.version, ts: Date.now(), device: deviceId(),
+      counts: { pass: c.p, fail: c.f, skip: c.s, todo: c.todo, total: c.n },
+      results: results, report: buildReport(),
+    };
+    syncState = 'syncing…'; paintSync();
+    fetch(SYNC_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      .then(r => { syncState = (r && r.ok) ? 'synced' : 'not synced'; paintSync(); })
+      .catch(() => { syncState = 'offline'; paintSync(); });
   }
 
   function render(){
@@ -157,6 +184,7 @@ export function initQaPanel(){
       +     '<button type="button" data-a="share">Share</button>'
       +     '<button type="button" data-a="download">Download .md</button>'
       +     '<button type="button" data-a="clear">Clear</button></div>'
+      +   '<div class="synced" style="text-align:center;font-size:11px;color:#9fb89f;margin:2px 0 6px"></div>'
       +   '<textarea class="rep" readonly></textarea></div>'
       + '</div>';
 
@@ -169,6 +197,7 @@ export function initQaPanel(){
     });
     ov.querySelector('.cnt').textContent = (() => { const c = counts(); return 'Pass ' + c.p + ' · Fail ' + c.f + ' · Skip ' + c.s + ' · To-do ' + c.todo; })();
     const rep = ov.querySelector('.rep'); rep.value = buildReport();
+    paintSync();
     ov.querySelector('[data-a="copy"]').onclick = () => doCopy(rep);
     ov.querySelector('[data-a="share"]').onclick = () => doShare();
     ov.querySelector('[data-a="download"]').onclick = () => doDownload();
@@ -211,6 +240,7 @@ export function initQaPanel(){
     }
     results = loadResults(spec.version);
     badge();
+    syncSoon();   // publish an initial record so the dev can read live state
   }).catch(() => { results = loadResults(spec.version); badge(); });
 
   window.EMQA = {

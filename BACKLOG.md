@@ -7,8 +7,8 @@ Outstanding work to 100%. Item-level pass/fail tests in `PARITY_AUDIT.md` (~645 
 - [x] Dev test character (`devtest.js`) — all skills 99 + combat kit every load (idempotent; `EMDEV` toggle).
 - [x] In-game QA panel (`qa-panel.js` + `assets/data/qa.json`) — per-item Pass/Fail/Skip + notes, one-tap
       Copy/Share/Download report. **Per-release chore:** refresh `assets/data/qa.json` with the build's test items.
-- [ ] *(future)* QA report auto-delivery (needs a backend/endpoint — currently the tester sends the report
-      blob back manually; the static client + sandbox network can't POST it).
+- [x] QA report auto-delivery — DONE v31: `api/qa.js` (Vercel KV) + QA-panel auto-POST; dev reads GET /api/qa.
+      Requires Josh to connect a Vercel KV store once (HUMAN_ACTIONS.md).
 
 ## P0 — Mobile Playability (Sprint 1, ACTIVE — blocks new gameplay)
 - [~] **1A Responsive UI framework** (v28→v29) — orientation, single-panel docking, bottom-sheet dialogue,

@@ -4,7 +4,7 @@
 For the full narrative handoff see `PROJECT_HANDOFF.md`; phase status in `ROADMAP.md`; item-level tests in
 `PARITY_AUDIT.md`.
 
-- **Live version:** v30 · **Link:** https://eldermoor.vercel.app
+- **Live version:** v31 · **Link:** https://eldermoor.vercel.app
 - **Overall:** ~24% (features integrated + boot-verified; **live-playtested separately — see METRICS**).
 - **Client:** modular ES (`src/*.js`, ~37 modules) + `index.modular.html` shell, Three.js r128 (CDN),
   data-driven from `assets/data/*.json`. Deployed on Vercel. `eldermoor_client.html` = frozen v17 rollback.
@@ -25,6 +25,15 @@ complete flow · action SFX coverage (`sfx-actions.js`) · lesson gating (`gatin
 game tick (`tick.js`, shared by combat + skilling).
 
 ## Recently resolved
+- **v31 — Live QA sync backend (owner-requested):** the project gains its first **backend** — a
+  zero-dependency Vercel serverless function `api/qa.js` backed by **Vercel KV** (Upstash REST via the
+  injected `KV_REST_API_URL`/`KV_REST_API_TOKEN`). The QA panel (`qa-panel.js`) now auto-POSTs results
+  every few seconds (debounced; footer shows synced/offline; failures silent), so the tester just plays +
+  checks boxes and the dev reads the latest via `GET /api/qa` (no copy/paste). Static serve unchanged
+  (no package.json/build; Vercel auto-builds `/api`). **Setup required (Josh): connect a Vercel KV store
+  to the project + redeploy — see HUMAN_ACTIONS.md;** until then the function returns 503 and the panel
+  falls back to Copy/Share/Download. Client sync boot-verified 6/6 (POST payload: version/results/report/
+  counts/device + graceful failure); function `node --check` clean (runs live once KV is connected).
 - **v30 — Test infrastructure (owner-requested; not Milestone 1B):**
   - **Dev test character** (`src/devtest.js`, `window.EMDEV`): on every load sets all skills to level 99
     and tops up a combat kit in the bag (bronze-sword, shortbow, 500 arrows, 1000 air+mind runes,

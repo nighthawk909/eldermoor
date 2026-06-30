@@ -28,6 +28,8 @@ Source of truth for the wider list: `BACKLOG.md` / `ROADMAP.md` / `PARITY_AUDIT.
 - [x] **Dev test character** (`devtest.js`): all skills 99 + combat kit each load (idempotent; toggle EMDEV).
 - [x] **In-game QA panel** (`qa-panel.js` + `assets/data/qa.json`): per-item Pass/Fail/Skip + notes, one
       Copy/Share/Download report. **Process:** update `assets/data/qa.json` every release with what to test.
+- [x] **Live QA sync** (v31, `api/qa.js` + Vercel KV): QA panel auto-POSTs results; dev reads `GET /api/qa`.
+      **Setup (Josh):** connect Vercel KV + redeploy (HUMAN_ACTIONS.md).
 
 ## Mobile Sprint 1 — remaining milestones (sequential, each gated by on-device QA)
 - **1B** Inventory + Equipment mobile interactions (tap/long-press use/wield/drop on touch).

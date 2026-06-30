@@ -10,6 +10,7 @@
     --line:#3a2f1f; --gold:#d8b25a;
     --todo:#6b6150; --building:#d8b25a; --review:#3f8cc2; --shipped:#7a5cc2; --done:#4f8a3c;
     --blocked:#b03030; --requeue:#c98a2a; --failed:#b03030;
+    --act:#6ec46e; --recent:#d8b25a; --idle:#7d7261;
   }
   *{box-sizing:border-box}
   html,body{margin:0;background:var(--bg);color:var(--ink);height:100%;
@@ -27,6 +28,7 @@
   .banner{margin-top:9px;font-size:12.5px;color:#f0d9a6;background:#2b2208;border:1px solid #5a4a1c;
     border-radius:8px;padding:7px 11px;display:none}
   .banner.show{display:block}
+  .banner.idle{color:#f0c6a6;background:#2b1808;border-color:#6a3a1c}
   .banner b{color:#ffe2a0}
   .controls{display:flex;gap:8px;margin-top:9px;align-items:center;flex-wrap:wrap}
   button{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;
@@ -34,6 +36,40 @@
   button.on{border-color:var(--gold);color:var(--gold)}
   button:active{transform:translateY(1px)}
   .upd{font-size:11px;color:var(--muted);margin-left:auto}
+
+  /* ── Fleet roster (who's working on what) ── */
+  .fleet{border-bottom:1px solid var(--line);background:#17120b;padding:10px 16px 12px}
+  .fleet.hide{display:none}
+  .fleethead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:9px}
+  .fleethead .lbl{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gold)}
+  .fleethead .meta{font-size:11px;color:var(--muted)}
+  .legend{margin-left:auto;display:flex;gap:11px;font-size:10.5px;color:var(--muted)}
+  .legend i{font-style:normal;display:inline-flex;align-items:center;gap:4px}
+  .agents{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:9px}
+  .agentcard{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--idle);
+    border-radius:9px;padding:8px 10px;min-width:0}
+  .agentcard.act{border-left-color:var(--act)}
+  .agentcard.recent{border-left-color:var(--recent)}
+  .agentcard.idle{border-left-color:var(--idle);opacity:.82}
+  .ah{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+  .sdot{width:9px;height:9px;border-radius:50%;flex:0 0 auto;background:var(--idle)}
+  .act .sdot{background:var(--act);box-shadow:0 0 0 0 rgba(110,196,110,.6);animation:beat 1.6s ease-in-out infinite}
+  .recent .sdot{background:var(--recent)}
+  @keyframes beat{0%,100%{box-shadow:0 0 0 0 rgba(110,196,110,.5)}50%{box-shadow:0 0 0 5px rgba(110,196,110,0)}}
+  .aname{font-size:12.5px;font-weight:700;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .astate{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:1px 6px;border-radius:999px;
+    border:1px solid var(--line);color:var(--muted)}
+  .act .astate{color:#0e1a0e;background:var(--act);border-color:var(--act)}
+  .recent .astate{color:#1a1408;background:var(--recent);border-color:var(--recent)}
+  .acount{margin-left:auto;font-size:10px;color:var(--muted);background:var(--panel2);border:1px solid var(--line);
+    border-radius:999px;padding:1px 7px}
+  .acur{font-size:11.5px;line-height:1.3;color:var(--ink);overflow:hidden;text-overflow:ellipsis;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .acur .aid{color:var(--muted);font-weight:700;font-size:10px;letter-spacing:.4px;margin-right:5px}
+  .afoot{display:flex;align-items:center;gap:7px;margin-top:6px;font-size:10px;color:var(--muted)}
+  .acol{padding:1px 6px;border-radius:5px;border:1px solid var(--line);background:#1f1810}
+  .agents .none{grid-column:1/-1;color:var(--muted);font-size:11px;text-align:center;padding:6px}
+
   /* kanban */
   .board{display:flex;gap:12px;padding:14px 16px 30px;overflow-x:auto;scroll-snap-type:x proximity;
     align-items:flex-start;min-height:calc(100vh - 120px)}
@@ -54,10 +90,13 @@
   .card .top{display:flex;align-items:center;gap:7px;margin-bottom:4px}
   .card .id{font-size:10.5px;color:var(--muted);font-weight:700;letter-spacing:.5px}
   .card .eye{margin-left:auto;font-size:12px}
+  .card .live{margin-left:auto;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+    color:#0e1a0e;background:var(--act);border-radius:999px;padding:1px 7px}
   .card .t{font-size:13px;line-height:1.3}
   .card .foot{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:7px;font-size:10.5px;color:var(--muted)}
   .epic{font-size:9.5px;color:var(--muted);background:#1f1810;border:1px solid var(--line);border-radius:5px;padding:1px 6px}
   .agent{color:var(--ink);background:var(--panel2);border:1px solid var(--line);padding:1px 6px;border-radius:5px}
+  .agent.unassigned{color:var(--muted);opacity:.7}
   .note{font-size:10.5px;color:var(--muted);margin-top:6px;font-style:italic;line-height:1.35}
   .subpill{font-size:9px;font-weight:700;text-transform:uppercase;padding:1px 6px;border-radius:999px;color:#14110c}
   .sp-requeue{background:var(--requeue)} .sp-blocked{background:var(--blocked);color:#fff} .sp-failed{background:var(--failed);color:#fff}
@@ -65,7 +104,8 @@
   .c-todo{border-top:3px solid var(--todo)} .c-building{border-top:3px solid var(--building)}
   .c-review{border-top:3px solid var(--review)} .c-shipped{border-top:3px solid var(--shipped)}
   .c-done{border-top:3px solid var(--done)} .c-blocked{border-top:3px solid var(--blocked)}
-  .card.s-building{border-left-color:var(--building);animation:pulse 1.6s ease-in-out infinite}
+  .card.s-building{border-left-color:var(--building)}
+  .card.s-building.fresh{animation:pulse 1.6s ease-in-out infinite}
   .card.s-review{border-left-color:var(--review)} .card.s-shipped{border-left-color:var(--shipped)}
   .card.s-done{border-left-color:var(--done)} .card.s-blocked{border-left-color:var(--blocked)}
   .card.s-failed{border-left-color:var(--failed)} .card.s-requeue{border-left-color:var(--requeue)}
@@ -84,18 +124,36 @@
   </div>
   <div class="banner" id="banner"></div>
   <div class="controls">
+    <button id="fleetbtn" class="on">🛠 Fleet</button>
     <button id="eyes">👁 Needs my eyes</button>
     <button id="toggle">⏸ Pause</button>
     <button id="refresh">↻ Refresh</button>
     <span class="upd" id="upd"></span>
   </div>
 </header>
+
+<section class="fleet" id="fleet">
+  <div class="fleethead">
+    <span class="lbl">Fleet — who's working on what</span>
+    <span class="meta" id="fleetMeta"></span>
+    <span class="legend">
+      <i><span class="sdot" style="background:var(--act)"></span>active</i>
+      <i><span class="sdot" style="background:var(--recent)"></span>recent</i>
+      <i><span class="sdot" style="background:var(--idle)"></span>idle</i>
+    </span>
+  </div>
+  <div class="agents" id="agents"></div>
+</section>
+
 <div class="board" id="board"><div class="offline">Loading board…</div></div>
 <script>
 (function(){
   var ENDPOINT='https://eldermoor.vercel.app/api/progress';
   var LOCAL='./progress.json';
   var POLL_MS=2000;
+  // a card whose agent reported within this window is "actively" being worked.
+  var ACTIVE_MS=5*60*1000;     // <=5 min  -> active (agent reporting now)
+  var RECENT_MS=60*60*1000;    // <=60 min -> recently touched
   // status -> column
   var COLMAP={ queued:'todo', requeue:'todo', building:'building', review:'review',
                shipped:'shipped', done:'done', blocked:'blocked', failed:'blocked' };
@@ -107,14 +165,23 @@
     {key:'done',     name:'Done',      sub:'you confirmed it',      var:'--done'},
     {key:'blocked',  name:'Blocked',   sub:'stuck / failed',        var:'--blocked', onlyIf:true},
   ];
+  var COLNAME={todo:'To Do',building:'Building',review:'Review',shipped:'Shipped',done:'Done',blocked:'Blocked'};
   var NEEDS_EYES={ shipped:1, review:1 };  // states whose final sign-off is yours
-  var running=true, timer=null, eyesOnly=false;
+  // ordering priority when an agent owns several cards: show the most live one
+  var WORKPRIO={building:0,review:1,shipped:2,requeue:3,queued:4,blocked:5,failed:5,done:6};
+  var running=true, timer=null, eyesOnly=false, showFleet=true;
 
   function ago(ts){ if(!ts)return''; var s=Math.max(0,Math.floor((Date.now()-ts)/1000));
     if(s<60)return s+'s'; var m=Math.floor(s/60); if(m<60)return m+'m'; var h=Math.floor(m/60);
     if(h<24)return h+'h'; return Math.floor(h/24)+'d'; }
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]);});}
   function setConn(st,t){var e=document.getElementById('conn');e.className='conn '+st;e.textContent=t;}
+  function prio(s){return WORKPRIO.hasOwnProperty(s)?WORKPRIO[s]:9;}
+
+  // null / "null" / "" / "none" all mean "no agent assigned"
+  function normAgent(a){ var v=String(a==null?'':a).trim();
+    if(!v||v.toLowerCase()==='null'||v.toLowerCase()==='none'||v.toLowerCase()==='unassigned')return null; return v; }
+  function freshCard(card){ return !!card.ts && (Date.now()-card.ts)<=ACTIVE_MS; }
 
   async function fetchBoard(){
     try{var r=await fetch(ENDPOINT+'?_='+Date.now(),{cache:'no-store'});
@@ -126,6 +193,58 @@
     setConn('off','● offline'); return null;
   }
 
+  // group cards by agent -> one roster entry each (current card = most live one)
+  function buildRoster(cards){
+    var by={};
+    cards.forEach(function(c){ var a=normAgent(c.agent); if(!a)return; (by[a]=by[a]||[]).push(c); });
+    return Object.keys(by).map(function(a){
+      var list=by[a].slice().sort(function(x,y){ return prio(x.status)-prio(y.status) || (y.ts||0)-(x.ts||0); });
+      var newest=list.reduce(function(m,c){return Math.max(m,c.ts||0);},0);
+      return {agent:a, cards:list, cur:list[0], newest:newest, state:agentState(list[0],newest)};
+    });
+  }
+  function agentState(cur,newest){
+    if(cur && cur.status==='building' && freshCard(cur)) return 'act';
+    if(!newest) return 'idle';
+    var age=Date.now()-newest;
+    if(age<=ACTIVE_MS) return 'act';
+    if(age<=RECENT_MS) return 'recent';
+    return 'idle';
+  }
+  var STATE_ORDER={act:0,recent:1,idle:2};
+
+  function renderFleet(roster){
+    var host=document.getElementById('agents');
+    document.getElementById('fleet').className='fleet'+(showFleet?'':' hide');
+    if(!showFleet) return;
+    var act=roster.filter(function(o){return o.state==='act';}).length;
+    var idle=roster.filter(function(o){return o.state==='idle';}).length;
+    var freshest=roster.reduce(function(m,o){return Math.max(m,o.newest||0);},0);
+    document.getElementById('fleetMeta').textContent=
+      roster.length+' agent'+(roster.length===1?'':'s')+' · '+act+' active · '+idle+' idle'+
+      (freshest?(' · freshest report '+ago(freshest)+' ago'):'');
+    if(!roster.length){ host.innerHTML='<div class="none">No agents assigned to any card.</div>'; return; }
+    roster.sort(function(x,y){
+      return (STATE_ORDER[x.state]-STATE_ORDER[y.state]) || (y.newest||0)-(x.newest||0)
+        || x.agent.localeCompare(y.agent);
+    });
+    host.innerHTML=roster.map(function(o){
+      var c=o.cur||{};
+      var stateTxt=o.state==='act'?'active':(o.state==='recent'?'recent':'idle');
+      var col=COLNAME[COLMAP[c.status]||'todo']||'';
+      return '<div class="agentcard '+o.state+'">'+
+        '<div class="ah"><span class="sdot"></span>'+
+          '<span class="aname" title="'+esc(o.agent)+'">'+esc(o.agent)+'</span>'+
+          '<span class="astate">'+stateTxt+'</span>'+
+          (o.cards.length>1?'<span class="acount">'+o.cards.length+' cards</span>':'')+
+        '</div>'+
+        '<div class="acur"><span class="aid">'+esc(c.id||'')+'</span>'+esc(c.title||'—')+'</div>'+
+        '<div class="afoot"><span class="acol">'+esc(col)+'</span>'+
+          (o.newest?'<span>'+ago(o.newest)+' ago</span>':'<span>no timestamp</span>')+'</div>'+
+      '</div>';
+    }).join('');
+  }
+
   function render(data){
     if(!data||!Array.isArray(data.board))return;
     document.getElementById('ver').textContent=data.version||'';
@@ -135,16 +254,24 @@
     data.board.forEach(function(card){
       var k=COLMAP[card.status]||'todo'; (buckets[k]=buckets[k]||[]).push(card);
     });
-    var total=data.board.length||1;
+
+    var roster=buildRoster(data.board);
+    var liveAgents=roster.filter(function(o){return o.state==='act';}).length;
+    renderFleet(roster);
 
     // bottleneck = the non-terminal column with the most cards (building/review/shipped)
     var bottleneck=null,max=0;
     ['building','review','shipped'].forEach(function(k){ if(buckets[k].length>max){max=buckets[k].length;bottleneck=k;} });
 
-    // banner: surface the real gate honestly
+    // banner: surface the real gate honestly — including "nobody is actually working"
     var ship=buckets.shipped.length, rev=buckets.review.length, done=buckets.done.length, bld=buckets.building.length;
     var b=document.getElementById('banner');
-    if(ship>0){
+    if(liveAgents===0 && bld===0){
+      b.className='banner idle show';
+      b.innerHTML='<b>Fleet idle — no agent is actively building.</b> '+
+        rev+' in review · '+ship+' shipped await your playtest 👁 · '+done+' done. '+
+        'Nothing advances until you sign off the shipped items or new work is queued.';
+    } else if(ship>0){
       b.className='banner show';
       b.innerHTML='<b>'+ship+' shipped &amp; live</b>, awaiting <b>your playtest</b> 👁 — that\'s the only gate to Done. '+
         bld+' building · '+rev+' in review · '+done+' done.';
@@ -165,15 +292,22 @@
       items.sort(function(a,b){return (rank[a.status]||9)-(rank[b.status]||9) || String(a.id).localeCompare(String(b.id));});
       if(!items.length) cards+='<div class="empty">—</div>';
       items.forEach(function(card){
-        var eye=NEEDS_EYES[card.status]?'<span class="eye" title="needs your eyes">👁</span>':'';
+        var fresh=freshCard(card);
+        var aff=card.status==='building'&&fresh
+          ?'<span class="live">● working</span>'
+          :(NEEDS_EYES[card.status]?'<span class="eye" title="needs your eyes">👁</span>':'');
         var sub=(card.status==='requeue'||card.status==='blocked'||card.status==='failed')
           ?'<span class="subpill sp-'+card.status+'">'+card.status+'</span>':'';
-        cards+='<div class="card s-'+card.status+(NEEDS_EYES[card.status]?' eyeon':'')+'">'+
-          '<div class="top"><span class="id">'+esc(card.id)+'</span>'+sub+eye+'</div>'+
+        var an=normAgent(card.agent);
+        var agentPill=an
+          ?'<span class="agent">'+esc(an)+'</span>'
+          :'<span class="agent unassigned">unassigned</span>';
+        cards+='<div class="card s-'+card.status+(fresh?' fresh':'')+(NEEDS_EYES[card.status]?' eyeon':'')+'">'+
+          '<div class="top"><span class="id">'+esc(card.id)+'</span>'+sub+aff+'</div>'+
           '<div class="t">'+esc(card.title||'')+'</div>'+
           (card.note?'<div class="note">'+esc(card.note)+'</div>':'')+
           '<div class="foot"><span class="epic">'+esc(card.epic||'')+'</span>'+
-            (card.agent?'<span class="agent">'+esc(card.agent)+'</span>':'')+
+            agentPill+
             (card.ts?'<span>'+ago(card.ts)+' ago</span>':'')+'</div>'+
         '</div>';
       });
@@ -193,6 +327,9 @@
   document.getElementById('eyes').addEventListener('click',function(){
     eyesOnly=!eyesOnly; this.classList.toggle('on',eyesOnly);
     document.getElementById('board').classList.toggle('filtered',eyesOnly);});
+  document.getElementById('fleetbtn').addEventListener('click',function(){
+    showFleet=!showFleet; this.classList.toggle('on',showFleet);
+    document.getElementById('fleet').className='fleet'+(showFleet?'':' hide');});
   loop();
 })();
 </script>

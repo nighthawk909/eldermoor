@@ -85,7 +85,9 @@
 </main>
 <script>
 (function(){
-  var ENDPOINT = '/api/progress';   // KV-backed (phone-visible) when connected
+  // Absolute prod endpoint so the board loads from anywhere: phone, a local
+  // file (file://), localhost, or the deployed page. KV-backed (live).
+  var ENDPOINT = 'https://eldermoor.vercel.app/api/progress';
   var LOCAL = './progress.json';    // single-writer fallback (served locally)
   var POLL_MS = 2000;
   var STATUSES = ['building','review','requeue','queued','blocked','failed','done'];
@@ -181,7 +183,14 @@
   }
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]);});}
 
-  async function tick(){ var d=await fetchBoard(); if(d) render(d); }
+  function showOffline(){
+    var b=document.getElementById('board');
+    if(!b.querySelector('.card')){
+      b.innerHTML='<div class="empty">Offline — can\'t reach the board right now.<br>'+
+        'Open <b>https://eldermoor.vercel.app/dashboard.html</b> (retrying every 2s…)</div>';
+    }
+  }
+  async function tick(){ var d=await fetchBoard(); if(d) render(d); else showOffline(); }
   function loop(){ if(timer) clearTimeout(timer); if(running){ tick().then(function(){ timer=setTimeout(loop,POLL_MS); }); } }
 
   document.getElementById('toggle').addEventListener('click',function(){

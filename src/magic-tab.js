@@ -137,6 +137,10 @@ export function initMagicTab(){
   .emmag-grid .sp.off{opacity:.4;cursor:not-allowed;filter:grayscale(1);}
   .emmag-grid .sp.off:hover{border-color:#3e3424;}
   .emmag-grid .sp.off .lv{color:#d36a5a;}
+  .emmag-grid .sp.casting{border-color:#b0e0ff;box-shadow:0 0 6px #4ac8ff;animation:emmagPulse .7s infinite alternate;}
+  @keyframes emmagPulse{from{box-shadow:0 0 4px #4ac8ff;}to{box-shadow:0 0 12px #9ee8ff;}}
+  #emmag-castbar{margin-top:6px;padding:5px 7px;background:#1a2a38;border:1px solid #4ac8ff;
+    border-radius:4px;color:#9ee8ff;font-size:10px;text-align:center;letter-spacing:.04em;}
   .emmag-empty{color:#9a8c6c;font-size:12px;padding:6px 2px;}
   .emmag-foot{display:flex;gap:4px;margin-top:9px;}
   .emmag-foot button{flex:1;background:#33291a;border:1px solid #4a3a22;color:#cdbf98;
@@ -176,6 +180,344 @@ export function initMagicTab(){
       + `<div class="emmag-tip-runes">${runeBits || '<span class="r">No runes.</span>'}</div>`;
   }
 
+  /* --------------------------------------------------------- cast-target state */
+  // When the player clicks a castable combat spell, pendingCast is set to that
+  // spell. The next mob click is then consumed as a magic attack: runes are
+  // removed, XP awarded, damage applied, and a bolt projectile fired.
+  // cancelCast() clears the mode (Escape, or clicking something other than a mob).
+  let pendingCast = null;          // { sp } | null
+  let _savedAttack = null;         // original EMCOMBAT.attack while intercepting
+
+  // CSS cursor hint applied to <body> while targeting.
+  const CURSOR_CAST = 'crosshair';
+
+  function cancelCast(){
+    if(!pendingCast) return;
+    pendingCast = null;
+    // restore the original EMCOMBAT.attack we wrapped
+    if(window.EMCOMBAT && typeof _savedAttack === 'function'){
+      window.EMCOMBAT.attack = _savedAttack;
+    }
+    _savedAttack = null;
+    if(typeof document !== 'undefined') document.body.style.cursor = '';
+    // refresh the panel visuals to remove the casting highlight
+    _rerender();
+  }
+
+  // Track the most recently rendered (panel, state) so cancelCast can re-render.
+  let _lastPanel = null;
+  let _lastState = null;
+  function _rerender(){ if(_lastPanel) renderInto(_lastPanel, _lastState); }
+
+  /* ------------------------------------------------ magic projectile (bolt) */
+  // A coloured orb that arcs from the player to the mob, then calls onArrive().
+  // Falls back to immediate delivery when THREE / scene are unavailable.
+  function fireMagicBolt(colour, onArrive){
+    const THREE = (typeof window !== 'undefined') ? window.THREE : undefined;
+    const scene = THREE
+      ? (window.EMSCENE || (window.EMENGINE && window.EMENGINE.scene) || null)
+      : null;
+    const mob   = pendingCast && pendingCast._mob ? pendingCast._mob : null;
+    const pp    = (typeof window !== 'undefined')
+      ? (window.EMPLAYERPOS || (window.EMPLAYER && window.EMPLAYER.pos) || null)
+      : null;
+
+    if(!THREE || !scene || !mob){
+      if(typeof onArrive === 'function') onArrive();
+      return;
+    }
+
+    // anchor helpers (mirrors combat.js mobAnchor)
+    function mobAnchorLocal(m){
+      const o = m.group || m.mesh || (m.position ? m : null);
+      if(o && o.position) return { x:o.position.x, y:(o.position.y||0)+1.8, z:o.position.z };
+      return { x:m.x||0, y:1.8, z:m.z||0 };
+    }
+
+    const from = { x: pp ? pp.x : 0,
+                   y: pp ? ((typeof pp.y === 'number' ? pp.y : 0) + 1.4) : 1.4,
+                   z: pp ? pp.z : 0 };
+    const to   = mobAnchorLocal(mob);
+
+    // small glowing orb canvas
+    const S = 24;
+    const cv = document.createElement('canvas'); cv.width = S; cv.height = S;
+    const ctx = cv.getContext('2d');
+    const grad = ctx.createRadialGradient(S/2, S/2, 2, S/2, S/2, S/2 - 1);
+    grad.addColorStop(0, '#ffffff');
+    grad.addColorStop(0.4, colour);
+    grad.addColorStop(1,   'rgba(0,0,0,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath(); ctx.arc(S/2, S/2, S/2 - 1, 0, Math.PI * 2); ctx.fill();
+
+    const tex = new THREE.CanvasTexture(cv); tex.minFilter = THREE.LinearFilter;
+    const spr = new THREE.Sprite(
+      new THREE.SpriteMaterial({ map:tex, transparent:true, depthTest:false }));
+    spr.scale.set(0.32, 0.32, 1);
+    spr.renderOrder = 1004;
+    spr.position.set(from.x, from.y, from.z);
+    scene.add(spr);
+
+    const dx = to.x - from.x, dy = to.y - from.y, dz = to.z - from.z;
+    const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+    const dur  = Math.max(120, Math.min(500, dist * 70));
+    const born = (typeof performance !== 'undefined') ? performance.now() : Date.now();
+
+    (function step(){
+      const now = (typeof performance !== 'undefined') ? performance.now() : Date.now();
+      const t   = Math.min(1, (now - born) / dur);
+      spr.position.set(from.x + dx*t, from.y + dy*t, from.z + dz*t);
+      if(t < 1){ requestAnimationFrame(step); return; }
+      scene.remove(spr);
+      if(tex.dispose)          tex.dispose();
+      if(spr.material.dispose) spr.material.dispose();
+      if(typeof onArrive === 'function') onArrive();
+    })();
+  }
+
+  /* ---------------------------------------------- rune consumption ---------- */
+  // Deduct cost runes from EMHUD inventory. Mutates the live inv array entries
+  // (EMHUD exposes no takeItem; we reduce counts and splice empties ourselves).
+  function consumeRunes(sp){
+    const h = (typeof window !== 'undefined') ? window.EMHUD : null;
+    if(!h || typeof h.getInv !== 'function') return;
+    let inv;
+    try { inv = h.getInv(); } catch(_){ inv = null; }
+    if(!Array.isArray(inv)) return;
+    const cost = spellCost(sp);
+    for(const runeId in cost){
+      let needed = cost[runeId];
+      for(let i = inv.length - 1; i >= 0 && needed > 0; i--){
+        const slot = inv[i];
+        if(!slot || slot.id !== runeId) continue;
+        const take = Math.min(slot.count, needed);
+        slot.count -= take;
+        needed -= take;
+        if(slot.count <= 0) inv.splice(i, 1);
+      }
+    }
+  }
+
+  /* -------------------------------------- magic XP + damage on mob ---------- */
+  // XP rates match the OSRS magic model: 2× base per damage (Magic) + 1.33× (HP).
+  // Max hit scales with magic level (floors at 1).
+  const MAGIC_XP_PER_DMG   = 2.0;
+  const MAGIC_HP_XP_PER_DMG = 1.33;
+
+  function magicMaxHit(magLvl){
+    // simple linear: floor(level / 5) + 1, minimum 1
+    return Math.max(1, Math.floor(magLvl / 5) + 1);
+  }
+
+  function awardMagicXp(dmg){
+    const h = (typeof window !== 'undefined') ? window.EMHUD : null;
+    if(!h || typeof h.addXp !== 'function' || dmg <= 0) return;
+    h.addXp('magic',      Math.round(dmg * MAGIC_XP_PER_DMG    * 10) / 10);
+    h.addXp('hitpoints',  Math.round(dmg * MAGIC_HP_XP_PER_DMG * 10) / 10);
+  }
+
+  // Colour of the magic bolt by element (derived from spell id prefix).
+  function spellColour(sp){
+    const id = sp ? sp.id : '';
+    if(id.indexOf('ember') === 0 || id.indexOf('fire')  !== -1) return '#ff6030';
+    if(id.indexOf('spring') === 0|| id.indexOf('water') !== -1) return '#40c8ff';
+    if(id.indexOf('stone') === 0 || id.indexOf('earth') !== -1) return '#a0d060';
+    return '#c0a0ff'; // default: arcane purple
+  }
+
+  /* ------------------------------------------------ execute the cast -------- */
+  // Called once a mob target has been selected. Consumes runes, fires the bolt,
+  // then on landing applies damage + hitsplat + XP via EMCOMBAT helpers.
+  function executeCast(sp, mob){
+    const magLvl  = magicLevel(null);
+    const maxHit  = magicMaxHit(magLvl);
+    const dmg     = Math.floor(Math.random() * (maxHit + 1));
+    const colour  = spellColour(sp);
+    const h       = (typeof window !== 'undefined') ? window.EMHUD   : null;
+    const ec      = (typeof window !== 'undefined') ? window.EMCOMBAT : null;
+
+    // announce
+    if(h && typeof h.addChat === 'function'){
+      h.addChat('You cast ' + sp.name + ' at the ' + (mob.name || 'creature') + '.', '', true);
+    }
+
+    // consume runes now (before bolt lands - OSRS behaviour)
+    consumeRunes(sp);
+
+    // stash the mob on the pending cast for fireMagicBolt to anchor the sprite
+    if(pendingCast) pendingCast._mob = mob;
+
+    fireMagicBolt(colour, function(){
+      // bolt landed - apply damage
+      if(dmg > 0){
+        // reduce mob HP directly (mirrors combat.js approach)
+        if(mob.hp == null) mob.hp = mob.maxHp || 1;
+        mob.hp = Math.max(0, mob.hp - dmg);
+      }
+      // show hitsplat: try EMCOMBAT internal or fall back to a local canvas splat
+      applyHitsplat(mob, dmg);
+      // award magic XP
+      awardMagicXp(dmg);
+      // trigger mob death path if HP hit zero (uses EMCOMBAT.attack to engage
+      // so the existing kill/respawn/drop logic fires)
+      if(mob.hp <= 0){
+        // kill flow lives inside combat\'s attack loop; the cheapest honest hook
+        // is to set hp=0 and then start an attack so the first tick fires killMob.
+        if(ec && typeof ec.attack === 'function') ec.attack(mob);
+      } else if(dmg > 0){
+        // mob is still alive: keep the retaliation chain going via EMCOMBAT.attack
+        if(ec && typeof ec.attack === 'function') ec.attack(mob);
+      }
+      // chat feedback on zero hit
+      if(dmg === 0 && h && typeof h.addChat === 'function'){
+        h.addChat(sp.name + ' splashes! (0 damage)', '', true);
+      }
+    });
+  }
+
+  /* quick hitsplat helper: delegates to EMCOMBAT internals via a scratch mob
+     attack then cancels, OR draws a minimal canvas sprite directly if the scene
+     is accessible. Using the simpler direct canvas path to stay self-contained. */
+  function applyHitsplat(mob, amount){
+    const THREE = (typeof window !== 'undefined') ? window.THREE : undefined;
+    const scene = THREE
+      ? (window.EMSCENE || (window.EMENGINE && window.EMENGINE.scene) || null)
+      : null;
+    if(!THREE || !scene) return;
+
+    // anchor
+    const o = mob.group || mob.mesh || (mob.position ? mob : null);
+    const ax = o && o.position ? o.position.x : (mob.x || 0);
+    const ay = (o && o.position ? o.position.y : 0) + 1.8;
+    const az = o && o.position ? o.position.z : (mob.z || 0);
+
+    const S = 64;
+    const cv = document.createElement('canvas'); cv.width = S; cv.height = S;
+    const ctx = cv.getContext('2d');
+    const col = amount === 0 ? '#3a64c8' : '#9030c8'; // blue = zero, purple = magic
+    ctx.fillStyle = col;
+    ctx.beginPath(); ctx.arc(S/2, S/2, S/2 - 4, 0, Math.PI * 2); ctx.fill();
+    ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.45)'; ctx.stroke();
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 34px Trebuchet MS, sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(0,0,0,.8)';
+    const lbl = String(amount | 0);
+    ctx.strokeText(lbl, S/2, S/2 + 1);
+    ctx.fillText(lbl,   S/2, S/2 + 1);
+
+    const tex = new THREE.CanvasTexture(cv); tex.minFilter = THREE.LinearFilter;
+    const spr = new THREE.Sprite(
+      new THREE.SpriteMaterial({ map:tex, transparent:true, depthTest:false }));
+    spr.scale.set(0.7, 0.7, 1);
+    spr.renderOrder = 1002;
+    spr.position.set(ax, ay, az);
+    scene.add(spr);
+
+    const born = (typeof performance !== 'undefined') ? performance.now() : Date.now();
+    const dur  = 700;
+    (function rise(){
+      const now = (typeof performance !== 'undefined') ? performance.now() : Date.now();
+      const t   = (now - born) / dur;
+      if(t >= 1){
+        scene.remove(spr);
+        if(tex.dispose)          tex.dispose();
+        if(spr.material.dispose) spr.material.dispose();
+        return;
+      }
+      spr.position.y = ay + t * 0.6;
+      if(spr.material) spr.material.opacity = 1 - t;
+      requestAnimationFrame(rise);
+    })();
+  }
+
+  /* ----------------------------------------- intercept mob click for casting */
+  // When a combat spell is clicked and pendingCast is set, we wrap
+  // window.EMCOMBAT.attack with a one-shot function. interact.js calls
+  // EMCOMBAT.attack(mob) for every mob click; the wrapper consumes the cast and
+  // restores the original so normal melee resumes on subsequent clicks.
+  function enterCastMode(sp, panel, panelState){
+    // cancel any existing pending cast cleanly first
+    if(pendingCast) cancelCast();
+
+    pendingCast = { sp: sp };
+    if(typeof document !== 'undefined') document.body.style.cursor = CURSOR_CAST;
+
+    // highlight the chosen spell cell
+    if(panel){
+      panel.querySelectorAll('.emmag-grid .sp[data-id]').forEach(el => {
+        el.classList.toggle('casting', el.dataset.id === sp.id);
+      });
+      // show/update the cast status bar
+      let bar = panel.querySelector('#emmag-castbar');
+      if(!bar){
+        bar = document.createElement('div');
+        bar.id = 'emmag-castbar';
+        const wrap = panel.querySelector('#emmag-wrap');
+        if(wrap) wrap.appendChild(bar);
+      }
+      bar.textContent = sp.icon + ' ' + sp.name + ' — click a target (Esc to cancel)';
+    }
+
+    // wrap EMCOMBAT.attack while it exists; re-check at click time if it was
+    // initialised after this point.
+    function installHook(){
+      const ec = (typeof window !== 'undefined') ? window.EMCOMBAT : null;
+      if(!ec || typeof ec.attack !== 'function') return false;
+      _savedAttack = ec.attack;
+      ec.attack = function magicInterceptAttack(mob){
+        // restore original immediately (one-shot)
+        ec.attack = _savedAttack;
+        _savedAttack = null;
+        if(typeof document !== 'undefined') document.body.style.cursor = '';
+        const captured = pendingCast ? pendingCast.sp : null;
+        pendingCast = null;
+
+        if(!captured){ return; }
+
+        // re-check castability at click-time (runes/level may have changed)
+        const lvlOk   = magicLevel(panelState) >= captured.lvl;
+        const runesOk = hasRunes(captured, runeCounts(panelState));
+        if(!lvlOk || !runesOk){
+          const hh = (typeof window !== 'undefined') ? window.EMHUD : null;
+          if(hh && typeof hh.addChat === 'function')
+            hh.addChat('You don\'t have the runes to cast ' + captured.name + '.', '', true);
+          _rerender();
+          return;
+        }
+
+        _rerender(); // drop casting highlight
+        executeCast(captured, mob);
+      };
+      return true;
+    }
+
+    // install now if EMCOMBAT is ready, otherwise defer until first click
+    if(!installHook()){
+      // EMCOMBAT not yet ready: poll briefly then give up gracefully
+      let tries = 0;
+      const poll = setInterval(function(){
+        tries++;
+        if(installHook() || tries > 20) clearInterval(poll);
+      }, 100);
+    }
+
+    // Escape cancels cast-target mode
+    function onEsc(e){
+      if(e.key === 'Escape' && pendingCast){ cancelCast(); _rerender(); }
+    }
+    if(typeof document !== 'undefined'){
+      document.addEventListener('keydown', onEsc);
+      // clean up the listener when cast resolves (either execute or cancel)
+      const orig = cancelCast;
+      cancelCast = function(){
+        document.removeEventListener('keydown', onEsc);
+        cancelCast = orig;
+        orig();
+      };
+    }
+  }
+
   /* --------------------------------------------------------- grid rendering */
   let curFilter = 'all';   // 'combat' | 'teleport' | 'all' (sticky across renders)
   const detachers = [];    // EMTIP detach fns for the currently rendered cells
@@ -191,16 +533,20 @@ export function initMagicTab(){
   }
 
   function renderInto(panel, state){
+    _lastPanel = panel;
+    _lastState = state;
     clearTips();
-    const level = magicLevel(state);
+    const level  = magicLevel(state);
     const counts = runeCounts(state);
-    const list = visibleSpells();
+    const list   = visibleSpells();
+    const castId = pendingCast ? pendingCast.sp.id : null;
 
     const cells = list.map(sp => {
       const meets = level >= sp.lvl;
       const runed = hasRunes(sp, counts);
-      const off = !meets || !runed;
-      return `<div class="sp${off?' off':''}" data-id="${sp.id}">`
+      const off   = !meets || !runed;
+      const cast  = castId === sp.id ? ' casting' : '';
+      return `<div class="sp${off?' off':''}${cast}" data-id="${sp.id}">`
         + `<span class="lv">${sp.lvl}</span>`
         + `<span class="ic">${sp.icon || '✦'}</span>`
         + `<span class="nm">${esc(sp.name)}</span></div>`;
@@ -216,7 +562,11 @@ export function initMagicTab(){
       + `<button data-f="all"${curFilter==='all'?' class="on"':''}>All</button>`
       + `</div>`;
 
-    panel.innerHTML = `<div id="emmag-wrap"><h4>Spellbook</h4>${grid}${foot}</div>`;
+    const castBar = castId
+      ? `<div id="emmag-castbar">${esc(list.find(s=>s.id===castId)?list.find(s=>s.id===castId).icon:'') } Targeting — click a mob (Esc to cancel)</div>`
+      : '';
+
+    panel.innerHTML = `<div id="emmag-wrap"><h4>Spellbook</h4>${grid}${castBar}${foot}</div>`;
 
     // wire tooltips (live-resolved on hover so level/runes are always current)
     if(window.EMTIP && typeof EMTIP.attach === 'function'){
@@ -228,6 +578,20 @@ export function initMagicTab(){
         if(typeof detach === 'function') detachers.push(detach);
       });
     }
+
+    // spell cell clicks: castable combat spells enter cast-target mode
+    panel.querySelectorAll('.emmag-grid .sp[data-id]:not(.off)').forEach(el => {
+      el.onclick = () => {
+        const sp = SPELLS.find(s => s.id === el.dataset.id);
+        if(!sp) return;
+        if(sp.cat === 'combat'){
+          // toggle off if clicking the already-pending spell
+          if(pendingCast && pendingCast.sp.id === sp.id){ cancelCast(); _rerender(); return; }
+          enterCastMode(sp, panel, state);
+        }
+        // teleport / utility: no-op for now (future task)
+      };
+    });
 
     // filter footer - re-render in place, preserving the chosen filter
     panel.querySelectorAll('.emmag-foot button[data-f]').forEach(btn => {
@@ -242,7 +606,7 @@ export function initMagicTab(){
   }
 
   /* ---------------------------------------------- TAB REGISTRY HOOK (EMTABS) */
-  // Renders into the HUD\'s shared panel when the 'magic' tab is shown. This
+  // Renders into the HUD\'s shared panel when the \'magic\' tab is shown. This
   // overrides the HUD\'s built-in placeholder (hud.js checks EMTABS first).
   window.EMTABS = window.EMTABS || {};
   window.EMTABS['magic'] = (panel, state) => {
@@ -251,16 +615,18 @@ export function initMagicTab(){
   };
 
   /* --------------------------------------------------------- public: EMMAGIC */
-  // Lightweight introspection surface (read-only) for other modules/tests.
+  // Lightweight introspection surface for other modules/tests.
   window.EMMAGIC = {
-    spells: () => SPELLS.slice(),
-    runes:  () => Object.assign({}, RUNES),
-    filter: () => curFilter,
+    spells:      () => SPELLS.slice(),
+    runes:       () => Object.assign({}, RUNES),
+    filter:      () => curFilter,
+    pendingCast: () => pendingCast ? Object.assign({}, pendingCast) : null,
+    cancelCast,
     // True if the spell is castable right now (level + runes met).
-    canCast: (id, state) => {
+    canCast: (id, st) => {
       const sp = SPELLS.find(s => s.id === id);
       if(!sp) return false;
-      return magicLevel(state) >= sp.lvl && hasRunes(sp, runeCounts(state));
+      return magicLevel(st) >= sp.lvl && hasRunes(sp, runeCounts(st));
     }
   };
 }

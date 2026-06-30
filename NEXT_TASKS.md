@@ -16,10 +16,13 @@ Source of truth for the wider list: `BACKLOG.md` / `ROADMAP.md` / `PARITY_AUDIT.
       skilling subscribe to it. (7/7 functional test.)
       All v24–v27 integrated + boot-verified; **live-playtest pending** for the lot.
 - [x] **Claude Code policy config** (commit 3a9fe8d) — settings + Session/Pre/Post/Stop hooks, validated.
-- [x] **Mobile Sprint 1A — responsive UI framework** (v28, `src/mobile-ui.js` + `emotes.js`/`charcreate.js`):
-      orientation detection, single-panel docking, bottom-sheet dialogue, chat collapse, objective auto-hide,
-      ≥44px touch targets, haptics, character name entry, stray emote FAB removed. 19/19 headless UI test.
-      **Awaiting Josh's on-device QA before Milestone 1B.**
+- [x] **Mobile Sprint 1A — responsive UI framework** (v28→v29, `mobile-ui.js`/`emotes.js`/`charcreate.js`/`inventory-ops.js`):
+      orientation detection, single-panel docking, bottom-sheet dialogue, chat collapse, objective auto-hide+persist,
+      stray emote FAB removed, character name entry; **v29 QA fixes:** dedicated landscape layout, top-right HUD
+      cluster de-overlap, responsive panel sizing (no clip), inventory long-press context menu on mobile
+      (tap/long-press/Examine/Drop). 26/26 headless UI test. **Awaiting Josh's on-device QA before 1B.**
+      *Open: character-creator part SHAPES don't change the static model (colour-only) — needs a parameterized
+      player model (modeling milestone); options/skirts/footwear themselves are present + persisted.*
 
 ## Mobile Sprint 1 — remaining milestones (sequential, each gated by on-device QA)
 - **1B** Inventory + Equipment mobile interactions (tap/long-press use/wield/drop on touch).

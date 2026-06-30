@@ -4,7 +4,7 @@
 For the full narrative handoff see `PROJECT_HANDOFF.md`; phase status in `ROADMAP.md`; item-level tests in
 `PARITY_AUDIT.md`.
 
-- **Live version:** v28 · **Link:** https://eldermoor.vercel.app
+- **Live version:** v29 · **Link:** https://eldermoor.vercel.app
 - **Overall:** ~24% (features integrated + boot-verified; **live-playtested separately — see METRICS**).
 - **Client:** modular ES (`src/*.js`, ~37 modules) + `index.modular.html` shell, Three.js r128 (CDN),
   data-driven from `assets/data/*.json`. Deployed on Vercel. `eldermoor_client.html` = frozen v17 rollback.
@@ -25,6 +25,18 @@ complete flow · action SFX coverage (`sfx-actions.js`) · lesson gating (`gatin
 game tick (`tick.js`, shared by combat + skilling).
 
 ## Recently resolved
+- **v29 — Milestone 1A QA fixes (round 2):** dedicated **landscape** layout (tab panel docks left,
+  anchored top+bottom so it never clips; minimap cluster top-right; tabs bottom-right); the top-right HUD
+  cluster (minimap/orbs/world-map button) reflowed into one non-overlapping right-edge stack and the XP
+  counter moved top-left (they used to overlap each other and the panel); responsive panel sizing
+  (`max-width:100vw-12px`, on-screen in both orientations); **inventory touch interactions** — long-press
+  opens the option menu on mobile (`inventory-ops.js`; tap = op0, long-press = context menu with
+  Use/Wield/Eat/Drop/Examine, trailing-click suppressed, haptics); objective banner now re-shows on entry
+  (`em-appearance`) and stays ~8s. Boot-verified by a 26/26 headless-Chromium UI test (incl. landscape
+  no-clip/no-overlap, cluster non-overlap, long-press menu, Examine→chat). **Pending Josh's on-device QA.**
+  Known limitation: character-creator **part SHAPES** (e.g. boots vs sandals, trousers vs skirt) don't yet
+  change the model — the player is a single static glTF; only COLOURS apply. Options/skirts/footwear exist
+  and persist; reflecting part shape needs a parameterized player model (separate modeling milestone).
 - **v28 — Mobile Sprint 1, Milestone 1A (responsive UI framework):** new `src/mobile-ui.js`
   (`window.EMUI` + `window.EMHAPTIC`). Live portrait/landscape orientation detection (body
   `em-portrait`/`em-landscape`, no reload); fluid panel/tab/chat layout that stacks without overlap;

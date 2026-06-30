@@ -1,13 +1,15 @@
 # PROJECT HANDOFF — Eldermoor
 
-**Version (live):** v28 · **Live link:** https://eldermoor.vercel.app
-**Working copy:** v28 (Mobile Sprint 1A) on `claude/modular-v23`.
+**Version (live):** v29 · **Live link:** https://eldermoor.vercel.app
+**Working copy:** v29 (Mobile Sprint 1A, QA-fix round 2) on `claude/modular-v23`.
 **Overall progress:** ~24% (features integrated + boot-verified; **~6 features live-playtested**).
 **Date:** 2026-06-30.
 **Production note:** v26–v28 build as Vercel **previews**; production-alias promotion (`vercel --prod`)
 is done outside the sandbox. On-device QA of v24–v28 is pending (see HUMAN_ACTIONS.md).
-**Active sprint:** Mobile Playability (P0). Milestone 1A (responsive UI framework) shipped to preview,
-boot-verified by a 19/19 headless UI test; **awaiting Josh's on-device QA before Milestone 1B.**
+**Active sprint:** Mobile Playability (P0). Milestone 1A — v28 shipped, failed Josh's QA; **v29 addresses
+the QA items** (landscape layout, top-right HUD de-overlap, responsive panel sizing, inventory long-press
+context menu, objective persistence). Boot-verified by a 26/26 headless UI test; **awaiting Josh's on-device
+re-QA before Milestone 1B.** Open limitation: creator part SHAPES need a parameterized model (colour-only now).
 
 > **Honesty note:** "Completed" below means *integrated into the build + boot-verified in a headless
 > browser (no console errors)*. It does **not** mean manually playtested in the 3D scene — that gate is
@@ -188,7 +190,8 @@ zones/instructors (assets, which also activates lesson gating) → per-zone musi
 
 ## 8. Exact next task
 
-**Status: Mobile Sprint 1 — Milestone 1A shipped to preview; awaiting on-device QA.**
+**Status: Mobile Sprint 1 — Milestone 1A v29 (QA-fix round 2) shipped to preview; awaiting on-device re-QA.**
+v28 failed QA (landscape/HUD-overlap/panel-clip/inventory-touch/objective); v29 fixes those.
 Next milestone (1B) does NOT start until Josh approves 1A on a real phone.
 
 **1A delivered (v28):** `src/mobile-ui.js` (`window.EMUI`/`window.EMHAPTIC`) — orientation detection,

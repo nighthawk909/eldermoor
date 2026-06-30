@@ -24,7 +24,7 @@
    main.js calls initMobileUI() once, after initHud().
    ===================================================================== */
 
-const OBJ_HIDE_MS_DEFAULT = 6000;
+const OBJ_HIDE_MS_DEFAULT = 8000;
 
 /* ----------------------------------------------------------- haptics */
 function makeHaptics(){
@@ -55,6 +55,12 @@ const CSS = `
 #emtabs button{ min-height:44px; min-width:40px; font-size:18px; }
 #emchch button{ min-height:34px; font-size:11px; }
 #dlg button{ min-height:44px; }
+#eminv-ctx .eminv-ctx-o{ min-height:42px !important; font-size:14px !important; }
+#menu .mi{ min-height:42px; }
+#em-charcreate .em-cc-btn{ min-height:42px !important; min-width:42px !important; }
+#em-charcreate .em-cc-sw{ width:30px !important; height:30px !important; }
+#em-charcreate .em-cc-name{ min-height:46px; }
+#emwmap-close{ min-width:44px; min-height:44px; }
 
 /* ---- objective banner: fades out, taps to bring back ---- */
 #emobj{ transition:opacity .4s ease, transform .4s ease; cursor:pointer; top:calc(8px + var(--em-safe-t)); }
@@ -77,6 +83,20 @@ const CSS = `
 /* ---- single active panel: hide the dialogue sheet while a tab panel is open ---- */
 body.em-panel-open #dlg{ display:none !important; }
 
+/* ---- top HUD cluster: minimap + orbs + world-map button form one right-edge
+   stack (they used to overlap each other); the XP counter moves to top-left so
+   nothing in the cluster sits over an open panel. ---- */
+#emmap{ top:calc(8px + var(--em-safe-t)) !important; right:8px !important; }
+#emorbs{ right:8px !important; left:auto !important; flex-direction:row !important; gap:5px !important; }
+#emwmap-btn{ right:8px !important; }
+#em-xpcounter{ top:calc(8px + var(--em-safe-t)) !important; left:8px !important; right:auto !important; }
+body.em-portrait #emmap{ width:84px !important; height:84px !important; }
+body.em-portrait #emorbs{ top:calc(100px + var(--em-safe-t)) !important; }
+body.em-portrait #emwmap-btn{ top:calc(138px + var(--em-safe-t)) !important; width:84px !important; }
+body.em-landscape #emmap{ width:96px !important; height:96px !important; }
+body.em-landscape #emorbs{ top:calc(112px + var(--em-safe-t)) !important; }
+body.em-landscape #emwmap-btn{ top:calc(150px + var(--em-safe-t)) !important; width:96px !important; }
+
 /* =================== PORTRAIT (primary) =================== */
 /* the tab bar is two rows of 7 (~112px); panel / dialogue / chat all stack ABOVE
    it in the same zone, and are mutually exclusive, so nothing overlaps. */
@@ -92,14 +112,25 @@ body.em-portrait #emmap{ width:92px; height:92px; }
 body.em-portrait.em-panel-open #emchat,
 body.em-portrait.em-dlg-open #emchat{ display:none !important; }
 
-/* =================== LANDSCAPE (enhanced) =================== */
-/* wider screen: panel docks right, chat docks left -> both fit with no overlap */
-body.em-landscape #emtabs{ width:min(52vw,360px) !important; grid-template-columns:repeat(14,1fr) !important;
-  bottom:calc(8px + var(--em-safe-b)) !important; right:8px !important; }
-body.em-landscape #empanel{ width:min(40vw,320px) !important; max-height:78vh !important;
-  bottom:calc(64px + var(--em-safe-b)) !important; right:8px !important; }
-body.em-landscape #emchat{ width:min(34vw,340px) !important; height:140px; left:8px !important; }
-body.em-landscape #dlg{ bottom:calc(64px + var(--em-safe-b)) !important; max-height:48vh; }
+/* =================== LANDSCAPE (enhanced, its OWN layout) =================== */
+/* Short, wide screen: minimap cluster top-right, tabs bottom-right. The tab
+   panel therefore docks on the LEFT and is anchored top AND bottom so it always
+   fits the available height (scrolls internally) — never clipped, never under
+   the cluster or the tabs. */
+body.em-landscape #emtabs{ width:min(56vw,380px) !important; grid-template-columns:repeat(14,1fr) !important;
+  bottom:calc(8px + var(--em-safe-b)) !important; right:8px !important; left:auto !important; }
+body.em-landscape #empanel{ left:8px !important; right:auto !important; width:min(46vw,360px) !important;
+  top:calc(48px + var(--em-safe-t)) !important; bottom:calc(56px + var(--em-safe-b)) !important;
+  max-height:none !important; }
+body.em-landscape #dlg{ bottom:calc(56px + var(--em-safe-b)) !important; max-height:48vh; }
+body.em-landscape #emchat{ left:8px !important; right:auto !important; width:min(40vw,320px) !important;
+  height:130px; bottom:calc(8px + var(--em-safe-b)) !important; }
+/* chat yields to a major panel in landscape too (panel + chat share the left) */
+body.em-landscape.em-panel-open #emchat,
+body.em-landscape.em-dlg-open #emchat{ display:none !important; }
+
+/* never let any panel render off the left/right edge */
+#empanel{ max-width:calc(100vw - 12px) !important; }
 
 /* small phones: shrink chrome a touch more */
 @media (max-width:380px){
@@ -220,6 +251,11 @@ export function initMobileUI(){
     setTimeout(wireAll, 150);
   }
   wireAll();
+
+  // The objective is set during HUD boot, but on first load the character
+  // creator covers the screen — by the time the player enters it may have
+  // auto-hidden. Re-reveal it when the player confirms their character.
+  addEventListener('em-appearance', () => { showObjective(); }, { passive: true });
 
   window.EMUI = {
     orientation(){ return orientation; },

@@ -4,9 +4,12 @@ Outstanding work to 100%. Item-level pass/fail tests in `PARITY_AUDIT.md` (~645 
 `ROADMAP.md`. This is the prioritized feature backlog.
 
 ## P0 — Mobile Playability (Sprint 1, ACTIVE — blocks new gameplay)
-- [x] **1A Responsive UI framework** (v28) — portrait/landscape orientation, single-panel docking,
-      bottom-sheet dialogue, chat collapse, objective auto-hide, ≥44px touch targets, haptics, character
-      name entry, stray emote FAB removed. Boot-verified (19/19 headless UI test); **awaiting on-device QA.**
+- [~] **1A Responsive UI framework** (v28→v29) — orientation, single-panel docking, bottom-sheet dialogue,
+      chat collapse, objective auto-hide+persist, ≥44px touch targets, haptics, name entry, FAB removed;
+      v29 QA fixes: dedicated landscape layout, top-right HUD cluster de-overlap, responsive panel sizing
+      (no clip), inventory long-press context menu. Boot-verified (26/26 headless UI test); **re-QA on device.**
+- [ ] **Parameterized player model** so character-creator part SHAPES (boots/sandals, trousers/skirt) change
+      the avatar — currently the single static glTF reflects COLOURS only (modeling milestone; not mobile-UI).
 - [ ] **1B** Inventory + Equipment mobile interactions.
 - [ ] **1C** Combat loop end-to-end on mobile.
 - [ ] **1D** Tutorial progression on mobile.

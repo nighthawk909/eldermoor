@@ -4,7 +4,7 @@ _Snapshot 2026-06-30. Honest counts; integrated ≠ playtested._
 
 ## Headline
 - **Overall:** ~24% complete (integrated + boot-verified).
-- **Live version:** v28.
+- **Live version:** v29.
 
 ## Features
 | State | Count | Definition |
@@ -24,7 +24,9 @@ _Snapshot 2026-06-30. Honest counts; integrated ≠ playtested._
   v25 = prayer points + Make-X smith/cook + quest accept/complete + action SFX + apostrophe-delimiter fix;
   v26 = lesson gating (`gating.js`); v27 = single 0.6s global game tick (`tick.js`, combat + skilling share it);
   v28 = Mobile Sprint 1A — responsive UI framework (`mobile-ui.js`: orientation, single-panel docking, bottom-sheet
-  dialogue, chat collapse, objective auto-hide, touch targets, haptics, character name entry).
+  dialogue, chat collapse, objective auto-hide, touch targets, haptics, character name entry);
+  v29 = 1A QA fixes — dedicated landscape layout, top-right HUD cluster de-overlap, responsive panel sizing,
+  inventory long-press context menu (mobile), objective persists on entry.
 - Mobile Sprint plan: 1A framework (v28, done/await QA) → 1B inventory+equipment → 1C combat loop →
   1D tutorial progression → 1E audio/settings/prayer/save/logout. Each gated by Josh's on-device QA.
 - Tooling: policy-driven Claude Code config installed (commit 3a9fe8d) — `.claude/settings.json` +

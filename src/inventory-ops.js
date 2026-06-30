@@ -34,6 +34,7 @@ export function initInvOps(){
 
   // ---- "use" cursor state: when armed, the next slot click is a use-on ----
   let useArmed = null; // { idx, id, name } or null
+  let suppressClick = false; // set after a long-press opens the menu, to eat the trailing click
 
   // ---------- HUD access (never throws if HUD not ready) ------------------
   function hud(){
@@ -183,9 +184,34 @@ export function initInvOps(){
     openMenu(idx, e.clientX, e.clientY);
   });
 
+  // ---- touch / pointer LONG-PRESS -> open the same option menu (mobile parity).
+  // Desktop long-press also works; the trailing click is suppressed so the HUD's
+  // op0 doesn't fire underneath the menu we just opened. ----
+  const LP_MS = 420, LP_MOVE = 12;
+  let lpTimer = null, lpStart = null, lpIdx = null;
+  function cancelLongPress(){ if(lpTimer){ clearTimeout(lpTimer); lpTimer = null; } lpIdx = null; lpStart = null; }
+  document.addEventListener('pointerdown', (e) => {
+    const idx = slotFrom(e.target);
+    if(idx === null) return;
+    lpIdx = idx; lpStart = { x: e.clientX, y: e.clientY };
+    lpTimer = setTimeout(() => {
+      lpTimer = null;
+      if(lpIdx === null || !lpStart) return;
+      suppressClick = true;                                  // eat the click that follows the release
+      try { if(window.EMHAPTIC && window.EMHAPTIC.open) window.EMHAPTIC.open(); } catch(_){}
+      openMenu(lpIdx, lpStart.x, lpStart.y);
+    }, LP_MS);
+  }, { passive: true });
+  document.addEventListener('pointermove', (e) => {
+    if(lpStart && (Math.abs(e.clientX - lpStart.x) > LP_MOVE || Math.abs(e.clientY - lpStart.y) > LP_MOVE)) cancelLongPress();
+  }, { passive: true });
+  document.addEventListener('pointerup', cancelLongPress, { passive: true });
+  document.addEventListener('pointercancel', cancelLongPress, { passive: true });
+
   // Left-click while a Use is armed = use-on the clicked slot. We run this in
   // the CAPTURE phase so we intercept before the HUD\'s own op0 onclick fires.
   document.addEventListener('click', (e) => {
+    if(suppressClick){ suppressClick = false; e.preventDefault(); e.stopPropagation(); return; }  // long-press just opened the menu
     if(menuOpen() && !menu.contains(e.target)) hideMenu();
     if(!useArmed) return;
     const idx = slotFrom(e.target);

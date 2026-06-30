@@ -1,5 +1,5 @@
 {
-  "updated": 1782863615218,
+  "updated": 1782863814664,
   "version": "v41",
   "note": "Live fleet board. Reflects v36 owner QA + browser screenshots. Character art (studio + in-world avatar/creator) owned by a separate chat. Statuses: queued | building | review | requeue | shipped | done | blocked | failed.",
   "board": [
@@ -394,10 +394,10 @@
       "id": "AUDIT-RECONCILE",
       "epic": "Audit",
       "title": "AUDIT-RECONCILE",
-      "status": "review",
+      "status": "done",
       "agent": "auditor",
-      "note": "306 partial / 0 fully-open (456 checkbox lines: 150 done, 306 partial)",
-      "ts": 1782863615218
+      "note": "150 done/306 partial/0 untouched; top-8 clusters identified",
+      "ts": 1782863673258
     },
     {
       "id": "P2-INTERACT",
@@ -422,9 +422,9 @@
       "epic": "Character",
       "title": "CREATOR-3D",
       "status": "shipped",
-      "agent": "orchestrator",
-      "note": "creator preview is now a live rotating 3D avatar (canvas 300x300, not SVG); v45 boot-verified",
-      "ts": 1782863083133
+      "agent": "fleet",
+      "note": "rotating 3D avatar preview; v46 boot-verified",
+      "ts": 1782863814664
     },
     {
       "id": "ASSETS-REAL",
@@ -432,53 +432,53 @@
       "title": "ASSETS-REAL",
       "status": "review",
       "agent": "researcher",
-      "note": "5 rigged CC0 KayKit chars (Knight/Mage/Rogue/Rogue_Hooded/Barbarian, 75 anims, handslot.r/l sockets) + 14 gear meshes (sword/dagger/axe/shields/staff/wand/crossbow/quiver/spellbook) + RobotExpressive fallback in assets/ext/. ASSET_LICENSES.md written.",
-      "ts": 1782863595583
+      "note": "KayKit CC0: 5 rigged chars (handslot.r/l sockets, 75+ anims) + 14 gear; integration plan ready",
+      "ts": 1782863672893
     },
     {
       "id": "HUD-FIX",
       "epic": "HUD",
       "title": "HUD-FIX",
-      "status": "building",
-      "agent": "builder-hud2",
-      "note": "inventory/XP overlap, skills use full panel, tab dock to bottom, WORKING chat input",
-      "ts": 1782863358583
+      "status": "shipped",
+      "agent": "fleet",
+      "note": "no top-left overlap + skills grid + working chat input; v46 boot-verified",
+      "ts": 1782863813990
     },
     {
       "id": "COMBAT-FIX",
       "epic": "Combat",
       "title": "COMBAT-FIX",
-      "status": "review",
-      "agent": "builder-combat3",
-      "note": "Root cause: world.js placeMob() pushed a disconnected userData.mob CLONE (plain object literal) to clickTargets instead of a reference to the persistent MOB_NODES entry. Every click handed combat.js a throwaway object with no real hp/dead state and no link to the visible mesh (_inst), so kills never stuck and the rat never died/respawned visually. Fixed entirely in combat.js: added resolveCanonicalMob() which looks up window.EMMOB.nodes by id+position and re-targets attack() at the real persistent node; added mobVisual() helper and fixed mobAnchor()/killMob() to recognize node._inst (previously only checked .group/.mesh, which placeMob() nodes never have). player.js needed no change - arrive() already correctly called EMCOMBAT.attack(t) for kind:'mob'. node --check passes both files.",
-      "ts": 1782863508943
+      "status": "shipped",
+      "agent": "fleet",
+      "note": "melee now hits the real mob (canonical-node fix); HP/death/respawn work; v46 boot-verified",
+      "ts": 1782863812877
     },
     {
       "id": "PRAYER-FIX",
       "epic": "Prayer",
       "title": "PRAYER-FIX",
-      "status": "review",
-      "agent": "builder-prayer2",
-      "note": "Active-state now unmistakable (bright lime border+glow halo+checkmark badge+ON label vs neutral dark inactive). Overhead icon sprite (canvas-texture, same tech as npc.js nameplate) follows window.EMPLAYERPOS via local rAF loop, shown for overhead/protect group prayers, only one at a time, removed on toggle-off. node --check passes.",
-      "ts": 1782863522455
+      "status": "shipped",
+      "agent": "fleet",
+      "note": "clear on/off + overhead sprite; v46 boot-verified",
+      "ts": 1782863813493
     },
     {
       "id": "MAGIC-FIX",
       "epic": "Magic",
       "title": "MAGIC-FIX",
-      "status": "building",
-      "agent": "builder-magic2",
-      "note": "spells actually cast (runes->damage) + projectile/cast animation",
-      "ts": 1782863359679
+      "status": "shipped",
+      "agent": "fleet",
+      "note": "spells hit real mob + projectile/impact animation; v46 boot-verified",
+      "ts": 1782863813199
     },
     {
       "id": "CREATOR-LAYOUT",
       "epic": "Character",
       "title": "CREATOR-LAYOUT",
-      "status": "review",
-      "agent": "builder-creator",
-      "note": "Reformatted to OSRS two-column layout: header, centered 3D preview hero with name field, Design column (left: Head/Torso/Arms/Hands/Legs/Feet/Body type cyclers) + Colour column (right: swatches + Pronouns), single centered Confirm button. Panel widened to 900px, desktop fits without scroll via media query fallback to single-column scroll under 720px width or 680px height. node --check passed.",
-      "ts": 1782863583326
+      "status": "shipped",
+      "agent": "fleet",
+      "note": "OSRS 2-column no-scroll; v46 boot-verified",
+      "ts": 1782863814325
     }
   ]
 }

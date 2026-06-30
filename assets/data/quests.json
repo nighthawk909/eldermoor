@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "questPointsTotal": 6,
+  "questPointsTotal": 8,
   "stateColours": {
     "not_started": "red",
     "in_progress": "yellow",
@@ -12,7 +12,7 @@
     { "id": "Miscellaneous", "label": "Miscellaneous" }
   ],
   "groupCounts": {
-    "Free": 4,
+    "Free": 6,
     "Members": 1,
     "Miscellaneous": 1
   },
@@ -52,6 +52,54 @@
         "Starting experience across eleven skills",
         "Tutorial cape",
         "Passage to the Eldermoor mainland"
+      ]
+    },
+    {
+      "id": "cooks-errand",
+      "name": "Cook's Errand",
+      "state": "not_started",
+      "difficulty": "Novice",
+      "length": "Short",
+      "group": "Free",
+      "questPoints": 1,
+      "requirements": [],
+      "description": "Galley-cook Persa at the Hartwell Keep docks needs a quick meal turned out for the harbourmaster's table. Fetch her ingredients, bake the bread and cook the catch before the bell tolls noon.",
+      "steps": [
+        "Speak with Galley-cook Persa at the dockside galley.",
+        "Fill a bucket of water from the harbour well and bring it to Persa.",
+        "Collect a pot of flour from the keep's grain store.",
+        "Mix the flour and water into bread dough at Persa's table, then bake it into bread on her range.",
+        "Catch a raw shrimp from the harbour shallows and cook it on the same range.",
+        "Deliver the finished bread and cooked shrimp to Persa to complete the harbourmaster's table."
+      ],
+      "rewards": [
+        "1 Quest Point",
+        "200 Cooking experience",
+        "A sack of provisions (5 cooked shrimp and 2 bread)"
+      ]
+    },
+    {
+      "id": "goblin-in-the-cellar",
+      "name": "Goblin in the Cellar",
+      "state": "not_started",
+      "difficulty": "Novice",
+      "length": "Short",
+      "group": "Free",
+      "questPoints": 1,
+      "requirements": [],
+      "description": "Innkeeper Roswell of the Hartwell Keep tavern swears something is rattling the ale casks in his cellar at night. Climb down, find out what it is, and put a stop to it.",
+      "steps": [
+        "Speak with Innkeeper Roswell in the Hartwell Keep tavern.",
+        "Take the cellar key and lantern from Roswell's bar.",
+        "Climb down into the tavern cellar and light the lantern.",
+        "Defeat the goblin squatter, Grubnik, who has been raiding the ale casks.",
+        "Search the casks for Grubnik's stolen coin pouch.",
+        "Return to Roswell with the coin pouch to claim your reward."
+      ],
+      "rewards": [
+        "1 Quest Point",
+        "150 Attack and 150 Strength experience",
+        "A bronze sword, a wooden shield and 50 coins"
       ]
     },
     {

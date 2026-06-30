@@ -109,19 +109,19 @@
     },
     {
       "id": "L6",
-      "title": "Making Bread Dough",
+      "title": "Master Chef's Bread",
       "instructor": "tobin",
       "zone": "cooks_house",
       "prereq": ["L5"],
-      "objective": "Use the pot of flour on the bucket of water to make bread dough.",
+      "objective": "Use the pot of flour on the bucket of water to make dough, then bake it into bread on the range.",
       "steps": [
         { "action": "talk", "detail": "Cook Tobin welcomes you and gives flour and water." },
-        { "action": "use", "detail": "Use the pot of flour on the bucket of water to form dough." },
-        { "action": "cook", "detail": "Optionally bake the dough on the range into bread." }
+        { "action": "use", "detail": "Use the pot of flour on the bucket of water to form dough.", "complete_when": "has:bread-dough" },
+        { "action": "cook", "detail": "Use the dough on the range to bake a loaf of bread." }
       ],
       "grants": ["pot-of-flour", "bucket-of-water", "bread-dough"],
-      "xp": [{ "skill": "Cooking", "amount": 0 }],
-      "complete_when": "has:bread-dough",
+      "xp": [],
+      "complete_when": "has:bread",
       "next": "L7",
       "gate": "door:cooks_house"
     },

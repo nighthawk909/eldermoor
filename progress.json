@@ -1,5 +1,5 @@
 {
-  "updated": 1782860585738,
+  "updated": 1782860834426,
   "version": "v41",
   "note": "Live fleet board. Reflects v36 owner QA + browser screenshots. Character art (studio + in-world avatar/creator) owned by a separate chat. Statuses: queued | building | review | requeue | shipped | done | blocked | failed.",
   "board": [
@@ -295,10 +295,10 @@
       "id": "P7-LESSONS",
       "epic": "P7 Lessons",
       "title": "Full L0-L17 gated lesson chain in lessons.json",
-      "status": "building",
+      "status": "review",
       "agent": "builder-lessons2",
-      "note": "Full L0-L17 gated lesson chain in lessons.json",
-      "ts": 1782860585738
+      "note": "L0-L17 verified already-wired (halric/maeve/...); L6 fixed to has:bread",
+      "ts": 1782860770318
     },
     {
       "id": "P7-DIALOGUE",
@@ -322,28 +322,28 @@
       "id": "P4-QUESTS",
       "epic": "P3 Quests",
       "title": "Flesh out quests.json + 2 starter quests",
-      "status": "building",
+      "status": "review",
       "agent": "builder-quests",
-      "note": "Flesh out quests.json + 2 starter quests",
-      "ts": 1782860585738
+      "note": "2 starter quests (cooks-errand, goblin-in-the-cellar); QP 6->8",
+      "ts": 1782860769518
     },
     {
       "id": "P4-EXAMINE",
       "epic": "P2 Interaction",
       "title": "Examine text for new items+scenery in examine.json",
-      "status": "building",
+      "status": "review",
       "agent": "builder-examine",
-      "note": "Examine text for new items+scenery in examine.json",
-      "ts": 1782860585738
+      "note": "67 examine lines (tiers+dock)",
+      "ts": 1782860770017
     },
     {
       "id": "P4-ASSETS",
       "epic": "P4 World",
       "title": "New zone fixtures/props in build_kit.py",
-      "status": "building",
+      "status": "review",
       "agent": "builder-modeler",
-      "note": "New zone fixtures/props in build_kit.py",
-      "ts": 1782860585738
+      "note": "8 fixture builders (range/furnace/anvil/bank/altar/ladder/signpost/dock); needs Blender export to glb",
+      "ts": 1782860834426
     }
   ]
 }

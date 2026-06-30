@@ -601,6 +601,158 @@ def build_rock(pos, scale=1.0, register=True):
     ico(0.26*scale, (px + 0.34*scale, py + 0.16*scale, pz), rk, subdiv=1, scale=(1.0, 0.7, 1.0))
     if register: creg_circle(px, pz, 0.4*scale)
 
+# ------------------------------------------------------- functional zone fixtures
+# Interactable skilling/world fixtures (ASSET_MANIFEST §4). Same standalone-piece
+# pattern as build_tree/build_bush/build_rock: built at the authored origin, optional
+# collider registration (off for the kit-piece export; the world MANIFEST registers
+# per-instance colliders when it places one in a zone).
+
+def build_range(pos=(0, 0, 0), register=True):
+    """Cooking range (L6): stone/brick firebox base + iron grate top + flue, faces +Z so the
+    player cooks from the front. Continuous blocky form, no floating parts."""
+    px, py, pz = pos
+    stonem = solid("range_stone", "#8c8579", 0.95)
+    iron = solid("range_iron", "#3a3a3e", 0.55, 0.55)
+    flame = emissive("range_flame", "#ffb24a", 6.0)
+    # firebox body (tapered slightly at the base course for a built look)
+    block((1.0, 0.06, 0.7), (px, py + 0.03, pz), stonem, bevel=0.02)               # base course
+    block((0.94, 0.66, 0.64), (px, py + 0.36, pz), stonem)                          # firebox
+    block((1.0, 0.08, 0.7), (px, py + 0.73, pz), iron, bevel=0.02)                  # iron top plate
+    # grate bars across the top (where the pot sits)
+    for i in range(4):
+        bx = px - 0.36 + i * 0.24
+        block((0.04, 0.03, 0.62), (bx, py + 0.775, pz), iron, bevel=0.005)
+    # firebox mouth (dark recess) + glow
+    block((0.62, 0.36, 0.04), (px, py + 0.30, pz + 0.32), solid("range_mouth", "#1c1814", 0.9))
+    ico(0.1, (px, py + 0.28, pz + 0.30), flame, subdiv=1, scale=(1.6, 0.9, 0.6))
+    # short flue/chimney stub at the back
+    block((0.3, 0.34, 0.22), (px, py + 0.9, pz - 0.22), stonem, bevel=0.02)
+    if register: creg_rect(px - 0.5, px + 0.5, pz - 0.35, pz + 0.35)
+
+def build_furnace(pos=(0, 0, 0), register=True):
+    """Smelting furnace (L9): tall stone/clay stack on a wide base, glowing mouth low on the
+    front, faces +Z. Reads as a kiln, taller and narrower than the cooking range."""
+    px, py, pz = pos
+    clay = solid("furn_clay", "#7a5a3e", 0.95)
+    soot = solid("furn_soot", "#4a3f33", 0.95)
+    flame = emissive("furn_flame", "#ff7a2a", 8.0)
+    cyl(0.62, 0.78, 0.3, (px, py + 0.15, pz), clay, verts=10)                       # wide base ring
+    cyl(0.46, 0.62, 1.5, (px, py + 1.05, pz), clay, verts=10)                       # main stack (tapers up)
+    cyl(0.50, 0.46, 0.22, (px, py + 1.91, pz), soot, verts=10, bevel=0.02)          # soot-stained collar
+    cyl(0.30, 0.42, 0.4, (px, py + 2.22, pz), soot, verts=8)                        # chimney throat
+    # glowing mouth low on the front face
+    block((0.42, 0.34, 0.05), (px, py + 0.42, pz + 0.52), solid("furn_mouth", "#1c1814", 0.9))
+    ico(0.16, (px, py + 0.42, pz + 0.50), flame, subdiv=1, scale=(1.3, 1.0, 0.6))
+    if register: creg_circle(px, pz, 0.62)
+
+def build_anvil(pos=(0, 0, 0), register=True):
+    """Smithing anvil (L10): classic anvil silhouette (waist, horn, face, base block) on a
+    short timber stump, faces +Z (horn points forward)."""
+    px, py, pz = pos
+    iron = solid("anvil_iron", "#3f4248", 0.4, 0.6)
+    woodm = solid("anvil_wood", "#5a3f28", 0.85)
+    block((0.42, 0.30, 0.42), (px, py + 0.15, pz), woodm, bevel=0.02)               # timber stump
+    block((0.30, 0.10, 0.46), (px, py + 0.35, pz), iron, bevel=0.015)               # base/waist block
+    block((0.40, 0.10, 0.58), (px, py + 0.45, pz), iron, bevel=0.02)                # wide face/table
+    cyl(0.02, 0.09, 0.34, (px, py + 0.45, pz + 0.40), iron, verts=8,
+        rot=(radians(90), 0, 0), bevel=0.01)                                        # horn, points +Z
+    block((0.10, 0.06, 0.10), (px + 0.16, py + 0.51, pz - 0.18), iron, bevel=0.01)  # hardy/pritchel boss
+    if register: creg_rect(px - 0.26, px + 0.26, pz - 0.26, pz + 0.32)
+
+def build_bank_booth(pos=(0, 0, 0), register=True):
+    """Bank booth/counter (L13): curved-feel counter (faceted hex run) + raised back panel +
+    teller's till, faces +Z toward the player queue. Built from the wood/trim palette."""
+    px, py, pz = pos
+    woodm = solid("bank_wood", "#5a3f28", 0.85)
+    trim = solid("bank_trim", "#d8b25a", 0.5, 0.3)
+    cloth = solid("bank_cloth", "#2e5a6e", 0.9)
+    block((1.6, 0.85, 0.5), (px, py + 0.425, pz), woodm, bevel=0.02)                # counter body
+    block((1.7, 0.08, 0.56), (px, py + 0.85, pz), trim, bevel=0.03)                 # counter top trim
+    block((1.6, 0.5, 0.06), (px, py + 1.1, pz - 0.24), cloth)                       # back panel banner
+    block((1.7, 0.06, 0.10), (px, py + 1.36, pz - 0.24), trim, bevel=0.02)          # panel rail
+    # till/ledger on the counter
+    block((0.32, 0.06, 0.22), (px + 0.5, py + 0.89, pz + 0.02), woodm, bevel=0.01)
+    block((0.30, 0.16, 0.04), (px + 0.5, py + 0.97, pz - 0.06), trim, bevel=0.01)
+    if register: creg_rect(px - 0.85, px + 0.85, pz - 0.30, pz + 0.30)
+
+def build_altar(pos=(0, 0, 0), register=True):
+    """Runic altar (standalone kit piece, distinct from the chapel's stone altar): low dais +
+    stone plinth + floating glowing rune-stone, faces +Z. Used outside chapel contexts (mage
+    zone / runecrafting)."""
+    px, py, pz = pos
+    altstone = solid("ralt_stone", "#cdc6b6", 0.9)
+    dark = solid("ralt_dark", "#6e6658", 0.9)
+    rune = emissive("ralt_rune", "#9be0ff", 6.0)
+    block((1.6, 0.12, 1.6), (px, py + 0.06, pz), dark, bevel=0.02)                  # dais step
+    block((1.1, 0.10, 1.1), (px, py + 0.17, pz), altstone, bevel=0.02)              # dais top
+    cyl(0.30, 0.40, 0.62, (px, py + 0.53, pz), altstone, verts=8)                   # plinth
+    cyl(0.34, 0.30, 0.08, (px, py + 0.86, pz), altstone, verts=8, bevel=0.02)       # plinth cap
+    # faceted floating rune-stone (slightly tilted icosphere reads as a hovering shard)
+    ico(0.18, (px, py + 1.18, pz), rune, subdiv=1, scale=(0.7, 1.4, 0.7))
+    if register: creg_circle(px, pz, 0.85)
+
+def build_ladder(pos=(0, 0, 0), rungs=7, register=True):
+    """Ladder (L8/L10, down + up share this builder): two side rails + crossing rungs, faces
+    +Z, base at y=0. Used both as a floor hole surround (down) and a wall-leaning climb (up) —
+    callers rotate/place as needed."""
+    px, py, pz = pos
+    woodm = solid("ladder_wood", "#6b4a2c", 0.85)
+    h = 0.22 * rungs + 0.2
+    for s in (1, -1):
+        cyl(0.035, 0.04, h, (px + 0.26 * s, py + h/2, pz), woodm, verts=6)          # side rail
+    for i in range(rungs):
+        ry = 0.18 + i * 0.22
+        block((0.46, 0.035, 0.05), (px, py + ry, pz), woodm, bevel=0.008)           # rung
+    if register: creg_rect(px - 0.30, px + 0.30, pz - 0.18, pz + 0.18)
+
+def build_signpost(pos=(0, 0, 0), label_w=0.85, register=True):
+    """Signpost (set dressing / wayfinding): timber post + crossbar plank + cap, faces +Z so
+    the (client-side) label text reads toward the path. No text geometry — flat board only,
+    consistent with the "props" tier (untextured solids ok per CLAUDE.md §4)."""
+    px, py, pz = pos
+    postm = solid("sign_post", "#5a3f28", 0.85)
+    boardm = solid("sign_board", "#7a5631", 0.85)
+    trim = solid("sign_trim", "#3a2a1c", 0.9)
+    cyl(0.05, 0.065, 1.7, (px, py + 0.85, pz), postm, verts=8)                      # post
+    block((label_w, 0.34, 0.05), (px, py + 1.42, pz), boardm, bevel=0.015)          # board
+    block((label_w + 0.05, 0.05, 0.07), (px, py + 1.42 + 0.195, pz), trim, bevel=0.01)  # cap rail
+    if register: creg_circle(px, pz, 0.10)
+
+def build_dock(pos=(0, 0, 0), length=8.0, width=2.4, register=True):
+    """Simple boat + dock (L17 departure jetty): plank jetty on piles running +Z out from the
+    shore, small faceted hull boat moored at the far end. Origin at the shore end, y=0 = water
+    surface level at the jetty deck underside."""
+    px, py, pz = pos
+    woodm = solid("dock_wood", "#6b4a2c", 0.85)
+    darkwood = solid("dock_darkwood", "#4a3420", 0.85)
+    hull = solid("dock_hull", "#5a3f28", 0.85)
+    sail = solid("dock_sail", "#e6e1d4", 0.85)
+    # NOTE: no water plane is authored here — the zone/world already provides the sea/lake
+    # surface (e.g. build_grounds' waterm block); the dock is geometry-only so it composites
+    # cleanly into whichever water level the placing zone uses.
+    # jetty deck (planks) + piles
+    block((width, 0.10, length), (px, py + 0.55, pz + length/2), woodm)
+    n_piles = max(2, int(length // 1.6) + 1)
+    for i in range(n_piles):
+        plz = pz + 0.6 + i * (length - 1.0) / max(1, n_piles - 1)
+        for s in (1, -1):
+            cyl(0.06, 0.08, 0.9, (px + s * (width/2 - 0.12), py + 0.05, plz), darkwood, verts=6)
+    # rail posts along both edges
+    for s in (1, -1):
+        for i in range(n_piles):
+            plz = pz + 0.6 + i * (length - 1.0) / max(1, n_piles - 1)
+            cyl(0.03, 0.035, 0.5, (px + s * (width/2 - 0.08), py + 0.85, plz), woodm, verts=6)
+    # small faceted boat moored at the far end (hull + mast + sail), floating on the water plane
+    bz = pz + length + 0.9
+    ico(0.55, (px, py - 0.18, bz), hull, subdiv=1, scale=(1.0, 0.55, 2.1))           # hull
+    block((1.0, 0.10, 0.34), (px, py + 0.08, bz), hull, bevel=0.02)                  # gunwale rim
+    cyl(0.04, 0.05, 1.6, (px, py + 0.85, bz - 0.1), darkwood, verts=6)               # mast
+    block((0.7, 0.78, 0.03), (px + 0.36, py + 0.95, bz - 0.1), sail, bevel=0.01)     # sail
+    if register:
+        # the jetty deck itself is walkable (no rect over the deck); only the boat hull at the
+        # far end blocks movement. The zone's own cset_bound() defines overall walkable area.
+        creg_circle(px, bz, 0.7)                                                     # boat hull (non-walkable)
+
 # pond (survival area) — centre + radius, shared by height/colour/collider
 POND = (9.0, 32.0, 5.8)
 
@@ -796,7 +948,15 @@ def main():
         piece = scene.split(":", 1)[1]
         builder = {"tree": lambda: build_tree((0, 0, 0), 1.0, register=False),
                    "bush": lambda: build_bush((0, 0, 0), 1.0, register=False),
-                   "rock": lambda: build_rock((0, 0, 0), 1.0, register=False)}.get(piece, build_corner)
+                   "rock": lambda: build_rock((0, 0, 0), 1.0, register=False),
+                   "range": lambda: build_range((0, 0, 0), register=False),
+                   "furnace": lambda: build_furnace((0, 0, 0), register=False),
+                   "anvil": lambda: build_anvil((0, 0, 0), register=False),
+                   "bank_booth": lambda: build_bank_booth((0, 0, 0), register=False),
+                   "altar": lambda: build_altar((0, 0, 0), register=False),
+                   "ladder": lambda: build_ladder((0, 0, 0), register=False),
+                   "signpost": lambda: build_signpost((0, 0, 0), register=False),
+                   "dock": lambda: build_dock((0, 0, 0), register=False)}.get(piece, build_corner)
     else:
         builder = {"chapel": build_chapel, "character": build_character,
                    "player": build_player_scene, "lineup": build_cast_lineup,

@@ -1,106 +1,71 @@
 {
-  "version": "v36",
-  "title": "v36 — worn gear on avatar + visibility + name/objective fixes",
+  "version": "v37",
+  "title": "v37 — P1 render-correctness wave (review the SHIPPED items)",
   "items": [
     {
-      "id": "portrait",
-      "title": "Portrait layout usable",
-      "how": "In portrait: walk, open tabs, read chat. Everything reachable, nothing off-screen."
+      "id": "sky-gradient",
+      "title": "Sky reads as a smooth gradient",
+      "how": "Look up / tilt the camera: the sky is a smooth warm gradient that matches the scene tone — not washed-out, not harshly banded."
     },
     {
-      "id": "landscape",
-      "title": "Landscape layout usable",
-      "how": "Rotate to landscape: panel docks left, not clipped, not under the minimap/orbs; tabs reachable."
+      "id": "water-holes",
+      "title": "Water doesn't punch holes",
+      "how": "Find the pond/sea water: it renders ON TOP of the ground — no see-through gaps or holes in the floor/terrain where water overlaps."
     },
     {
-      "id": "hud-overlap",
-      "title": "No overlapping HUD",
-      "how": "Minimap, orbs, XP counter, world-map button don't overlap each other or cover an open panel."
+      "id": "terrain-seam",
+      "title": "No floor/terrain z-fight",
+      "how": "Walk around the chapel floor edges: no flickering / shimmering seam where the interior floor meets the outdoor terrain."
     },
     {
-      "id": "panel-size",
-      "title": "Panels fit the screen",
-      "how": "Open each tab; the panel fits on-screen and scrolls \u2014 nothing cut off."
+      "id": "terrain-blend",
+      "title": "Terrain colours read clean",
+      "how": "Look at the ground: the grass/dirt vertex-colour blend looks clean, not muddied or darkened by a stray texture multiplying over it."
     },
     {
-      "id": "chat-collapse",
-      "title": "Chat collapse / expand",
-      "how": "Tap the chat header bar to collapse, tap again to expand."
+      "id": "altar-glow",
+      "title": "Altar glow fades smoothly",
+      "how": "Pray at the altar: the warm glow eases out smoothly (asymptotic) rather than cutting off abruptly."
     },
     {
-      "id": "dialogue-sheet",
-      "title": "Dialogue bottom sheet",
-      "how": "Talk to Brother Aldric \u2014 dialogue is docked at the bottom, not floating mid-screen."
+      "id": "load-popin",
+      "title": "No load pop-in",
+      "how": "Hard-reload the page: the loading screen stays until the scene is fully in — trees / NPCs / scenery do NOT pop in a moment after it disappears."
     },
     {
-      "id": "objective",
-      "title": "Objective banner",
-      "how": "After entering, the objective shows at top and auto-hides after a few seconds; tap it to bring it back."
+      "id": "nameplates",
+      "title": "Names don't show through walls",
+      "how": "Position a wall or large object between you and an NPC: its floating name should be HIDDEN by the wall, not visible through it."
     },
     {
-      "id": "inv-tap",
-      "title": "Inventory tap (default)",
-      "how": "Tap an inventory item \u2014 it performs its default action / prints a line."
+      "id": "hover-label",
+      "title": "Hover action label (C3)",
+      "how": "Point at / hover a tree, rock, or NPC: a top-left action label appears (e.g. 'Chop down Tree', 'Talk-to ...')."
     },
     {
-      "id": "inv-longpress",
-      "title": "Inventory long-press menu",
-      "how": "Long-press an inventory item \u2014 an option menu opens (Use/Wield/Eat/Drop/Examine)."
+      "id": "inv-ops",
+      "title": "Inventory ops + wield (C5)",
+      "how": "Long-press / right-click a bag item: Use/Wield/Drop/Examine menu opens; Wield moves the item into the Equipment tab."
     },
     {
-      "id": "inv-examine",
-      "title": "Examine works",
-      "how": "From the long-press menu, Examine prints the item's description to chat."
+      "id": "orbs",
+      "title": "HUD orbs + run energy (C8)",
+      "how": "HP / Prayer / Run / Spec orbs are visible and update; toggling run drains the run-energy orb as you move."
     },
     {
-      "id": "name",
-      "title": "Character name entry",
-      "how": "On a fresh character you're asked for a name; an invalid name is blocked, a valid one saves."
+      "id": "tabs-real",
+      "title": "Tabs show real panels (C10)",
+      "how": "Open Prayer, Magic, Quests, Settings, Emotes: each shows a real interactive panel, not a placeholder string."
     },
     {
-      "id": "creator-preview",
-      "title": "Character-creator live preview",
-      "how": "In the creator, toggle Head/Torso/Legs/Feet and the colour swatches \u2014 the figure preview at the top updates live (hood/beard, robe/skirt/trousers, boots/shoes/sandals, colours)."
-    },
-    {
-      "id": "avatar-ingame",
-      "title": "Creator choices show on the in-world body",
-      "how": "After confirming your character, the 3D body in the world matches your picks: hood/beard/hair, robe vs tunic, skirt/trousers, boots/shoes/sandals, body type, and the colours."
-    },
-    {
-      "id": "worn-gear",
-      "title": "Equipped gear shows on the character (all slots)",
-      "how": "Equip each gear type from the bag: weapon (in hand), shield (other hand), body/armour (over the torso), cape (on the back), gloves (on the hands). Each appears on the 3D body; unequipping removes it."
-    },
-    {
-      "id": "see-char",
-      "title": "Character visible while inventory is open",
-      "how": "Open the Inventory/Equipment tab — the panel is translucent so you can still see the 3D character behind it and watch gear appear/disappear as you equip."
-    },
-    {
-      "id": "touch",
-      "title": "Touch targets",
-      "how": "Buttons are comfortably tappable with no mis-taps."
-    },
-    {
-      "id": "devchar",
-      "title": "Test character loaded",
-      "how": "On load you have level 99 in all skills + a combat kit (sword, bow, arrows, runes, food, bones, coins) in the bag."
-    },
-    {
-      "id": "combat-smoke",
-      "title": "Combat smoke test",
-      "how": "Attack the giant rat: you hit it, it can die and respawn. (Long-press the bow + arrows -> Wield for ranged; runes are in the bag for magic.)"
-    },
-    {
-      "id": "qa-panel",
-      "title": "This QA panel",
-      "how": "You can set Pass/Fail/Skip and type a note per item, then Copy or Download the report to send back."
+      "id": "no-regression",
+      "title": "No scene regression",
+      "how": "Overall: the chapel scene still looks correct — walking, camera, NPCs, altar all behave as before, nothing newly broken by the render changes."
     },
     {
       "id": "qa-sync",
       "title": "QA live sync",
-      "how": "As you tap Pass/Fail/notes, the QA panel footer shows 'synced' (needs Vercel KV connected). Your results reach the dev without copy/paste."
+      "how": "As you tap Pass/Fail/notes, the panel footer shows 'synced' — your results reach the dev (and the fleet dashboard) without copy/paste."
     }
   ]
 }

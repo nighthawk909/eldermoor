@@ -1,6 +1,6 @@
 {
   "updated": 1782854754715,
-  "version": "v36",
+  "version": "v37",
   "note": "Live fleet board. Single-writer: the orchestrator (or tools/progress.js) updates entries; dashboard.html polls this file (and /api/progress when KV is connected). Statuses: queued | building | review | requeue | done | blocked | failed.",
   "board": [
     {

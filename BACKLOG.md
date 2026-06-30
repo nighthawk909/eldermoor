@@ -8,8 +8,16 @@ Outstanding work to 100%. Item-level pass/fail tests in `PARITY_AUDIT.md` (~645 
       chat collapse, objective auto-hide+persist, ≥44px touch targets, haptics, name entry, FAB removed;
       v29 QA fixes: dedicated landscape layout, top-right HUD cluster de-overlap, responsive panel sizing
       (no clip), inventory long-press context menu. Boot-verified (26/26 headless UI test); **re-QA on device.**
-- [ ] **Parameterized player model** so character-creator part SHAPES (boots/sandals, trousers/skirt) change
-      the avatar — currently the single static glTF reflects COLOURS only (modeling milestone; not mobile-UI).
+- [ ] **Parameterized player model (avatar customization made fully visible).** The character creator
+      already SAVES every selection (parts + colours + name) in `eldermoor:appearance` (decision (a),
+      kept). Today the single static glTF only reflects **colours** via `appearance-apply.js`. Build a
+      parameterized/multi-part player model so the saved selections become visible without changing the
+      save format: **hair, beard, head/face, torso (incl. robe/dress), arms, hands, legs (incl. skirts),
+      footwear (boots/shoes/sandals)**, body type, plus colour tinting per part. Approach: author
+      part meshes in Blender (`build_eldermoor.py`/kit) exported as togglable sub-meshes or a small set of
+      swappable glTFs keyed by the existing part ids; `appearance-apply.js` shows/hides + tints by id.
+      Constraint: **must read the current save shape as-is** (no migration). Keep ALL customization options
+      that are part of the long-term vision — do not trim the creator to match current model limits.
 - [ ] **1B** Inventory + Equipment mobile interactions.
 - [ ] **1C** Combat loop end-to-end on mobile.
 - [ ] **1D** Tutorial progression on mobile.

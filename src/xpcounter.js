@@ -21,9 +21,11 @@ const MENU_ID = 'em-xpcounter-menu';
 
 const CSS = `
 #${PANEL_ID} {
+  /* top-left, below the QA button (#emqa-btn, top:8px + ~40px tall) so the two
+     never overlap, and clear of the inventory/tab panel which docks bottom-right. */
   position: fixed;
-  top: 64px;
-  right: 16px;
+  top: 56px;
+  left: 16px;
   z-index: 9000;
   min-width: 132px;
   padding: 7px 11px;

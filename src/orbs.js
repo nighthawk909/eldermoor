@@ -1,8 +1,9 @@
 /* =====================================================================
    orbs.js - OSRS-style minimap ORB CLUSTER (HUD1/MM6/HUD2-orb).
 
-   Renders four stacked round orbs to the LEFT of the existing #emmap
-   minimap (which is fixed top-right at right:10px;top:10px, 108px wide):
+   Renders four round orbs in a row UNDER the existing #emmap minimap
+   (which is fixed top-right at right:10px;top:10px, 108px wide), matching
+   OSRS's "stat orbs under the minimap" cluster:
        HP (heart) · Prayer · Run-energy · Special.
 
    Self-contained: injects its own CSS + DOM on init, owns its own refresh
@@ -19,17 +20,20 @@
 const REFRESH_MS = 200;      // ~5 refreshes/sec
 const WAIT_MS    = 250;      // retry cadence while globals aren\'t ready
 
-/* fixed geometry - keep in sync with #emmap (right:10px, width 108px) */
+/* fixed geometry - keep in sync with #emmap (right:10px, top:10px, width/height 108px) */
 const MAP_RIGHT = 10;        // px from viewport right edge to map
+const MAP_TOP   = 10;        // px from viewport top to map
 const MAP_W     = 108;       // minimap width
-const GAP       = 8;         // gap between orb column and the map
-const ORB       = 34;        // orb diameter
-const ORB_GAP   = 4;         // vertical gap between orbs
+const MAP_H     = 108;       // minimap height
+const GAP       = 8;         // gap between map bottom and orb row
+const ORB       = 30;        // orb diameter
+const ORB_GAP   = 5;         // horizontal gap between orbs
+const ORB_ROW_BOTTOM = MAP_TOP + MAP_H + GAP + ORB; // y where the orb row ends (px from viewport top)
 
 const CSS = `
   #emorbs{position:fixed;z-index:31;
-    right:${MAP_RIGHT + MAP_W + GAP}px;top:12px;
-    display:flex;flex-direction:column;gap:${ORB_GAP}px;
+    right:${MAP_RIGHT}px;top:${MAP_TOP + MAP_H + GAP}px;
+    display:flex;flex-direction:row;justify-content:flex-end;gap:${ORB_GAP}px;
     font-family:"Trebuchet MS",sans-serif;-webkit-user-select:none;user-select:none;}
   #emorbs .emorb{position:relative;width:${ORB}px;height:${ORB}px;border-radius:50%;
     background:radial-gradient(circle at 50% 38%,#3a342a,#211d18 70%);
@@ -43,6 +47,13 @@ const CSS = `
   #emorbs .emorb.run{cursor:pointer;}
   #emorbs .emorb.run.on{border-color:#e7c64f;box-shadow:0 2px 6px #0008,inset 0 0 0 1px #1a1712,0 0 7px #e7c64f88;}
   #emorbs .emorb.run:hover{filter:brightness(1.12);}
+  /* ---- cross-module coordination note ----
+     worldmap.js docks #emwmap-btn directly under the minimap at top:124px,
+     which is the same slot the orb row now occupies (minimap moved the orbs
+     here per OSRS parity: stat orbs live under the minimap). Rather than
+     edit worldmap.js (owned by another agent), nudge its button below the
+     new orb row with a higher-specificity rule so the two never overlap. */
+  body #emwmap-btn{top:${ORB_ROW_BOTTOM + GAP}px !important;}
 `;
 
 /* orb specs - id, css class, emoji icon, OSRS-ish color theme */

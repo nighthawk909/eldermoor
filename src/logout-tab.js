@@ -1,5 +1,5 @@
 /* =====================================================================
-   ELDERMOOR - Logout tab module (TB6/LOGIN1)
+   ELDERMOOR - Logout tab module (TB6/LOGIN1, AUTH-LOGIN)
 
    Owns the "logout" HUD tab via the shared tab registry:
 
@@ -7,12 +7,17 @@
 
    Renders two controls:
      1. "Click here to logout" button - calls window.EMLOGOUT.logout(),
-        which clears session state and shows the title/login overlay.
-     2. "Switch world" button - stub (logs intent, no server list yet).
+        which clears the active session and hands off to the REAL login
+        screen (window.EMLOGIN, src/login.js) so logging out always lands
+        on a usable, real login/landing screen - never a dead-end scrim.
+     2. "Switch world" button - stub (no server list yet); per spec this
+        also returns to the login screen rather than doing nothing, so
+        there is no dead end while world selection is unbuilt.
 
-   Title overlay: full-screen dark scrim containing the Eldermoor logo
-   text and "Click to play" prompt. Clicking anywhere on the scrim
-   dismisses it (calls window.EMLOGOUT.showTitle() to toggle back in).
+   showTitle(): delegates to window.EMLOGIN.show() when the login module
+   has loaded; falls back to a minimal local scrim (best-effort) if
+   EMLOGIN somehow isn\'t present yet, so this module never hard-depends
+   on init order.
 
    Exposes:
        window.EMLOGOUT = { logout(), showTitle() }
@@ -83,7 +88,10 @@ function injectStyles() {
   margin: 2px 0;
 }
 
-/* ---- Title / login overlay ---- */
+/* ---- Fallback title overlay (used ONLY if src/login.js hasn\'t loaded
+   yet - the real login/landing screen lives in window.EMLOGIN). This
+   keeps logout-tab.js from ever producing a dead-end blank screen even
+   under unexpected init ordering. ---- */
 #em-title-overlay {
   position: fixed;
   inset: 0;
@@ -134,13 +142,16 @@ function injectStyles() {
   document.head.appendChild(style);
 }
 
-/* -------------------------------------------------------- title overlay */
-function getOverlay() {
+/* ------------------------------------------------ fallback title overlay
+   Only ever used when window.EMLOGIN (src/login.js) is unavailable. The
+   normal path is showTitle() below delegating straight to EMLOGIN.show(),
+   which renders the real name-entry login screen, not this scrim. */
+function getFallbackOverlay() {
   if (typeof document === 'undefined') return null;
   return document.getElementById('em-title-overlay');
 }
 
-function buildOverlay() {
+function buildFallbackOverlay() {
   const overlay = document.createElement('div');
   overlay.id = 'em-title-overlay';
 
@@ -156,7 +167,17 @@ function buildOverlay() {
   overlay.appendChild(tagline);
 
   overlay.addEventListener('click', function dismissHandler() {
+    // Best-effort: if EMLOGIN has appeared since the fallback was shown,
+    // hand off to the real login screen instead of just dismissing blind.
     overlay.removeEventListener('click', dismissHandler);
+    if (typeof window !== 'undefined' && window.EMLOGIN && typeof window.EMLOGIN.show === 'function') {
+      overlay.style.animation = 'em-overlay-fadein 0.2s ease reverse';
+      setTimeout(function () {
+        if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        window.EMLOGIN.show();
+      }, 200);
+      return;
+    }
     overlay.style.animation = 'em-overlay-fadein 0.2s ease reverse';
     setTimeout(function () {
       if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
@@ -166,17 +187,32 @@ function buildOverlay() {
   return overlay;
 }
 
+/**
+ * showTitle - return to the login/landing screen.
+ *
+ * Prefers the real login module (window.EMLOGIN.show(), src/login.js):
+ * a proper name-entry / saved-profile screen with an "Enter Eldermoor"
+ * action, never a blank or dead-end screen. Falls back to a minimal
+ * local scrim only if EMLOGIN genuinely isn\'t present yet.
+ */
 function showTitle() {
+  if (typeof window === 'undefined') return;
+  if (window.EMLOGIN && typeof window.EMLOGIN.show === 'function') {
+    window.EMLOGIN.show();
+    return;
+  }
   if (typeof document === 'undefined') return;
-  const existing = getOverlay();
+  const existing = getFallbackOverlay();
   if (existing) return; // already visible
-  document.body.appendChild(buildOverlay());
+  document.body.appendChild(buildFallbackOverlay());
 }
 
 /* ------------------------------------------------------------ logout op */
 function logout() {
-  // Clear any persisted session tokens / save-state flags.
-  // Extend here when a real auth layer exists.
+  // Clear the active session so a reload (or the login screen itself)
+  // treats this as logged-out. The saved profile/appearance are left
+  // intact so returning players land on "Continue as <name>" rather
+  // than losing their save.
   try {
     if (typeof localStorage !== 'undefined') {
       localStorage.removeItem('eldermoor:session');
@@ -226,10 +262,13 @@ function renderLogoutPanel(panel) {
   btnWorld.type = 'button';
   btnWorld.textContent = 'Switch world';
   btnWorld.addEventListener('click', function () {
-    // Stub - world selection UI not yet implemented.
+    // World selection UI not yet implemented (single world today). Rather
+    // than a dead-end no-op, behave like logout: end the session and
+    // return to the real login screen, where the player can sign back in.
     if (typeof console !== 'undefined') {
-      console.log('[EMLOGOUT] Switch world requested - world list not yet implemented.');
+      console.log('[EMLOGOUT] Switch world requested - single world only; returning to login.');
     }
+    logout();
   });
 
   root.appendChild(btnLogout);

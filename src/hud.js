@@ -21,35 +21,42 @@ export function initHud(){
   #emchch{display:flex;gap:2px;padding:3px;border-top:1px solid #4a3a26;}
   #emchch button{flex:1;font-size:10px;background:#3a2e1f;color:#cdbf98;border:1px solid #4a3a26;border-radius:3px;padding:3px 0;cursor:pointer;}
   #emchch button.on{border-color:#e7c64f;background:#5a4422;color:#fff;box-shadow:inset 0 0 6px #0006;}
-  #emchch button.ch-game{color:#f3e9cf;} #emchch button.ch-public{color:#9fd0ff;}
-  #emchch button.ch-private{color:#7fe7e7;} #emchch button.ch-clan{color:#aef0ae;}
+  #emchch button.ch-game{color:#f3e9cf;} #emchch button.ch-public{color:#d8c08a;}
+  #emchch button.ch-private{color:#c9a86a;} #emchch button.ch-clan{color:#aed089;}
   #emchch button.ch-trade{color:#f0c97a;}
   #emchch button.mode-off{opacity:.45;text-decoration:line-through;}
   #emchch button.mode-hide{opacity:.25;}
   #emchch button.mode-filtered{font-style:italic;}
-  #emtabs{position:fixed;right:8px;bottom:8px;z-index:31;display:grid;grid-template-columns:repeat(7,1fr);gap:3px;
-    width:min(80vw,318px);background:#1f1b16;border:2px solid #5a4a2a;border-radius:6px;padding:4px;}
-  #emtabs button{aspect-ratio:1;font-size:16px;background:#3a2e1f;border:1px solid #4a3a26;border-radius:5px;color:#f3e9cf;cursor:pointer;line-height:1;}
-  #emtabs button.on{border-color:#e7c64f;background:#5a4422;box-shadow:inset 0 0 6px #0006;}
+  /* ---- OSRS-style two-row stone tab strip, fixed-docked bottom-right (desktop) ---- */
+  #emtabs{position:fixed;right:8px;bottom:8px;z-index:31;display:grid;grid-template-columns:repeat(7,1fr);
+    grid-auto-rows:1fr;gap:3px;width:min(80vw,318px);
+    background:linear-gradient(#4a3c28,#2a2117);border:2px solid #6b5a32;border-radius:7px;padding:5px;
+    box-shadow:0 4px 14px #000a,inset 0 1px 0 #ffffff14;}
+  #emtabs button{aspect-ratio:1;font-size:16px;background:linear-gradient(#3a2e1f,#241b12);
+    border:1px solid #5a4a2a;border-radius:5px;color:#f3e9cf;cursor:pointer;line-height:1;
+    box-shadow:inset 0 1px 0 #ffffff10,inset 0 -2px 3px #00000040;}
+  #emtabs button.on{border-color:#e7c64f;background:linear-gradient(#5a4422,#3a2e16);box-shadow:inset 0 0 6px #0006;}
   #empanel{position:fixed;right:8px;bottom:92px;z-index:31;width:min(80vw,318px);max-height:52vh;overflow:auto;display:none;
-    background:linear-gradient(#3a2e1f,#28201601);border:2px solid #5a4a2a;border-radius:6px;padding:9px;
-    box-shadow:0 6px 22px #000b;font-family:"Trebuchet MS",sans-serif;background-color:#312718;}
+    background:linear-gradient(#4a3c28,#2a2117);border:2px solid #6b5a32;border-radius:7px;padding:9px;
+    box-shadow:0 6px 22px #000b,inset 0 1px 0 #ffffff14;font-family:"Trebuchet MS",sans-serif;background-color:#312718;}
   #empanel.show{display:block;}
   #empanel h4{margin:0 0 7px;color:#e7c64f;font-size:11px;letter-spacing:.1em;text-transform:uppercase;}
   #empanel .muted{color:#9a8c6c;font-size:12px;}
   .eminv{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;}
-  .eminv .s{aspect-ratio:1;background:#2b2620;border:1px solid #3e3424;border-radius:5px;position:relative;
-    display:flex;align-items:center;justify-content:center;font-size:21px;cursor:pointer;}
+  .eminv .s{aspect-ratio:1;background:linear-gradient(#332a1c,#241c12);border:1px solid #5a4a2a;border-radius:5px;position:relative;
+    display:flex;align-items:center;justify-content:center;font-size:21px;cursor:pointer;
+    box-shadow:inset 0 1px 0 #ffffff12,inset 0 -2px 4px #00000050;}
   .eminv .s.empty{opacity:.4;cursor:default;}
   .eminv .s .ct{position:absolute;top:1px;right:3px;font-size:10px;color:#8fe08f;font-weight:bold;text-shadow:0 1px 1px #000;}
   .emsk{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;}
-  .emsk .sk{background:#2b2620;border:1px solid #3e3424;border-radius:4px;padding:3px 5px;font-size:11px;display:flex;align-items:center;gap:4px;}
+  .emsk .sk{background:linear-gradient(#332a1c,#241c12);border:1px solid #5a4a2a;border-radius:4px;padding:3px 5px;font-size:11px;display:flex;align-items:center;gap:4px;}
   .emsk .sk .lv{margin-left:auto;color:#fff;font-weight:bold;}
   .emtot{text-align:center;margin-top:7px;color:#cdbf98;font-size:12px;}
   .emeq{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;justify-items:center;}
-  .emeq .s{width:84%;aspect-ratio:1;background:#2b2620;border:1px solid #3e3424;border-radius:5px;display:flex;
-    align-items:center;justify-content:center;font-size:9px;color:#8a7a58;text-align:center;}
-  .emcs button{display:block;width:100%;text-align:left;background:#2b2620;color:#e3d6b8;border:1px solid #3e3424;
+  .emeq .s{width:84%;aspect-ratio:1;background:linear-gradient(#332a1c,#241c12);border:1px solid #5a4a2a;border-radius:5px;display:flex;
+    align-items:center;justify-content:center;font-size:9px;color:#a08c5c;text-align:center;
+    box-shadow:inset 0 1px 0 #ffffff12,inset 0 -2px 4px #00000050;}
+  .emcs button{display:block;width:100%;text-align:left;background:linear-gradient(#332a1c,#241c12);color:#e3d6b8;border:1px solid #5a4a2a;
     border-radius:4px;padding:7px 9px;font-size:12px;margin-bottom:4px;cursor:pointer;}
   .emcs button.on{border-color:#e7c64f;color:#fff;}
   #emxp{position:fixed;top:120px;left:50%;transform:translateX(-50%);z-index:29;pointer-events:none;}
@@ -105,10 +112,18 @@ export function initHud(){
       const slots=['head','cape','neck','weapon','body','shield','legs','hands','feet','ring','ammo'];
       panel.innerHTML='<h4>Worn Equipment</h4><div class="emeq">'+slots.map(s=>`<div class="s">${s}</div>`).join('')+'</div>';
     } else if(curTab==='combat'){
-      const styles=['Accurate','Aggressive','Defensive','Controlled'];
-      panel.innerHTML=`<h4>Combat - lvl ${combatLevel()}</h4><div class="muted" style="margin-bottom:6px">Weapon: Unarmed</div><div class="emcs">`+
-        styles.map((s,i)=>`<button data-s="${i}" class="${i===atkStyle?'on':''}">${s}</button>`).join('')+'</div>';
-      panel.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{ atkStyle=+b.dataset.s; render(); EMHUD.addChat('Attack style: '+styles[atkStyle]); });
+      const C=window.EMCOMBAT;
+      const styles=(C&&C.availableStyles)?C.availableStyles():[];
+      if(styles.length){
+        const cur=(C.style&&C.style())||null; const wc=(C.weaponClass&&C.weaponClass())||'unarmed';
+        panel.innerHTML=`<h4>Combat - lvl ${combatLevel()}</h4><div class="muted" style="margin-bottom:6px">Weapon: ${wc}</div><div class="emcs">`+
+          styles.map(s=>`<button data-s="${s.id}" class="${cur&&cur.id===s.id?'on':''}">${s.name}<span class="muted" style="display:block;font-size:10px">${s.desc||('Trains '+((s.trains||[]).join(', ')))}</span></button>`).join('')+'</div>';
+        panel.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{ if(C.setStyle)C.setStyle(b.dataset.s); const s=styles.find(x=>x.id===b.dataset.s); render(); EMHUD.addChat('Attack style: '+(s?s.name:b.dataset.s)); });
+      } else {
+        const fb=['Accurate','Aggressive','Defensive','Controlled'];
+        panel.innerHTML=`<h4>Combat - lvl ${combatLevel()}</h4><div class="emcs">`+fb.map((s,i)=>`<button data-s="${i}" class="${i===atkStyle?'on':''}">${s}</button>`).join('')+'</div>';
+        panel.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{ atkStyle=+b.dataset.s; render(); EMHUD.addChat('Attack style: '+fb[atkStyle]); });
+      }
     } else if(curTab==='prayer'){ panel.innerHTML='<h4>Prayers</h4><div class="muted">Locked until you train Prayer at the altar.</div>';
     } else if(curTab==='magic'){ panel.innerHTML='<h4>Spellbook</h4><div class="muted">Get runes from the Magic Instructor to cast Wind Strike.</div>';
     } else if(curTab==='quests'){ panel.innerHTML='<h4>Quest Journal</h4><div class="muted">Tutorial Island - in progress.</div>';
@@ -223,7 +238,7 @@ export function initHud(){
     SK.skills.forEach(s=>skillXp[s.id]=0);
     const start=SK.startLevels||{}; for(const k in start){ skillXp[k]=SK.xpTable[(start[k]||1)-1]||0; }
     ready=true; showTab('inv');
-    EMHUD.addChat('Welcome to <b>Eldermoor</b> <span style="opacity:.6">(v37)</span>.','', true);
+    EMHUD.addChat('Welcome to <b>Eldermoor</b> <span style="opacity:.6">(v38)</span>.','', true);
     EMHUD.addChat('Tap the world to walk. Tap an NPC to talk.','', true);
     // Neutral default; the lesson state machine (lessons.js) replaces this with the
     // current data-driven objective as soon as EMDATA.lessons loads.

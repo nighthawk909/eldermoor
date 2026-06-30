@@ -127,9 +127,9 @@ export function makeBelt(THREE, color, buckle) {
 /* CAPE: a draped back panel (slight taper), authored to hang from the shoulders. */
 export function makeCape(THREE, color) {
   const g = grp(THREE);
-  const panel = box(THREE, 0.7, 1.25, 0.06, color);
-  place(panel, 0, -0.35, 0); g.add(panel);
-  g.add(place(box(THREE, 0.78, 0.12, 0.10, dark(color, 0.8)), 0, 0.24, 0)); // collar/clasp bar
+  g.add(place(box(THREE, 0.54, 1.05, 0.04, color), 0, -0.40, 0));                       // upper drape (thin)
+  g.add(place(rot(box(THREE, 0.64, 0.7, 0.04, color), -0.12, 0, 0), 0, -1.05, 0.05));   // flared hem
+  g.add(place(box(THREE, 0.62, 0.10, 0.08, dark(color, 0.8)), 0, 0.16, 0));             // clasp bar
   return g;
 }
 

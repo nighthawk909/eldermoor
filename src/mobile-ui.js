@@ -126,9 +126,16 @@ body.em-portrait #empanel{ right:6px !important; left:6px !important; width:auto
 body.em-portrait #emchat{ width:min(64vw,340px) !important; height:118px;
   bottom:calc(120px + var(--em-safe-b)) !important; }
 body.em-portrait #emmap{ width:92px; height:92px; }
-/* a major panel (tab panel OR dialogue sheet) owns the zone; chat yields to avoid overlap */
+/* a major panel (tab panel OR dialogue sheet) owns the zone; chat YIELDS its log/channel
+   area (so it never overlaps the panel) but STAYS as a tappable compact bar — never fully
+   hidden, satisfying "chat always usable even with the inventory/tab panel open". */
 body.em-portrait.em-panel-open #emchat,
-body.em-portrait.em-dlg-open #emchat{ display:none !important; }
+body.em-portrait.em-dlg-open #emchat{ height:auto !important; width:min(40vw,220px) !important;
+  bottom:calc(6px + var(--em-safe-b)) !important; left:6px !important; z-index:33 !important; }
+body.em-portrait.em-panel-open #emchat #emlog,
+body.em-portrait.em-panel-open #emchat #emchch,
+body.em-portrait.em-dlg-open #emchat #emlog,
+body.em-portrait.em-dlg-open #emchat #emchch{ display:none !important; }
 
 /* =================== LANDSCAPE (enhanced, its OWN layout) =================== */
 /* Short, wide screen: minimap cluster top-right, tabs bottom-right. The tab
@@ -142,9 +149,15 @@ body.em-landscape #empanel{ left:8px !important; right:auto !important; width:mi
   max-height:none !important; }
 body.em-landscape #emchat{ left:8px !important; right:auto !important; width:min(40vw,320px) !important;
   height:130px; bottom:calc(8px + var(--em-safe-b)) !important; }
-/* chat yields to a major panel in landscape too (panel + chat share the left) */
+/* chat yields its log/channel area to a major panel in landscape too (panel + chat share
+   the left), but stays as a tappable compact bar rather than disappearing entirely. */
 body.em-landscape.em-panel-open #emchat,
-body.em-landscape.em-dlg-open #emchat{ display:none !important; }
+body.em-landscape.em-dlg-open #emchat{ height:auto !important; width:min(34vw,200px) !important;
+  bottom:calc(8px + var(--em-safe-b)) !important; z-index:33 !important; }
+body.em-landscape.em-panel-open #emchat #emlog,
+body.em-landscape.em-panel-open #emchat #emchch,
+body.em-landscape.em-dlg-open #emchat #emlog,
+body.em-landscape.em-dlg-open #emchat #emchch{ display:none !important; }
 
 /* never let any panel render off the left/right edge */
 #empanel{ max-width:calc(100vw - 12px) !important; }
@@ -155,8 +168,8 @@ body.em-landscape.em-dlg-open #emchat{ display:none !important; }
    an opaque tile so icons stay readable over the scene. ---- */
 #empanel{ background-color:rgba(28,23,18,.82) !important; backdrop-filter:blur(2px); -webkit-backdrop-filter:blur(2px); }
 body.em-portrait #empanel{ max-height:38vh !important; }
-.eminv .s{ background:#2b2620 !important; }
-.emeq .s{ background:#2b2620 !important; }
+.eminv .s{ background:#241c12 !important; }
+.emeq .s{ background:#241c12 !important; }
 
 /* small phones: shrink chrome a touch more */
 @media (max-width:380px){
@@ -204,6 +217,16 @@ export function initMobileUI(){
     bar.innerHTML = 'Chat <span class="em-ct">▾</span>';
     chat.insertBefore(bar, chat.firstChild);
     bar.addEventListener('click', () => {
+      // If a tab panel currently owns the dock zone, tapping Chat brings chat
+      // forward (closes the panel) instead of toggling collapse - chat must
+      // always be reachable with one tap, never stuck behind the inventory.
+      if (document.body.classList.contains('em-panel-open')) {
+        const p = $('empanel'); if (p) p.classList.remove('show');
+        chat.classList.remove('em-collapsed');
+        bar.querySelector('.em-ct').textContent = '▾';
+        window.EMHAPTIC.open();
+        return;
+      }
       const collapsed = chat.classList.toggle('em-collapsed');
       bar.querySelector('.em-ct').textContent = collapsed ? '▴' : '▾';
       window.EMHAPTIC.tap();

@@ -1,71 +1,22 @@
 {
-  "version": "v37",
-  "title": "v37 — P1 render-correctness wave (review the SHIPPED items)",
+  "version": "v38",
+  "title": "v38 — QA-fix wave (login, HUD, combat, prayer, magic, dialogue, dev tools)",
   "items": [
-    {
-      "id": "sky-gradient",
-      "title": "Sky reads as a smooth gradient",
-      "how": "Look up / tilt the camera: the sky is a smooth warm gradient that matches the scene tone — not washed-out, not harshly banded."
-    },
-    {
-      "id": "water-holes",
-      "title": "Water doesn't punch holes",
-      "how": "Find the pond/sea water: it renders ON TOP of the ground — no see-through gaps or holes in the floor/terrain where water overlaps."
-    },
-    {
-      "id": "terrain-seam",
-      "title": "No floor/terrain z-fight",
-      "how": "Walk around the chapel floor edges: no flickering / shimmering seam where the interior floor meets the outdoor terrain."
-    },
-    {
-      "id": "terrain-blend",
-      "title": "Terrain colours read clean",
-      "how": "Look at the ground: the grass/dirt vertex-colour blend looks clean, not muddied or darkened by a stray texture multiplying over it."
-    },
-    {
-      "id": "altar-glow",
-      "title": "Altar glow fades smoothly",
-      "how": "Pray at the altar: the warm glow eases out smoothly (asymptotic) rather than cutting off abruptly."
-    },
-    {
-      "id": "load-popin",
-      "title": "No load pop-in",
-      "how": "Hard-reload the page: the loading screen stays until the scene is fully in — trees / NPCs / scenery do NOT pop in a moment after it disappears."
-    },
-    {
-      "id": "nameplates",
-      "title": "Names don't show through walls",
-      "how": "Position a wall or large object between you and an NPC: its floating name should be HIDDEN by the wall, not visible through it."
-    },
-    {
-      "id": "hover-label",
-      "title": "Hover action label (C3)",
-      "how": "Point at / hover a tree, rock, or NPC: a top-left action label appears (e.g. 'Chop down Tree', 'Talk-to ...')."
-    },
-    {
-      "id": "inv-ops",
-      "title": "Inventory ops + wield (C5)",
-      "how": "Long-press / right-click a bag item: Use/Wield/Drop/Examine menu opens; Wield moves the item into the Equipment tab."
-    },
-    {
-      "id": "orbs",
-      "title": "HUD orbs + run energy (C8)",
-      "how": "HP / Prayer / Run / Spec orbs are visible and update; toggling run drains the run-energy orb as you move."
-    },
-    {
-      "id": "tabs-real",
-      "title": "Tabs show real panels (C10)",
-      "how": "Open Prayer, Magic, Quests, Settings, Emotes: each shows a real interactive panel, not a placeholder string."
-    },
-    {
-      "id": "no-regression",
-      "title": "No scene regression",
-      "how": "Overall: the chapel scene still looks correct — walking, camera, NPCs, altar all behave as before, nothing newly broken by the render changes."
-    },
-    {
-      "id": "qa-sync",
-      "title": "QA live sync",
-      "how": "As you tap Pass/Fail/notes, the panel footer shows 'synced' — your results reach the dev (and the fleet dashboard) without copy/paste."
-    }
+    { "id": "login", "title": "Login screen on load", "how": "On load a login/landing screen appears; type a name and Enter Eldermoor starts the game." },
+    { "id": "logout", "title": "Logout returns to login", "how": "Open the Logout tab → Logout: it returns to the login screen, not a dead/blank screen." },
+    { "id": "hud-xp", "title": "XP counter no longer overlaps inventory", "how": "Gain XP with the inventory open — the XP-gained numbers don't sit on top of the inventory." },
+    { "id": "hud-chat", "title": "Chat box always visible", "how": "A chat box is visible at bottom-left and stays usable even with the inventory/tab panel open." },
+    { "id": "hud-orbs", "title": "Stat orbs placed cleanly", "how": "HP/Prayer/Run/Spec orbs sit in a tidy cluster (under the minimap), not overlapping anything." },
+    { "id": "hud-tabs", "title": "Proper tab dock", "how": "The tabs are a fixed docked strip (no random floating 'Tabs' button up top)." },
+    { "id": "hud-tone", "title": "Warm brown-stone tone", "how": "The UI reads warm brown-stone (OSRS-like), not blue everywhere." },
+    { "id": "minimap", "title": "Minimap rebuilt", "how": "Minimap has a compass, click-to-walk, zoom (scroll/pinch), and coloured blips." },
+    { "id": "combat-styles", "title": "Combat styles explain + train", "how": "Combat tab lists styles with what each trains; XP goes to the matching skill; styles change when you equip a different weapon (bow vs sword)." },
+    { "id": "prayer", "title": "Full prayer roster", "how": "Prayer tab shows a large roster (~28) with level requirements; locked ones greyed." },
+    { "id": "magic", "title": "Spellbook tiers + runes", "how": "Magic tab shows strike/bolt/blast/wave tiers + teleports/alchemy, each with rune requirements; greyed when you lack runes/level." },
+    { "id": "dialogue", "title": "Dialogue dismiss + new chat", "how": "Walking away from an NPC closes the dialogue; you can immediately talk to a different NPC; Esc/X also closes it." },
+    { "id": "dev-toolbox", "title": "Dev toolbox", "how": "Press backtick (`) or the 🛠 button: a dev panel opens to give items, set skills/HP/prayer, give runes, teleport, and spawn a mob." },
+    { "id": "dev-runes", "title": "Dev kit complete", "how": "The dev character has all runes + a spread of gear tiers + tools to test everything." },
+    { "id": "items-tiers", "title": "Gear tiers exist", "how": "Multiple gear tiers exist beyond bronze (Ferrite→Steel→Blacksteel→Duskstone→Verdigrant→Sunsteel) — give yourself some via the dev toolbox." },
+    { "id": "qa-sync", "title": "QA live sync", "how": "As you tap Pass/Fail/notes, results sync to the dev dashboard." }
   ]
 }

@@ -19,7 +19,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script type="module">
-import { ROSTER, buildRoster } from './src/char/character-factory.js';
+import { ROSTER, buildRoster, buildCharacter, PLAYER_HERO } from './src/char/character-factory.js';
 
 const THREE = window.THREE;
 const canvas = document.getElementById('c');
@@ -51,17 +51,28 @@ const ground = new THREE.Mesh(new THREE.PlaneGeometry(40, 40),
   new THREE.MeshStandardMaterial({ color: new THREE.Color('#3c3a36').convertSRGBToLinear(), roughness: 1 }));
 ground.rotation.x = -Math.PI / 2; scene.add(ground);
 
-/* lay the roster out: 6 columns x 2 rows */
-const COLS = 6, GAPX = 1.85, GAPZ = 2.6;
-const built = buildRoster(THREE);
-built.forEach((b, i) => {
-  const col = i % COLS, row = Math.floor(i / COLS);
-  b.char.group.position.set((col - (COLS - 1) / 2) * GAPX, 0, row * GAPZ);
-  b.char.group.rotation.y = Math.PI; // face the camera (+Z)
-  scene.add(b.char.group);
-});
-
-document.getElementById('names').textContent = ROSTER.map((r) => r.name).join('  ·  ');
+/* #solo -> render just the player hero, framed close; else the full roster. */
+const SOLO = location.hash === '#solo';
+let built;
+if (SOLO) {
+  const hero = buildCharacter(THREE, PLAYER_HERO);
+  hero.group.rotation.y = Math.PI + 0.5; // 3/4 front so the cape doesn't block
+  scene.add(hero.group);
+  built = [{ spec: PLAYER_HERO, char: hero }];
+  camera.position.set(0.6, 1.5, 5.6);
+  controls.target.set(0, 1.35, 0);
+  document.getElementById('names').textContent = PLAYER_HERO.name;
+} else {
+  const COLS = 6, GAPX = 1.85, GAPZ = 2.6;
+  built = buildRoster(THREE);
+  built.forEach((b, i) => {
+    const col = i % COLS, row = Math.floor(i / COLS);
+    b.char.group.position.set((col - (COLS - 1) / 2) * GAPX, 0, row * GAPZ);
+    b.char.group.rotation.y = Math.PI; // face the camera (+Z)
+    scene.add(b.char.group);
+  });
+  document.getElementById('names').textContent = ROSTER.map((r) => r.name).join('  ·  ');
+}
 
 let t0 = performance.now();
 function loop() {

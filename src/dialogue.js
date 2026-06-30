@@ -10,9 +10,67 @@ const dlgEl = document.getElementById('dlg');
 let dlgQ = [], dlgNpc = null;
 export const chat = { npc: null };   // chat.npc = NPC currently in conversation (freezes their wander)
 
-export function sayLines(name, lines){ dlgNpc = {name}; dlgQ = lines.slice(); buzz(20); nextDlg(); }
+// --- range-watch: auto-close the dialogue when the player walks out of the
+// talking NPC's talkRange (or the NPC has no live position, e.g. the altar
+// stays put so this simply never fires for it). Self-contained rAF loop so
+// this file doesn't need to import player.js (which imports talk() back -
+// would be circular); reads the live position main.js already publishes.
+let rangeWatchHandle = null;
+function liveStr(){
+  if(typeof window === 'undefined') return null;
+  return window.EMPLAYERPOS || null;
+}
+function startRangeWatch(npc){
+  stopRangeWatch();
+  if(!npc || typeof npc.x !== 'number' || typeof npc.z !== 'number' || !npc.talkRange) return;
+  const tick = ()=>{
+    if(chat.npc !== npc){ rangeWatchHandle = null; return; }   // conversation already ended/replaced
+    const p = liveStr();
+    if(p){
+      const d = Math.hypot(npc.x - p.x, npc.z - p.z);
+      if(d > npc.talkRange + 0.35){    // small slack so a single jittery frame can't clip the chat
+        closeDialogue();
+        return;
+      }
+    }
+    rangeWatchHandle = (typeof requestAnimationFrame === 'function')
+      ? requestAnimationFrame(tick)
+      : setTimeout(tick, 100);
+  };
+  rangeWatchHandle = (typeof requestAnimationFrame === 'function')
+    ? requestAnimationFrame(tick)
+    : setTimeout(tick, 100);
+}
+function stopRangeWatch(){
+  if(rangeWatchHandle == null) return;
+  if(typeof cancelAnimationFrame === 'function') cancelAnimationFrame(rangeWatchHandle);
+  else clearTimeout(rangeWatchHandle);
+  rangeWatchHandle = null;
+}
+
+// Unconditionally tear down ANY in-progress conversation (flat queue or
+// branching tree) so a new one can start clean, or so an explicit
+// close/walk-away can end it. Safe to call when nothing is open.
+export function closeDialogue(){
+  stopRangeWatch();
+  if(treeState){ teardownTreeUI(); treeState = null; }
+  dlgQ = []; dlgNpc = null;
+  if(dlgEl) dlgEl.style.display = 'none';
+  chat.npc = null;
+}
+if(typeof window !== 'undefined') window.EMDLG = { close: closeDialogue };
+
+export function sayLines(name, lines){
+  // NOTE: does not call closeDialogue() itself - talk()/prayAtAltar() already
+  // closed any prior conversation before calling this, and closing here would
+  // also wipe the chat.npc + range-watch that talk() just set up for this NPC.
+  if(treeState){ teardownTreeUI(); treeState = null; }   // still guard against stray tree UI
+  dlgNpc = {name}; dlgQ = lines.slice(); buzz(20); nextDlg();
+}
 export function talk(npc){
+  closeDialogue();   // starting a NEW conversation always cleanly replaces any previous one
   chat.npc = npc;
+  startRangeWatch(npc);
   // Try branching tree first: look up by npc.id, then by lower-cased name.
   const map = emData() && emData().dialogue;
   const key = map && (
@@ -27,13 +85,15 @@ export function talk(npc){
   // No tree found - fall back to flat line queue.
   sayLines(npc.name, npc.lines);
 }
-export function prayAtAltar(){ glow.t = 1.6; buzz(30);
+export function prayAtAltar(){
+  closeDialogue();   // praying always cleanly replaces any previous conversation, same as talk()
+  glow.t = 1.6; buzz(30);
   if(window.EMHUD){ EMHUD.addXp('Prayer', 7); EMHUD.addChat('You pray at the altar.','', true); }
   sayLines('Altar', ['You kneel before the altar and offer a quiet prayer.',
                      'A gentle warmth settles over you. The Light grants you Prayer.']); }
 export function nextDlg(){
   if(treeState){ treeAdvance(); return; }   // tree owns advancement while active
-  if(!dlgQ.length){ dlgEl.style.display='none'; dlgNpc=null; chat.npc=null; return; }
+  if(!dlgQ.length){ closeDialogue(); return; }
   document.getElementById('dlgwho').textContent = dlgNpc.name;
   document.getElementById('dlgtx').textContent  = dlgQ.shift();
   dlgEl.style.display='block'; buzz(12);
@@ -103,10 +163,7 @@ function teardownTreeUI(){
 }
 
 function endTree(){
-  teardownTreeUI();
-  treeState = null;
-  dlgEl.style.display='none';
-  dlgNpc = null; chat.npc = null;
+  closeDialogue();   // shared teardown: stops range-watch, clears tree/queue state, hides #dlg
 }
 
 // Apply a node\'s side effects (give / action) exactly once on entry.
@@ -195,9 +252,17 @@ function treeAdvance(){
   }
 }
 
-// Number keys 1-5 pick options; Space/Enter advances a non-branching node.
+// Number keys 1-5 pick options; Space/Enter advances a non-branching node;
+// Escape explicitly closes the dialogue (flat queue or tree, whichever is open).
 if(typeof window !== 'undefined' && typeof window.addEventListener === 'function'){
   window.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape' || e.key === 'Esc'){
+      if(treeState || dlgQ.length || (dlgEl && dlgEl.style.display === 'block')){
+        e.preventDefault();
+        closeDialogue();
+      }
+      return;
+    }
     if(!treeState) return;
     const node = nodeById(treeState.tree, treeState.nodeId);
     if(!node) return;

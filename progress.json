@@ -1,97 +1,97 @@
 {
-  "updated": 1782856619007,
-  "version": "v37",
+  "updated": 1782857589147,
+  "version": "v38",
   "note": "Live fleet board. Reflects v36 owner QA + browser screenshots. Character art (studio + in-world avatar/creator) owned by a separate chat. Statuses: queued | building | review | requeue | shipped | done | blocked | failed.",
   "board": [
     {
       "id": "RESEARCH",
       "epic": "Research",
       "title": "OSRS parity spec + codebase file-map for QA-v36 domains",
-      "status": "building",
+      "status": "done",
       "agent": "research",
-      "note": "what parity looks like + where each system lives",
-      "ts": 0
+      "note": "parity doc docs/PARITY_OSRS_QAv36.md",
+      "ts": 1782857589147
     },
     {
       "id": "UI-OVERHAUL",
       "epic": "HUD",
       "title": "HUD/UX overhaul: XP overlap, chat box, stat orbs, tab dock, inventory layout, minimap, tone",
-      "status": "building",
+      "status": "shipped",
       "agent": "builder-hud",
-      "note": "Starting HUD/UX overhaul: XP counter reposition, chatbox, orb cluster, tab strip, inventory panel skin, blue->brown tone pass",
-      "ts": 1782856572529
+      "note": "v38 integrated+deployed; awaiting your playtest",
+      "ts": 1782857589147
     },
     {
       "id": "CB-STYLES",
       "epic": "Combat",
       "title": "Combat styles: trained skill + XP split + weapon-aware + descriptions",
-      "status": "building",
+      "status": "shipped",
       "agent": "builder-combat",
-      "note": "QA: styles don't explain/give XP/update with weapon",
-      "ts": 0
+      "note": "v38 integrated+deployed; awaiting your playtest",
+      "ts": 1782857589147
     },
     {
       "id": "PR-ROSTER",
       "epic": "Prayer",
       "title": "Full OSRS-style prayer roster + level reqs",
-      "status": "building",
+      "status": "shipped",
       "agent": "builder-prayer",
-      "note": "prayer roster",
-      "ts": 1782856552051
+      "note": "v38 integrated+deployed; awaiting your playtest",
+      "ts": 1782857589147
     },
     {
       "id": "MG-SPELLS",
       "epic": "Magic",
       "title": "Spellbook tiers + rune reqs (standard book)",
-      "status": "building",
+      "status": "shipped",
       "agent": "builder-magic",
-      "note": "QA: spellbook depth",
-      "ts": 0
+      "note": "v38 integrated+deployed; awaiting your playtest",
+      "ts": 1782857589147
     },
     {
       "id": "DEV-RUNES",
       "epic": "Dev Tools",
       "title": "Dev character gets ALL runes + every gear tier",
-      "status": "review",
+      "status": "shipped",
       "agent": "builder-devtest",
-      "note": "Dev kit expanded: full 10-rune catalogue x5000, all known weapon/armour/ammo tiers, tools, food, bones, coins. Some higher-tier ids reserved (no-op until items.json adds them).",
-      "ts": 1782856619007
+      "note": "v38 integrated+deployed; awaiting your playtest",
+      "ts": 1782857589147
     },
     {
       "id": "DEV-TOOLBOX",
       "epic": "Dev Tools",
       "title": "Dev toolbox: spawn/give/set/remove items, NPCs, stats, runes, teleport",
-      "status": "building",
+      "status": "shipped",
       "agent": "builder-devtools",
-      "note": "QA: need a real dev toolbox",
-      "ts": 0
+      "note": "v38 integrated+deployed; awaiting your playtest",
+      "ts": 1782857589147
     },
     {
       "id": "IT-TIERS",
       "epic": "Items",
       "title": "Gear + resource tiers (bronze->rune etc.) with examine",
-      "status": "building",
+      "status": "shipped",
       "agent": "builder-items",
-      "note": "QA: not a lot of tiers",
-      "ts": 0
+      "note": "v38 integrated+deployed; awaiting your playtest",
+      "ts": 1782857589147
     },
     {
       "id": "DLG-UX",
       "epic": "Dialogue",
       "title": "Dialogue logic: exit on walk-away + start new chat",
-      "status": "building",
+      "status": "shipped",
       "agent": "builder-dialogue",
-      "note": "QA FAIL: can't exit or start a new chat",
-      "ts": 0
+      "note": "v38 integrated+deployed; awaiting your playtest",
+      "ts": 1782857589147
     },
     {
       "id": "AUTH-LOGIN",
       "epic": "Onboarding",
       "title": "Login/landing flow + fix logout screen",
-      "status": "building",
+      "status": "shipped",
       "agent": "builder-login",
-      "note": "login+logout",
-      "ts": 1782856597499
+      "note": "v38 integrated+deployed; awaiting your playtest",
+      "ts": 1782857589147
     },
     {
       "id": "ART-AVATAR",
@@ -263,6 +263,24 @@
       "agent": null,
       "note": "",
       "ts": 0
+    },
+    {
+      "id": "RUNE-ITEMS",
+      "epic": "Items",
+      "title": "RUNE-ITEMS",
+      "status": "queued",
+      "agent": "null",
+      "note": "add water/earth/fire/body/chaos/death/law/cosmic rune item defs to items.json (after IT-TIERS lands) so spells+dev kit work",
+      "ts": 1782856735469
+    },
+    {
+      "id": "HUD-MINIMAP",
+      "epic": "?",
+      "title": "HUD-MINIMAP",
+      "status": "shipped",
+      "agent": "builder-minimap",
+      "note": "v38 integrated+deployed; awaiting your playtest",
+      "ts": 1782857589147
     }
   ]
 }

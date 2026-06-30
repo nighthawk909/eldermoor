@@ -43,11 +43,11 @@ export function assembleCharacter(THREE, specIn) {
   const spec = Object.assign({}, DEFAULTS, specIn || {});
   const root = grp(THREE);
 
-  const w = spec.build === 'broad' ? 0.88 : spec.build === 'slim' ? 0.62 : 0.75;
-  const HIP_Y = 0.98, LEG_LEN = 0.80;
-  const TORSO_Y = 1.50;
-  const SHOULDER_Y = 1.98, SHOULDER_X = w * 0.5 + 0.16;
-  const HEAD_Y = 2.34, ARM_LEN = 0.82;
+  const w = spec.build === 'broad' ? 0.74 : spec.build === 'slim' ? 0.50 : 0.60;
+  const HIP_Y = 1.18, LEG_LEN = 1.02;
+  const TORSO_Y = 1.74;
+  const SHOULDER_Y = 2.18, SHOULDER_X = w * 0.5 + 0.13;
+  const HEAD_Y = 2.56, ARM_LEN = 0.96;
 
   /* ---- torso + pelvis + head ---- */
   const torso = makeTorso(THREE, { primary: spec.primary, build: spec.build, skin: spec.skin });
@@ -72,7 +72,7 @@ export function assembleCharacter(THREE, specIn) {
 
   /* ---- legs (hip pivots) ---- */
   function buildLeg(side) {
-    const pivot = grp(THREE); pivot.position.set(side * w * 0.26, HIP_Y, 0);
+    const pivot = grp(THREE); pivot.position.set(side * w * 0.34, HIP_Y, 0);
     pivot.add(makeUpperLeg(THREE, { len: LEG_LEN, color: spec.legs }));
     pivot.add(place(makeFoot(THREE, { color: spec.feet }), 0, -LEG_LEN - 0.06, 0));
     root.add(pivot);

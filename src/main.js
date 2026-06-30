@@ -49,6 +49,8 @@ import { initMobileUI } from './mobile-ui.js';
 import { initDevTest } from './devtest.js';
 import { initQaPanel } from './qa-panel.js';
 import { initAvatar } from './avatar.js';
+import { initLogin } from './login.js';
+import { initDevtools } from './devtools.js';
 
 /* --- shared globals the feature modules read (player pos/rig/move, walk, scene) --- */
 window.EMPLAYERPOS = pos;          // live Vector3 (mutated in place) → {x,z} reads stay current
@@ -68,12 +70,12 @@ initHud();                          // window.EMHUD now exists for the feature m
 initMobileUI();                     // responsive layout/orientation/haptics over the HUD (Milestone 1A)
 
 /* bring up the feature modules (order-robust - they poll for deps if absent) */
-[ initTick, initTooltip, initOrbs, initXpCounter, initWorldMap, initEmotes, initSave, initAudio,
+[ initLogin, initTick, initTooltip, initOrbs, initXpCounter, initWorldMap, initEmotes, initSave, initAudio,
   initCombat, initSkilling, initEquipment, initEquipTab, initPrayerTab, initMagicTab,
   initQuestsTab, initSettingsTab, initInvOps, initMinimapNav,
   initLessons, initGating, initCharCreate, initMusicTab, initSocial, initSkillGuide, initMinimapRender,
   initBank, initLogoutTab, initAppearanceApply, initMakeInterface, initSfxActions,
-  initDevTest, initQaPanel, initAvatar
+  initDevTest, initQaPanel, initDevtools, initAvatar
 ].forEach(fn => { try { fn(); } catch(e){ console.warn('[em] init failed:', fn.name, e); } });
 
 /* minimap click-to-walk fallback (when EMWALK isn\'t reached directly) */

@@ -97,14 +97,13 @@ export function makeTorso(THREE, o) {
   o = o || {};
   const primary = o.primary || '#6f4e37';
   const build = o.build || 'normal';
-  const w = build === 'broad' ? 0.88 : build === 'slim' ? 0.62 : 0.75;
+  const w = build === 'broad' ? 0.74 : build === 'slim' ? 0.50 : 0.60;
   const g = grp(THREE);
-  // chest (upper, broad) + abdomen (lower, tapered) read as two facet bands
-  g.add(place(box(THREE, w, 0.62, 0.40, primary), 0, 0.22, 0));
-  const wb = w * 0.82;
-  g.add(place(box(THREE, wb, 0.5, 0.34, primary), 0, -0.26, 0));
-  // neck stub
-  g.add(place(cyl(THREE, 0.13, 0.15, 0.16, o.skin || '#c38e70', 6), 0, 0.58, 0));
+  // chest (upper) -> waist (lower, tapered): a leaner two-band trunk
+  g.add(place(box(THREE, w, 0.58, 0.34, primary), 0, 0.30, 0));         // chest
+  g.add(place(box(THREE, w * 0.74, 0.56, 0.30, primary), 0, -0.26, 0)); // waist taper
+  // collar + neck
+  g.add(place(cyl(THREE, 0.12, 0.15, 0.18, o.skin || '#c38e70', 6), 0, 0.66, 0));
   g.userData.shoulderW = w;
   return g;
 }
@@ -119,9 +118,8 @@ export function makePelvis(THREE, o) {
    from a shoulder pivot. */
 export function makeUpperArm(THREE, o) {
   o = o || {};
-  const len = o.len || 0.78;
-  const m = box(THREE, 0.20, len, 0.20, o.color || '#6f4e37');
-  m.scale.y = 1; // length already in geometry
+  const len = o.len || 0.92;
+  const m = box(THREE, 0.15, len, 0.16, o.color || '#6f4e37');
   m.position.y = -len / 2;
   const g = grp(THREE); g.add(m);
   g.userData.len = len;
@@ -131,14 +129,14 @@ export function makeUpperArm(THREE, o) {
 /* HAND — a faceted little block. */
 export function makeHand(THREE, o) {
   o = o || {};
-  return box(THREE, 0.22, 0.20, 0.22, o.color || '#c38e70');
+  return box(THREE, 0.17, 0.16, 0.17, o.color || '#c38e70');
 }
 
 /* UPPER LEG (tapered). */
 export function makeUpperLeg(THREE, o) {
   o = o || {};
-  const len = o.len || 0.82;
-  const m = box(THREE, 0.24, len, 0.24, o.color || '#2f3e46');
+  const len = o.len || 1.02;
+  const m = box(THREE, 0.19, len, 0.21, o.color || '#2f3e46');
   m.position.y = -len / 2;
   const g = grp(THREE); g.add(m);
   g.userData.len = len;
@@ -151,7 +149,7 @@ export function makeFoot(THREE, o) {
   o = o || {};
   const c = o.color || '#2b2118';
   const g = grp(THREE);
-  g.add(place(box(THREE, 0.26, 0.18, 0.30, c), 0, 0, 0.02));      // foot block
-  g.add(place(box(THREE, 0.24, 0.10, 0.16, c), 0, -0.04, 0.22));  // raised toe
+  g.add(place(box(THREE, 0.21, 0.16, 0.28, c), 0, 0, 0.02));      // foot block
+  g.add(place(box(THREE, 0.19, 0.09, 0.16, c), 0, -0.04, 0.20));  // raised toe
   return g;
 }

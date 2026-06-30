@@ -54,6 +54,16 @@ export const ROSTER = [
     helmet: 'wizardhat', robe: true, weapon: 'staff', weaponOpts: { gem: '#6fa0ff' }, accent: '#6fa0ff', animation: 'cast' },
 ];
 
+/* the default PLAYER look — a clean Eldermoor adventurer (blue tunic, red cape,
+   sword). Used as the in-world player's fallback spec when no creator choices
+   override it. */
+export const PLAYER_HERO = {
+  name: 'Eldermoor Adventurer',
+  skin: '#e8b98e', primary: '#3f6f8c', secondary: '#c2cad4', legs: '#2f3742', feet: '#5a3f28',
+  build: 'normal', headShape: 'human', helmet: 'none', belt: true, cape: '#9c3030',
+  weapon: 'sword', weaponOpts: { blade: '#c2cad4', guard: '#d8b25a' }, accent: '#d8b25a', animation: 'idle',
+};
+
 /* build any roster entry / arbitrary spec. */
 export function buildCharacter(THREE, spec) { return assembleCharacter(THREE, spec); }
 

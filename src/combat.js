@@ -27,12 +27,20 @@ function DATA()    { return (typeof window !== 'undefined') ? window.EMDATA  : u
 function EQUIP()   { return (typeof window !== 'undefined') ? window.EMEQUIP : undefined; }
 
 /* ---- defaults (used only to fill gaps in a partial/missing config) ------- */
+const FALLBACK_STYLE_DEFS = {
+  accurate: { id: 'accurate', name: 'Accurate', category: 'melee', desc: 'Focuses on landing hits. Trains Attack.', trains: ['attack'], split: [1] },
+};
+const FALLBACK_WEAPON_CLASSES = [
+  { id: 'unarmed', match: [], styles: ['accurate'], defaultStyle: 'accurate' },
+];
 const FALLBACK = {
   tickMs: 600,
   xpPerDamage: 4,
   hpXpPerDamage: 1.33,
   hitsplat: { hit: '#c83232', zero: '#3a64c8', max: '#36c8c8' },
   styles: [{ id: 'accurate', name: 'Accurate', trains: ['attack'], xpMode: 'attack' }],
+  styleDefs: FALLBACK_STYLE_DEFS,
+  weaponClasses: FALLBACK_WEAPON_CLASSES,
   mobs: [],
 };
 
@@ -88,25 +96,96 @@ function resolveCfg() {
     hpXpPerDamage: Number.isFinite(Number(raw.hpXpPerDamage)) ? Number(raw.hpXpPerDamage) : FALLBACK.hpXpPerDamage,
     hitsplat:      Object.assign({}, FALLBACK.hitsplat, raw.hitsplat || {}),
     styles:        Array.isArray(raw.styles) && raw.styles.length ? raw.styles : FALLBACK.styles,
+    styleDefs:     (raw.styleDefs && typeof raw.styleDefs === 'object') ? raw.styleDefs : FALLBACK.styleDefs,
+    weaponClasses: Array.isArray(raw.weaponClasses) && raw.weaponClasses.length ? raw.weaponClasses : FALLBACK.weaponClasses,
     mobs:          Array.isArray(raw.mobs) ? raw.mobs : [],
   };
   return CFG;
 }
 
-/* the skill an attack-style trains for the *attack* XP award (XP1).
-   Falls back to 'attack' when no style is selected/known. */
-function styleSkill() {
+/* ---- combat styles: weapon-class aware (CB-STYLES) -----------------------
+   OSRS parity: the set of available attack styles depends on the equipped
+   weapon class (melee weapons offer Accurate/Aggressive/Defensive/Controlled
+   or a 3-style subset, bows offer Accurate/Rapid/Longrange), and the chosen
+   style determines which skill(s) actually receive XP on a hit. The selected
+   style id is kept *per weapon class* so switching weapons mid-session doesn\'t
+   silently reset (or carry over) a choice that doesn\'t apply to the new class,
+   and is re-derived fresh from EMEQUIP.worn.weapon on every read - no event
+   wiring required for it to "update when you choose different weapons". */
+
+// last style explicitly picked per weapon-class id, e.g. { melee_sword: 'aggressive' }
+const selectedStyleByClass = {};
+
+/* resolve which weaponClasses entry matches the currently worn weapon.
+   Exact item-id match first, then substring match, in config order; falls
+   back to the 'unarmed' entry (or the first entry) when nothing matches. */
+function weaponClassFor() {
   const cfg = CFG || FALLBACK;
-  const hud = HUD();
-  let styleIndex = 0;
-  // hud exposes the selected style only indirectly; default to the first style.
-  const style = cfg.styles[styleIndex] || FALLBACK.styles[0];
-  if (style && Array.isArray(style.trains) && style.trains.length) {
-    // 'shared' (controlled) splits across all trained skills; pick the first for the
-    // primary award and let the HUD\'s own level maths absorb the rest.
-    return style.trains[0];
+  const classes = Array.isArray(cfg.weaponClasses) && cfg.weaponClasses.length ? cfg.weaponClasses : FALLBACK.weaponClasses;
+  const eq = EQUIP();
+  const wpn = eq && eq.worn && eq.worn.weapon;
+  const id = wpn && typeof wpn.id === 'string' ? wpn.id : '';
+
+  if (id) {
+    const exact = classes.find((c) => Array.isArray(c.match) && c.match.indexOf(id) !== -1);
+    if (exact) return exact;
+    const partial = classes.find((c) => Array.isArray(c.match) && c.match.some((m) => m && id.indexOf(m) !== -1));
+    if (partial) return partial;
   }
-  return (style && style.xpMode && style.xpMode !== 'shared' && style.xpMode) || 'attack';
+  return classes.find((c) => c.id === 'unarmed') || classes[0] || FALLBACK_WEAPON_CLASSES[0];
+}
+
+/* the full style definitions (id/name/desc/trains/split) available for the
+   currently equipped weapon, in config order, plus which one is selected. */
+function availableStyles() {
+  const cfg = CFG || FALLBACK;
+  const defs = cfg.styleDefs || FALLBACK_STYLE_DEFS;
+  const wc = weaponClassFor();
+  const ids = Array.isArray(wc.styles) && wc.styles.length ? wc.styles : Object.keys(defs);
+  return ids.map((id) => defs[id]).filter(Boolean);
+}
+
+/* the currently selected style definition for the equipped weapon class.
+   If nothing has been explicitly chosen for this class yet (or the previous
+   choice doesn\'t apply to the new weapon), falls back to the class\'s
+   defaultStyle (OSRS opens on Accurate-equivalent). */
+function currentStyle() {
+  const cfg = CFG || FALLBACK;
+  const defs = cfg.styleDefs || FALLBACK_STYLE_DEFS;
+  const wc = weaponClassFor();
+  const styles = availableStyles();
+  const chosenId = selectedStyleByClass[wc.id];
+  const chosen = chosenId && styles.find((s) => s.id === chosenId);
+  if (chosen) return chosen;
+  const def = (wc.defaultStyle && defs[wc.defaultStyle]) || styles[0];
+  return def || FALLBACK_STYLE_DEFS.accurate;
+}
+
+/* select a style by id for whichever weapon class is currently equipped.
+   No-ops (returns false) if the id isn\'t valid for the current weapon. */
+function setStyle(styleId) {
+  const wc = weaponClassFor();
+  const styles = availableStyles();
+  const ok = styles.some((s) => s.id === styleId);
+  if (!ok) return false;
+  selectedStyleByClass[wc.id] = styleId;
+  return true;
+}
+
+/* split `totalXp` across a style\'s trained skills per its `split` weights
+   (falls back to an even split if weights are missing/malformed), and award
+   each non-zero share via window.EMHUD.addXp. Amounts are rounded to 1dp,
+   matching the existing XP1 award precision. */
+function awardStyleXp(style, totalXp) {
+  const hud = HUD();
+  if (!hud || !hud.addXp || !style || !(totalXp > 0)) return;
+  const trains = Array.isArray(style.trains) && style.trains.length ? style.trains : ['attack'];
+  let weights = Array.isArray(style.split) && style.split.length === trains.length ? style.split : null;
+  if (!weights) { const w = 1 / trains.length; weights = trains.map(() => w); }
+  trains.forEach((skill, i) => {
+    const amt = Math.round(totalXp * weights[i] * 10) / 10;
+    if (amt > 0) hud.addXp(skill, amt);
+  });
 }
 
 /* ---- on-screen feedback: hitsplat + HP bar as THREE sprites -------------- */
@@ -218,11 +297,14 @@ function playerRangedLevel() {
   return 1;
 }
 
-/* award Ranged + Hitpoints XP for ranged damage (mirrors awardXp for melee). */
+/* award Ranged-style + Hitpoints XP for ranged damage (mirrors awardXp for
+   melee). The selected ranged style (Accurate/Rapid/Longrange) determines the
+   skill split (CB-STYLES): Accurate/Rapid train pure Ranged, Longrange splits
+   Ranged + Defence, matching OSRS. */
 function awardRangedXp(dmg, xpPerDamage, hpXpPerDamage) {
   const hud = HUD();
   if (!hud || !hud.addXp || dmg <= 0) return;
-  hud.addXp('ranged',     Math.round(dmg * xpPerDamage   * 10) / 10);
+  awardStyleXp(currentStyle(), dmg * xpPerDamage);
   hud.addXp('hitpoints',  Math.round(dmg * hpXpPerDamage * 10) / 10);
 }
 
@@ -456,13 +538,15 @@ export function initCombat() {
     state.bar = null;
   }
 
-  /* award attack-style XP + hitpoints XP for `dmg` damage dealt (XP1). */
+  /* award attack-style XP + hitpoints XP for `dmg` damage dealt (XP1).
+     The selected melee style (Accurate/Aggressive/Defensive/Controlled)
+     determines which skill(s) the non-HP share goes to (CB-STYLES). */
   function awardXp(dmg) {
     const hud = HUD(); const cfg = CFG || FALLBACK;
     if (!hud || !hud.addXp || dmg <= 0) return;
     const styleXp = +(dmg * cfg.xpPerDamage);
     const hpXp = +(dmg * cfg.hpXpPerDamage);
-    hud.addXp(styleSkill(), Math.round(styleXp * 10) / 10);
+    awardStyleXp(currentStyle(), styleXp);
     hud.addXp('hitpoints', Math.round(hpXp * 10) / 10);
   }
 
@@ -567,7 +651,11 @@ export function initCombat() {
           consumeArrow();
           showHitsplat(mob, 0, 'zero');
         }
-        state.playerCd = PLAYER_DEFAULTS.attackSpeedTicks;
+        // Rapid style (CB-STYLES) shaves a tick off the ranged attack cadence,
+        // matching OSRS; other ranged styles use the base speed.
+        const rStyle = currentStyle();
+        const rDelta = Number(rStyle && rStyle.attackSpeedTicksDelta) || 0;
+        state.playerCd = Math.max(1, PLAYER_DEFAULTS.attackSpeedTicks + rDelta);
         // note: death check after projectile lands (async), so we don\'t return early here
 
       } else {
@@ -662,6 +750,12 @@ export function initCombat() {
     playerHp: () => playerHp(),  // read the live { cur, max } pool
     healPlayer: () => restorePlayerHp(),
     damagePlayer: (n) => damagePlayer(n),
+
+    /* ---- combat styles (CB-STYLES): weapon-class aware, HUD-readable ---- */
+    weaponClass: () => weaponClassFor(),       // { id, match, styles, defaultStyle } for the worn weapon
+    availableStyles,                           // [{ id, name, category, desc, trains, split }, ...] for the worn weapon
+    style: () => currentStyle(),               // the currently selected style def for the worn weapon
+    setStyle,                                  // (styleId) => boolean; selects a style for the worn weapon's class
   };
   return window.EMCOMBAT;
 }

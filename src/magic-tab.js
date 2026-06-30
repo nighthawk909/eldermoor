@@ -3,19 +3,30 @@
    via the HUD tab registry hook: window.EMTABS['magic'] = (panel, state).
 
    Renders a standard OSRS-style spellbook grid of ORIGINAL spells (names
-   our own, roles mapped to the familiar early-2000s register: strike/bolt
-   combat tiers, a curse, teleports). Each spell carries a Magic level
-   requirement and a rune cost.
+   our own, roles mapped to the familiar early-2000s register: a full
+   strike/bolt/blast/wave tier ladder across four elements, a curse, a
+   bind, teleports, and an alchemy pair). Each spell carries a Magic level
+   requirement and a rune cost; alchemy additionally consumes an inventory
+   item and pays out coins (its "cast on X" target is an inventory item
+   instead of a mob).
 
    A spell cell is GREYED (inert) when EITHER the player\'s Magic level is
    below the requirement OR the required runes are not all present in the
    inventory. Magic level is derived from state.getSkillXp()['magic'] via
    state.levelFromXp(xp). Rune presence is checked against state.getInv()
    (array of {id,count}) by rune item id (e.g. 'air-rune','mind-rune').
+   Some higher-tier runes (water/earth/fire/chaos/death/law/cosmic/nature)
+   have no corresponding item in assets/data/items.json yet; those spells
+   simply stay permanently greyed (real OSRS-style gating) until a future
+   chunk adds rune-crafting/shop sources - no placeholder hacks.
 
-   Hovering a spell shows an EMTIP tooltip: name, level req (red if unmet),
-   and the rune icons + counts (red if missing). A filter footer toggles
-   Combat / Teleport / All.
+   Hovering a spell shows an EMTIP tooltip: name, role, level req (red if
+   unmet), and the rune icons + counts (red if missing). Combat spells use
+   the existing cast-on-mob flow (intercepts EMCOMBAT.attack once). Alchemy
+   spells open a small self-contained item-picker overlay (built fresh here,
+   not borrowed from hud.js's inventory DOM) so the cast-on-target pattern
+   extends to inventory items without touching other files. A filter footer
+   toggles Combat / Teleport / Utility / All.
 
    Conventions matched: ES module exporting initMagicTab(); idempotent;
    window.EMTABS['magic'] = (panel, state) => {...}; reads HUD state through
@@ -41,39 +52,70 @@ export function initMagicTab(){
     'chaos-rune': { name: 'Chaos Rune', icon: '🟣' },
     'death-rune': { name: 'Death Rune', icon: '💀' },
     'law-rune':   { name: 'Law Rune',   icon: '⚖️' },
+    'nature-rune':{ name: 'Nature Rune',icon: '🍃' },
     'cosmic-rune':{ name: 'Cosmic Rune',icon: '✨' }
   };
 
   /* --------------------------------------------------------- spellbook data */
-  // ORIGINAL names; roles map to the familiar OSRS slots. cost: { runeId: n }.
-  // cat: 'combat' | 'teleport' | 'utility'. The lvl-1 combat opener is
-  // "Gale Bolt" (our Wind Strike). ~12 spells total across strike/bolt tiers,
-  // a curse, and teleports.
+  // ORIGINAL names; roles map to the familiar OSRS slots/tier ladder:
+  //   Strike (lvl 1-13) -> Bolt (17-35) -> Blast (39-57) -> Wave (62-75)
+  // across four elements (air/water/earth/fire), plus a curse, a bind,
+  // two teleports, and an alchemy pair. cost: { runeId: n }.
+  // cat: 'combat' | 'teleport' | 'utility'.
   const SPELLS = [
+    /* ---- Air tier: Gale ---- */
     { id:'gale-bolt',      name:'Gale Bolt',        icon:'🌬️', lvl:1,  cat:'combat',
       cost:{ 'air-rune':1, 'mind-rune':1 }, role:'Wind Strike' },
-    { id:'spring-lance',   name:'Spring Lance',     icon:'💦', lvl:5,  cat:'combat',
-      cost:{ 'water-rune':1, 'air-rune':1, 'mind-rune':1 }, role:'Water Strike' },
-    { id:'stone-jab',      name:'Stone Jab',        icon:'🪨', lvl:9,  cat:'combat',
-      cost:{ 'earth-rune':2, 'air-rune':1, 'mind-rune':1 }, role:'Earth Strike' },
-    { id:'ember-spit',     name:'Ember Spit',       icon:'🔥', lvl:13, cat:'combat',
-      cost:{ 'fire-rune':3, 'air-rune':2, 'mind-rune':1 }, role:'Fire Strike' },
-    { id:'hex-of-frailty', name:'Hex of Frailty',   icon:'🩸', lvl:19, cat:'utility',
-      cost:{ 'water-rune':2, 'body-rune':1 }, role:'Confuse (curse)' },
     { id:'gale-shard',     name:'Gale Shard',       icon:'🌪️', lvl:17, cat:'combat',
       cost:{ 'air-rune':2, 'chaos-rune':1 }, role:'Wind Bolt' },
+    { id:'gale-burst',     name:'Gale Burst',       icon:'🌀', lvl:41, cat:'combat',
+      cost:{ 'air-rune':4, 'death-rune':1 }, role:'Wind Blast' },
+    { id:'gale-tempest',   name:'Gale Tempest',     icon:'🌊', lvl:62, cat:'combat',
+      cost:{ 'air-rune':6, 'death-rune':1 }, role:'Wind Wave' },
+    /* ---- Water tier: Spring ---- */
+    { id:'spring-lance',   name:'Spring Lance',     icon:'💦', lvl:5,  cat:'combat',
+      cost:{ 'water-rune':1, 'air-rune':1, 'mind-rune':1 }, role:'Water Strike' },
     { id:'spring-shard',   name:'Spring Shard',     icon:'🌊', lvl:23, cat:'combat',
       cost:{ 'water-rune':2, 'air-rune':2, 'chaos-rune':1 }, role:'Water Bolt' },
+    { id:'spring-burst',   name:'Spring Burst',     icon:'💧', lvl:47, cat:'combat',
+      cost:{ 'water-rune':4, 'air-rune':3, 'death-rune':1 }, role:'Water Blast' },
+    { id:'spring-tempest', name:'Spring Tempest',   icon:'🌀', lvl:65, cat:'combat',
+      cost:{ 'water-rune':7, 'air-rune':5, 'death-rune':1 }, role:'Water Wave' },
+    /* ---- Earth tier: Stone ---- */
+    { id:'stone-jab',      name:'Stone Jab',        icon:'🪨', lvl:9,  cat:'combat',
+      cost:{ 'earth-rune':2, 'air-rune':1, 'mind-rune':1 }, role:'Earth Strike' },
     { id:'stone-shard',    name:'Stone Shard',      icon:'⛰️', lvl:29, cat:'combat',
       cost:{ 'earth-rune':3, 'air-rune':2, 'chaos-rune':1 }, role:'Earth Bolt' },
+    { id:'stone-burst',    name:'Stone Burst',      icon:'🪨', lvl:53, cat:'combat',
+      cost:{ 'earth-rune':4, 'air-rune':3, 'death-rune':1 }, role:'Earth Blast' },
+    { id:'stone-tempest',  name:'Stone Tempest',    icon:'🗿', lvl:70, cat:'combat',
+      cost:{ 'earth-rune':7, 'air-rune':5, 'death-rune':1 }, role:'Earth Wave' },
+    /* ---- Fire tier: Ember ---- */
+    { id:'ember-spit',     name:'Ember Spit',       icon:'🔥', lvl:13, cat:'combat',
+      cost:{ 'fire-rune':3, 'air-rune':2, 'mind-rune':1 }, role:'Fire Strike' },
     { id:'ember-shard',    name:'Ember Shard',      icon:'☄️', lvl:35, cat:'combat',
       cost:{ 'fire-rune':4, 'air-rune':3, 'chaos-rune':1 }, role:'Fire Bolt' },
+    { id:'ember-burst',    name:'Ember Burst',      icon:'🔥', lvl:59, cat:'combat',
+      cost:{ 'fire-rune':4, 'air-rune':4, 'death-rune':1 }, role:'Fire Blast' },
+    { id:'ember-tempest',  name:'Ember Tempest',    icon:'🌋', lvl:75, cat:'combat',
+      cost:{ 'fire-rune':7, 'air-rune':5, 'death-rune':1 }, role:'Fire Wave' },
+    /* ---- Curse + bind ---- */
+    { id:'hex-of-frailty', name:'Hex of Frailty',   icon:'🩸', lvl:19, cat:'utility',
+      cost:{ 'water-rune':2, 'body-rune':1 }, role:'Confuse (curse)' },
     { id:'mire-snare',     name:'Mire Snare',       icon:'🕸️', lvl:31, cat:'utility',
-      cost:{ 'earth-rune':3, 'water-rune':3, 'nature-omitted':0 }, role:'Bind' },
+      cost:{ 'earth-rune':3, 'water-rune':3, 'nature-rune':1 }, role:'Bind' },
+    /* ---- Teleports ---- */
+    { id:'meadow-step',    name:'Meadow Step',      icon:'🌳', lvl:11, cat:'teleport',
+      cost:{ 'air-rune':2, 'earth-rune':1, 'law-rune':1 }, role:'Lumber Camp Teleport' },
     { id:'hearthward',     name:'Hearthward',       icon:'🏠', lvl:25, cat:'teleport',
       cost:{ 'air-rune':3, 'fire-rune':1, 'law-rune':1 }, role:'Home Teleport' },
     { id:'moorgate-step',  name:'Moorgate Step',    icon:'🗺️', lvl:45, cat:'teleport',
-      cost:{ 'air-rune':5, 'fire-rune':1, 'law-rune':1 }, role:'City Teleport' }
+      cost:{ 'air-rune':5, 'fire-rune':1, 'law-rune':1 }, role:'City Teleport' },
+    /* ---- Alchemy ---- */
+    { id:'mintwrights-boon',  name:"Mintwright's Boon",  icon:'💰', lvl:21, cat:'utility',
+      cost:{ 'fire-rune':1, 'nature-rune':1 }, role:'Low Alchemy', alch:'low' },
+    { id:'mintwrights-grace', name:"Mintwright's Grace", icon:'💎', lvl:55, cat:'utility',
+      cost:{ 'fire-rune':5, 'nature-rune':1 }, role:'High Alchemy', alch:'high' }
   ];
 
   /* --------------------------------------------------------- state accessors */
@@ -157,6 +199,26 @@ export function initMagicTab(){
   .emmag-tip-runes{margin-top:3px;display:flex;flex-wrap:wrap;gap:6px;}
   .emmag-tip-runes .r{font-size:11px;color:#cdbf98;}
   .emmag-tip-runes .r.miss{color:#d36a5a;}
+  /* alchemy item-picker overlay (self-contained, not borrowed from hud.js) */
+  #emmag-picker{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:200;
+    background:#211c14;border:1px solid #4a3a22;border-radius:6px;padding:9px;
+    width:min(78vw,260px);max-height:60vh;overflow:auto;
+    box-shadow:0 6px 22px rgba(0,0,0,.55);font-family:"Trebuchet MS",sans-serif;}
+  .emmag-picker-hd{color:#e7c64f;font-size:11px;letter-spacing:.04em;margin-bottom:6px;
+    text-transform:uppercase;}
+  .emmag-picker-empty{color:#9a8c6c;font-size:11px;padding:6px 2px;}
+  .emmag-picker-list{display:flex;flex-direction:column;gap:3px;max-height:42vh;overflow:auto;}
+  .emmag-picker-row{display:flex;align-items:center;gap:6px;background:#2b2620;
+    border:1px solid #3e3424;border-radius:4px;padding:4px 6px;cursor:pointer;}
+  .emmag-picker-row:hover{border-color:#e7c64f;}
+  .emmag-picker-row .ic{font-size:14px;}
+  .emmag-picker-row .nm{flex:1;font-size:10.5px;color:#e3d6b8;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap;}
+  .emmag-picker-row .val{font-size:10px;color:#9ad17a;}
+  .emmag-picker-cancel{margin-top:7px;width:100%;background:#33291a;border:1px solid #4a3a22;
+    color:#cdbf98;font:600 10px/1 "Trebuchet MS",sans-serif;letter-spacing:.05em;
+    text-transform:uppercase;padding:6px 4px;border-radius:4px;cursor:pointer;}
+  .emmag-picker-cancel:hover{border-color:#e7c64f;color:#f3e9cf;}
   `;
   const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
@@ -518,6 +580,154 @@ export function initMagicTab(){
     }
   }
 
+  /* ------------------------------------------------- teleport destinations -- */
+  // Conservative in-bounds points (world BOUND ≈ x:[-7,7] z:[-5,14] per
+  // src/world.js) so a teleport never drops the player outside the playable
+  // area. window.EMPLAYERPOS is documented (src/main.js) as a live Vector3
+  // "mutated in place" for external reads; we mutate it the same way here to
+  // relocate the player instantly (true OSRS-parity teleport, not a walk).
+  const TELEPORT_DEST = {
+    'meadow-step':   { x: -5, z: 6,  label: 'the lumber camp' },
+    'hearthward':    { x: 0,  z: 4,  label: 'home' },
+    'moorgate-step': { x: 0,  z: 12, label: 'the chapel district' }
+  };
+
+  function executeTeleport(sp){
+    const h = (typeof window !== 'undefined') ? window.EMHUD : null;
+    const dest = TELEPORT_DEST[sp.id];
+    consumeRunes(sp);
+    if(h && typeof h.addChat === 'function')
+      h.addChat('You cast ' + sp.name + ' and teleport away in a flash of light.', '', true);
+    const pp = (typeof window !== 'undefined') ? window.EMPLAYERPOS : null;
+    if(pp && dest && typeof pp.x === 'number'){
+      pp.x = dest.x; pp.z = dest.z;
+      if(h && typeof h.addChat === 'function')
+        h.addChat('You arrive at ' + dest.label + '.', '', true);
+    }
+  }
+
+  /* ----------------------------------------------------------- alchemy ----- */
+  // Low/High alchemy: cast the spell, then pick a target item from a small
+  // self-contained picker overlay (built fresh here so we never depend on
+  // hud.js's own inventory DOM/click wiring). Consumes 1 of the chosen item,
+  // pays out coins via EMHUD.giveItem('coins', n), and awards Magic XP.
+  // Payout follows the OSRS-parity ratio: low alch ≈ 40% of item value,
+  // high alch ≈ 60%. Coins/runes/quest-key items are not alchable.
+  const ALCH_EXCLUDE = new Set([
+    'coins', 'air-rune', 'mind-rune', 'water-rune', 'earth-rune', 'fire-rune',
+    'body-rune', 'chaos-rune', 'death-rune', 'law-rune', 'nature-rune', 'cosmic-rune',
+    'quest-journal', 'security-card', 'island-map', 'poll-card', 'tutorial-cape'
+  ]);
+  const ALCH_XP_PER_VALUE = 0.4; // small fixed Magic XP scaled off value, floored at 1
+
+  function alchablesFromInv(state){
+    const h = hud(state);
+    const items = (h && typeof h.getItems === 'function') ? (h.getItems() || {}) : {};
+    let inv;
+    try { inv = h && typeof h.getInv === 'function' ? h.getInv() : []; } catch(_){ inv = []; }
+    if(!Array.isArray(inv)) inv = [];
+    const out = [];
+    inv.forEach((slot, idx) => {
+      if(!slot || ALCH_EXCLUDE.has(slot.id)) return;
+      const def = items[slot.id];
+      if(!def) return;
+      out.push({ idx, id: slot.id, name: def.name || slot.id, icon: def.icon || '❔',
+        count: slot.count || 1, value: def.value || 0 });
+    });
+    return out;
+  }
+
+  // Remove ONE unit of the inventory slot matching `id` (mirrors consumeRunes'
+  // direct-mutation approach since EMHUD exposes no generic takeItem()).
+  function consumeOne(id){
+    const h = (typeof window !== 'undefined') ? window.EMHUD : null;
+    if(!h || typeof h.getInv !== 'function') return false;
+    let inv;
+    try { inv = h.getInv(); } catch(_){ inv = null; }
+    if(!Array.isArray(inv)) return false;
+    for(let i = 0; i < inv.length; i++){
+      const slot = inv[i];
+      if(!slot || slot.id !== id) continue;
+      slot.count -= 1;
+      if(slot.count <= 0) inv.splice(i, 1);
+      return true;
+    }
+    return false;
+  }
+
+  function awardAlchXp(value){
+    const h = (typeof window !== 'undefined') ? window.EMHUD : null;
+    if(!h || typeof h.addXp !== 'function') return;
+    h.addXp('magic', Math.max(1, Math.round(value * ALCH_XP_PER_VALUE * 10) / 10));
+  }
+
+  function executeAlchemy(sp, target){
+    const h = (typeof window !== 'undefined') ? window.EMHUD : null;
+    const mult = sp.alch === 'high' ? 0.6 : 0.4;
+    const payout = Math.max(1, Math.round(target.value * mult));
+    consumeRunes(sp);
+    consumeOne(target.id);
+    if(h){
+      if(typeof h.giveItem === 'function') h.giveItem('coins', payout);
+      if(typeof h.addChat === 'function')
+        h.addChat('You cast ' + sp.name + ' on ' + target.name + ' and receive ' + payout + ' coins.', '', true);
+    }
+    awardAlchXp(target.value);
+  }
+
+  /* small floating item-picker overlay used by alchemy's "cast on item" flow */
+  let pickerEl = null;
+  function closeAlchPicker(){
+    if(pickerEl && pickerEl.remove) pickerEl.remove();
+    pickerEl = null;
+  }
+  if(typeof document !== 'undefined'){
+    document.addEventListener('keydown', e => { if(e.key === 'Escape' && pickerEl) closeAlchPicker(); });
+  }
+
+  function openAlchPicker(sp, panel, state){
+    closeAlchPicker();
+    const items = alchablesFromInv(state);
+    const el = document.createElement('div');
+    el.id = 'emmag-picker';
+    if(!items.length){
+      el.innerHTML = `<div class="emmag-picker-hd">${esc(sp.name)}</div>`
+        + `<div class="emmag-picker-empty">Nothing in your bag can be alchemised.</div>`
+        + `<button class="emmag-picker-cancel">Cancel</button>`;
+    } else {
+      const rows = items.map(it =>
+        `<div class="emmag-picker-row" data-idx="${it.idx}">`
+        + `<span class="ic">${it.icon}</span><span class="nm">${esc(it.name)}${it.count>1?' ×'+it.count:''}</span>`
+        + `<span class="val">${Math.max(1, Math.round(it.value * (sp.alch==='high'?0.6:0.4)))}gp</span></div>`
+      ).join('');
+      el.innerHTML = `<div class="emmag-picker-hd">${esc(sp.name)} - choose an item</div>`
+        + `<div class="emmag-picker-list">${rows}</div>`
+        + `<button class="emmag-picker-cancel">Cancel</button>`;
+    }
+    document.body.appendChild(el);
+    pickerEl = el;
+
+    el.querySelectorAll('.emmag-picker-row[data-idx]').forEach(row => {
+      row.onclick = () => {
+        const idx = +row.dataset.idx;
+        const target = items.find(it => it.idx === idx);
+        closeAlchPicker();
+        if(!target) return;
+        // re-validate castability at confirm-time (level/runes may have changed)
+        if(magicLevel(state) < sp.lvl || !hasRunes(sp, runeCounts(state))){
+          const hh = (typeof window !== 'undefined') ? window.EMHUD : null;
+          if(hh && typeof hh.addChat === 'function')
+            hh.addChat('You don\'t have the runes to cast ' + sp.name + '.', '', true);
+          return;
+        }
+        executeAlchemy(sp, target);
+        _rerender();
+      };
+    });
+    const cancelBtn = el.querySelector('.emmag-picker-cancel');
+    if(cancelBtn) cancelBtn.onclick = closeAlchPicker;
+  }
+
   /* --------------------------------------------------------- grid rendering */
   let curFilter = 'all';   // 'combat' | 'teleport' | 'all' (sticky across renders)
   const detachers = [];    // EMTIP detach fns for the currently rendered cells
@@ -529,6 +739,7 @@ export function initMagicTab(){
   function visibleSpells(){
     if(curFilter === 'combat')   return SPELLS.filter(s => s.cat === 'combat');
     if(curFilter === 'teleport') return SPELLS.filter(s => s.cat === 'teleport');
+    if(curFilter === 'utility')  return SPELLS.filter(s => s.cat === 'utility');
     return SPELLS.slice();
   }
 
@@ -559,6 +770,7 @@ export function initMagicTab(){
     const foot = `<div class="emmag-foot">`
       + `<button data-f="combat"${curFilter==='combat'?' class="on"':''}>Combat</button>`
       + `<button data-f="teleport"${curFilter==='teleport'?' class="on"':''}>Teleport</button>`
+      + `<button data-f="utility"${curFilter==='utility'?' class="on"':''}>Utility</button>`
       + `<button data-f="all"${curFilter==='all'?' class="on"':''}>All</button>`
       + `</div>`;
 
@@ -588,8 +800,14 @@ export function initMagicTab(){
           // toggle off if clicking the already-pending spell
           if(pendingCast && pendingCast.sp.id === sp.id){ cancelCast(); _rerender(); return; }
           enterCastMode(sp, panel, state);
+        } else if(sp.cat === 'teleport'){
+          executeTeleport(sp);
+          _rerender();
+        } else if(sp.alch){
+          openAlchPicker(sp, panel, state);
         }
-        // teleport / utility: no-op for now (future task)
+        // other utility (curse/bind): no target step yet - reserved for the
+        // combat-effect chunk that wires curses/binds into EMCOMBAT.
       };
     });
 
@@ -597,7 +815,7 @@ export function initMagicTab(){
     panel.querySelectorAll('.emmag-foot button[data-f]').forEach(btn => {
       btn.onclick = () => {
         const f = btn.dataset.f;
-        if(f === 'combat' || f === 'teleport' || f === 'all'){
+        if(f === 'combat' || f === 'teleport' || f === 'utility' || f === 'all'){
           curFilter = f;
           renderInto(panel, state);
         }

@@ -10,14 +10,31 @@
      - click()   : soft UI click
      - levelUp() : short ascending arpeggio jingle
      - blip()    : button / error blip
-     - playZone(id): gentle, very subtle looping ambient pad (the "music")
+     - playZone(id): real per-zone/per-track music. id may be a zone key
+       (chapel/town/forest/cave/...) or a track id from
+       assets/data/music.json (window.EMDATA.music.tracks, the jukebox
+       list). Resolves to that track's zone-voiced, looping ambient pad and
+       CROSSFADES into it (the outgoing pad fades out while the new one
+       swells in) instead of hard-cutting. Locked tracks fall back to their
+       zone's base voicing. No sample files exist yet, so every track still
+       renders through the procedural synth - but track/zone identity now
+       genuinely drives which voicing plays (see resolveMusic()).
+     - Auto zone-follow: polls window.EMLESSON (src/lessons.js) for the
+       player's current tutorial zone and calls playZone() automatically
+       on change, so areas (chapel/survival/mine/bank/...) get real music
+       with zero per-NPC/per-room wiring required elsewhere.
+     - nowPlaying(): { id, trackId, zoneId, label } snapshot or null.
 
    Autoplay-safe: the AudioContext is created/resumed on the FIRST user
    gesture (pointerdown / keydown), satisfying mobile autoplay policies.
 
-   Volumes are read from window.EMSETTINGS if present, e.g.
-     window.EMSETTINGS = { volume:{ master:0.8, music:0.5, sfx:0.9 },
-                           mute:{ master:false, music:false, sfx:false } }
+   Volumes/mutes are read from window.EMSETTINGS (the real persisted store
+   built by settings-tab.js: get('masterVolume'|'musicVolume'|'sfxVolume')
+   0-100, get('masterMute'|'musicMute'|'sfxMute') bool). The legacy/alt
+   shape { volume:{bus}, mute:{bus} } (0-1) is also honoured if present.
+   settings-tab.js additionally pushes LIVE updates straight through
+   EMAUDIO.setVolume(bus, v/100) on every slider change - this module's
+   readSettings() only covers the initial bootstrap snapshot.
 
    main.js invokes initAudio() once; everything else talks through the
    window.EMAUDIO global (mirrors the EMHUD/EMWORLD pattern).
@@ -337,7 +354,46 @@ export function initAudio(){
       });
     });
 
-    zone = { id:key, gain:padGain, oscs, lfos };
+    zone = {
+      id: resolved.chordKey, playKey, gain:padGain, oscs, lfos,
+      trackId: resolved.trackId, zoneId: resolved.zoneId, label: resolved.label || null,
+    };
+  }
+
+  // What's playing right now (id, resolved track/zone, label) or null.
+  function nowPlaying(){
+    if(!zone) return null;
+    return { id: zone.playKey, trackId: zone.trackId, zoneId: zone.zoneId, label: zone.label };
+  }
+
+  // ---- automatic zone-follow (drives playZone from the player's current
+  // tutorial zone, src/lessons.js) ----------------------------------------
+  // Polls window.EMLESSON.current().lesson.zone (read-only, defensive - we
+  // never import lessons.js, just probe the global it publishes) and swaps
+  // the ambient track whenever the player's area changes, so each zone
+  // (chapel/survival/mine/bank/...) gets its own real music automatically.
+  // A manual jukebox pick (music-tab.js -> playZone(trackId)) simply plays
+  // until the zone itself changes, then zone-follow resumes - no fighting
+  // over playback on every poll tick.
+  let lastAutoZone = null;
+  const ZONE_POLL_MS = 1000;
+  function currentLessonZone(){
+    try {
+      const l = (typeof window !== 'undefined') && window.EMLESSON;
+      if(!l || typeof l.current !== 'function') return null;
+      const cur = l.current();
+      return (cur && cur.lesson && typeof cur.lesson.zone === 'string') ? cur.lesson.zone : null;
+    } catch(_){ return null; }
+  }
+  function pollZoneFollow(){
+    const z = currentLessonZone();
+    if(!z || z === lastAutoZone) return;
+    if(!ready()) return;            // wait for the first gesture before committing
+    lastAutoZone = z;
+    playZone(z);
+  }
+  if(typeof window !== 'undefined'){
+    setInterval(pollZoneFollow, ZONE_POLL_MS);
   }
 
   // ---- mixer controls ---------------------------------------------------
@@ -358,6 +414,7 @@ export function initAudio(){
     click, levelUp, blip, playZone, setVolume, mute,
     // small extras that are handy but harmless:
     stopZone,
+    nowPlaying,                                // current track/zone snapshot
     isReady: ready,
     resume,                                   // manual resume hook
   };

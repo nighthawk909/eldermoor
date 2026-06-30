@@ -45,6 +45,15 @@ const AUDIO_BUS = {
   sfxVolume:    'sfx',
 };
 
+// Map an audio mute toggle id -> mixer bus understood by EMAUDIO.mute().
+// (areaMute has no dedicated EMAUDIO bus yet - area/ambient one-shots route
+// through sfx - so it is intentionally left unmapped: persisted but inert.)
+const MUTE_BUS = {
+  masterMute: 'master',
+  musicMute:  'music',
+  sfxMute:    'sfx',
+};
+
 /* --------------------------------------------------------- data access */
 // EMDATA may load after init; always read it lazily, never cache.
 function settingsData(){
@@ -102,9 +111,17 @@ function buildStore(){
       return defaultFor(id);
     },
     // Store + persist a new value (immutable update - new object, no mutation).
+    // Also broadcasts 'em-settings-change' ({id, value}) on window so any
+    // module (rendering/engine/world - none of which this file touches) can
+    // opt in to applying a setting live without this module knowing about it.
     set(id, v){
       values = { ...values, [id]: v };
       persist();
+      try {
+        if(typeof window !== 'undefined' && typeof window.dispatchEvent === 'function'){
+          window.dispatchEvent(new CustomEvent('em-settings-change', { detail:{ id, value:v } }));
+        }
+      } catch(_){ /* event dispatch optional */ }
       return v;
     },
     // Snapshot of every known control\'s effective value (defaults merged in).
@@ -148,14 +165,22 @@ function currentValue(store, ctl){
   return coerce(ctl, raw == null ? ctl.default : raw);
 }
 
-// Side-effect bridge to the audio mixer for audio-group sliders.
+// Side-effect bridge to the audio mixer for audio-group sliders + mute
+// toggles. Volume sliders -> EMAUDIO.setVolume(bus, 0..1); mute toggles ->
+// EMAUDIO.mute(bus, bool). Both are guarded so a missing/optional EMAUDIO
+// never breaks the settings UI.
 function maybeAudio(groupId, ctl, value){
-  if(groupId !== 'audio' || ctl.type !== 'slider') return;
-  const bus = AUDIO_BUS[ctl.id];
-  if(!bus) return;
+  if(groupId !== 'audio') return;
   const a = (typeof window !== 'undefined') && window.EMAUDIO;
-  if(a && typeof a.setVolume === 'function'){
+  if(!a) return;
+  if(ctl.type === 'slider'){
+    const bus = AUDIO_BUS[ctl.id];
+    if(!bus || typeof a.setVolume !== 'function') return;
     try { a.setVolume(bus, Number(value) / 100); } catch(_){ /* audio optional */ }
+  } else if(ctl.type === 'toggle'){
+    const bus = MUTE_BUS[ctl.id];
+    if(!bus || typeof a.mute !== 'function') return;
+    try { a.mute(bus, !!value); } catch(_){ /* audio optional */ }
   }
 }
 
@@ -377,15 +402,18 @@ export function initSettingsTab(){
 
   const store = buildStore();
 
-  // On startup, push any saved (or default) audio volumes into the mixer so
-  // the live game matches the persisted settings without a user interaction.
+  // On startup, push any saved (or default) audio volumes + mutes into the
+  // mixer so the live game matches the persisted settings without a user
+  // interaction.
   function syncAudio(){
     const data = settingsData();
     if(!data) return;
     const audio = data.groups.find(g => g.id === 'audio');
     if(!audio || !Array.isArray(audio.settings)) return;
     for(const ctl of audio.settings){
-      if(ctl && ctl.type === 'slider' && AUDIO_BUS[ctl.id]){
+      if(!ctl) continue;
+      if((ctl.type === 'slider' && AUDIO_BUS[ctl.id]) ||
+         (ctl.type === 'toggle' && MUTE_BUS[ctl.id])){
         maybeAudio('audio', ctl, currentValue(store, ctl));
       }
     }

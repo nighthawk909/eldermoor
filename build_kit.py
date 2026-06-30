@@ -753,6 +753,122 @@ def build_dock(pos=(0, 0, 0), length=8.0, width=2.4, register=True):
         # far end blocks movement. The zone's own cset_bound() defines overall walkable area.
         creg_circle(px, bz, 0.7)                                                     # boat hull (non-walkable)
 
+def build_rat_pen_gate(pos=(0, 0, 0), width=3.0, register=True):
+    """Rat pen gate (L11-L12 combat ring): low post-and-rail fence section with a hinged gate
+    leaf set into the middle, faces +Z (the open/closed swing reads toward the player). Two
+    solid fence runs flank a narrower gate leaf hung from a post so the opening is legible at
+    a glance, matching build_grounds' courtyard fence language but with a real gate leaf."""
+    px, py, pz = pos
+    postm = solid("gate_post", "#4a3420", 0.9)
+    railm = solid("gate_rail", "#6b4a2c", 0.85)
+    leafm = solid("gate_leaf", "#5a3f28", 0.85)
+    hinge = solid("gate_hinge", "#3a3a3e", 0.5, 0.6)
+    fence_h, leaf_w = 0.95, width * 0.42
+    side_w = (width - leaf_w) / 2.0
+    # two flanking fence runs (post + two horizontal rails), gap left for the gate leaf
+    for s in (-1, 1):
+        cx = s * (leaf_w / 2.0 + side_w / 2.0)
+        end_x = s * (leaf_w / 2.0 + side_w)
+        block((0.08, fence_h, 0.08), (end_x, py + fence_h / 2, pz), postm, bevel=0.015)   # end post
+        for ry in (fence_h * 0.42, fence_h * 0.88):
+            block((side_w, 0.06, 0.05), (cx, py + ry, pz), railm, bevel=0.01)             # rails
+    # hinge post the gate leaf swings from (at the edge nearer -x, reads as the hung side)
+    hp_x = -leaf_w / 2.0
+    block((0.10, fence_h + 0.12, 0.10), (hp_x, py + (fence_h + 0.12) / 2, pz), postm, bevel=0.02)
+    block((0.06, fence_h + 0.16, 0.06), (leaf_w / 2.0, py + (fence_h + 0.16) / 2, pz), postm, bevel=0.02)  # latch post
+    # gate leaf: vertical pickets + two cross-rails + a diagonal brace, swung slightly open
+    leaf_open_deg = 18
+    leaf = []
+    n_pick = 4
+    for i in range(n_pick):
+        lx = -leaf_w / 2.0 + 0.12 + i * (leaf_w - 0.24) / max(1, n_pick - 1)
+        leaf.append(block((0.05, fence_h * 0.82, 0.05), (lx, py + fence_h * 0.42, pz), leafm, bevel=0.01))
+    for ry in (fence_h * 0.28, fence_h * 0.72):
+        leaf.append(block((leaf_w - 0.1, 0.06, 0.05), (0, py + ry, pz), leafm, bevel=0.01))
+    leaf.append(cyl(0.025, 0.03, leaf_w * 1.15, (0, py + fence_h * 0.5, pz), leafm, verts=6,
+                     rot=(0, 0, radians(34)), bevel=0.005))                                # diagonal brace
+    leaf.append(block((0.05, 0.05, 0.05), (leaf_w / 2.0 - 0.06, py + fence_h * 0.5, pz), hinge, bevel=0.01))  # latch
+    pivot("gate_leaf", (hp_x, py, pz), leaf)                                               # swing pivot at the hinge post
+    if register: creg_rect(px - width/2 - 0.06, px + width/2 + 0.06, pz - 0.08, pz + 0.08)
+
+def build_target_butt(pos=(0, 0, 0), register=True):
+    """Archery practice butt (L16 ranged): straw/hay roundel face on a wooden A-frame stand,
+    concentric rings painted on the face, faces +Z toward the firing line. Continuous lofted
+    disc form (stacked tapered cylinders), not a flat plate."""
+    px, py, pz = pos
+    strawm = solid("butt_straw", "#c9a857", 0.95)
+    frame = solid("butt_frame", "#5a3f28", 0.85)
+    ring_w = emissive("butt_ring_w", "#f3efe6", 0.6)
+    ring_r = emissive("butt_ring_r", "#9c3030", 0.6)
+    ring_g = emissive("butt_ring_g", "#3a6b3a", 0.6)
+    ring_y = emissive("butt_ring_y", "#d8b25a", 0.6)
+    cy = py + 0.95
+    # thick straw roundel, slightly domed (two stacked cylinders) so it reads as bundled straw
+    cyl(0.62, 0.66, 0.30, (px, cy, pz), strawm, verts=14)
+    cyl(0.52, 0.62, 0.10, (px, cy, pz + 0.16), strawm, verts=14)
+    # concentric target rings painted onto the face (thin discs, front-most)
+    fz = pz + 0.215
+    cyl(0.60, 0.60, 0.012, (px, cy, fz), ring_w, verts=14)
+    cyl(0.46, 0.46, 0.014, (px, cy, fz + 0.002), ring_r, verts=14)
+    cyl(0.32, 0.32, 0.016, (px, cy, fz + 0.004), ring_g, verts=14)
+    cyl(0.18, 0.18, 0.018, (px, cy, fz + 0.006), ring_y, verts=14)
+    cyl(0.07, 0.07, 0.020, (px, cy, fz + 0.008), ring_r, verts=10)
+    # A-frame stand legs (two splayed rear legs bracing the roundel)
+    for s in (-1, 1):
+        cyl(0.035, 0.045, 1.0, (px + s * 0.42, py + 0.5, pz - 0.32), frame, verts=6,
+            rot=(radians(-22), 0, radians(10 * s)), bevel=0.008)
+    block((1.0, 0.05, 0.06), (px, py + 0.08, pz - 0.18), frame, bevel=0.01)               # base crossbrace
+    if register: creg_circle(px, pz, 0.66)
+
+def build_rune_rack(pos=(0, 0, 0), register=True):
+    """Rune rack / lectern (wizard tower): wooden lectern post + angled shelf cradling a row of
+    small glowing rune stones, faces +Z so the runes read toward the approaching player.
+    Distinct silhouette from build_altar (a worktable display, not a dais)."""
+    px, py, pz = pos
+    woodm = solid("rune_wood", "#5a3f28", 0.85)
+    trim = solid("rune_trim", "#d8b25a", 0.5, 0.3)
+    rune_cols = ["#9be0ff", "#ffb24a", "#b89bff", "#9be0a0"]   # air/fire/mind/earth-flavoured, original
+    # lectern post + foot
+    cyl(0.07, 0.10, 0.85, (px, py + 0.425, pz), woodm, verts=8)
+    cyl(0.22, 0.22, 0.05, (px, py + 0.025, pz), woodm, verts=10, bevel=0.01)
+    # angled shelf/rack top (tilted slab) the rune stones sit in
+    block((0.95, 0.06, 0.42), (px, py + 0.86, pz), woodm, bevel=0.015)
+    block((0.99, 0.04, 0.10), (px, py + 0.90, pz + 0.18), trim, bevel=0.01)               # raised lip so stones don't roll off
+    # row of small faceted glowing rune stones cradled along the shelf
+    n = len(rune_cols)
+    for i, col in enumerate(rune_cols):
+        rx = px - 0.34 + i * (0.68 / max(1, n - 1))
+        ico(0.085, (rx, py + 0.95, pz - 0.02), emissive("rune_stone_" + col[1:], col, 5.0),
+            subdiv=1, scale=(0.75, 1.3, 0.6))
+    if register: creg_rect(px - 0.55, px + 0.55, pz - 0.25, pz + 0.25)
+
+def build_boat(pos=(0, 0, 0), register=True):
+    """Standalone moored skiff (departure dock 'boat' marker — distinct from the hull baked
+    into build_dock's far end). Small faceted rowboat: hull + two bench thwarts + a pair of
+    oars resting across the gunwales, floats at the water surface (y=0), faces +Z."""
+    px, py, pz = pos
+    hull = solid("boat_hull", "#5a3f28", 0.85)
+    hullin = solid("boat_hullin", "#7a5631", 0.85)
+    oarm = solid("boat_oar", "#6b4a2c", 0.8)
+    trim = solid("boat_trim", "#3a2a1c", 0.85)
+    # lofted hull: tapered outer shell (icosphere squashed to a boat profile) + a recessed
+    # inner well so it doesn't read as a solid log
+    ico(0.50, (px, py - 0.10, pz), hull, subdiv=1, scale=(1.0, 0.46, 1.85))
+    ico(0.40, (px, py + 0.06, pz), hullin, subdiv=1, scale=(0.86, 0.30, 1.62))
+    block((0.92, 0.07, 0.30), (px, py + 0.155, pz), trim, bevel=0.02)                      # gunwale rim
+    # two bench thwarts across the beam
+    for bz in (-0.45, 0.35):
+        block((0.78, 0.05, 0.08), (px, py + 0.12, pz + bz), hull, bevel=0.01)
+    # bow/stern points (small wedge caps so the silhouette tapers to a point, not a blunt round)
+    for s, bz in ((1, 1), (-1, -1)):
+        block((0.10, 0.10, 0.16), (px, py + 0.02, pz + bz * 0.95), hull, bevel=0.02)
+    # a pair of oars resting diagonally across the gunwales
+    for s in (-1, 1):
+        cyl(0.018, 0.022, 1.3, (px + s * 0.30, py + 0.20, pz + 0.05), oarm, verts=6,
+            rot=(radians(8), 0, radians(72 * s)), bevel=0.004)
+        block((0.10, 0.012, 0.22), (px + s * 0.78, py + 0.21, pz - 0.32), oarm, bevel=0.005)  # oar blade
+    if register: creg_circle(px, pz, 0.65)
+
 # pond (survival area) — centre + radius, shared by height/colour/collider
 POND = (9.0, 32.0, 5.8)
 
@@ -956,7 +1072,11 @@ def main():
                    "altar": lambda: build_altar((0, 0, 0), register=False),
                    "ladder": lambda: build_ladder((0, 0, 0), register=False),
                    "signpost": lambda: build_signpost((0, 0, 0), register=False),
-                   "dock": lambda: build_dock((0, 0, 0), register=False)}.get(piece, build_corner)
+                   "dock": lambda: build_dock((0, 0, 0), register=False),
+                   "rat_pen_gate": lambda: build_rat_pen_gate((0, 0, 0), register=False),
+                   "target_butt": lambda: build_target_butt((0, 0, 0), register=False),
+                   "rune_rack": lambda: build_rune_rack((0, 0, 0), register=False),
+                   "boat": lambda: build_boat((0, 0, 0), register=False)}.get(piece, build_corner)
     else:
         builder = {"chapel": build_chapel, "character": build_character,
                    "player": build_player_scene, "lineup": build_cast_lineup,

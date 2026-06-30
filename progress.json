@@ -1,5 +1,5 @@
 {
-  "updated": 1782862732292,
+  "updated": 1782862762975,
   "version": "v41",
   "note": "Live fleet board. Reflects v36 owner QA + browser screenshots. Character art (studio + in-world avatar/creator) owned by a separate chat. Statuses: queued | building | review | requeue | shipped | done | blocked | failed.",
   "board": [
@@ -412,10 +412,10 @@
       "id": "SOCIAL-TABS",
       "epic": "P3 HUD",
       "title": "SOCIAL-TABS",
-      "status": "review",
+      "status": "shipped",
       "agent": "builder-social",
-      "note": "src/social.js already fully implemented all 3 tabs (Friends/Ignore/Account) with EMTABS contract, localStorage persistence (eldermoor:friends, eldermoor:ignore), OSRS brown-stone CSS. Verified syntax ok, no edits needed.",
-      "ts": 1782862732292
+      "note": "already implemented + verified (Friends/Ignore/Account functional, persisted); live",
+      "ts": 1782862762975
     }
   ]
 }

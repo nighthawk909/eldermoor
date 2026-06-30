@@ -96,14 +96,15 @@ export function createTaperedPrismGeometry(
 /* the robe: narrow at the waist (top), belling out wide at the hem (bottom).
    built from several rings so the flare curves (power ease) instead of a
    straight cone. slightly oval (deeper front-to-back). */
-export function createRobeGeometry(waistR = 0.32, hemR = 0.66, height = 1.05, sides = 8): THREE.BufferGeometry {
+export function createRobeGeometry(waistR = 0.34, hemR = 0.56, height = 1.28, sides = 8): THREE.BufferGeometry {
   const rings: Ring[] = [];
-  const steps = 6;
+  const steps = 7;
   for (let i = 0; i <= steps; i++) {
     const t = i / steps;                  // 0 = hem (bottom), 1 = waist (top)
     const y = t * height;
-    const r = waistR + (hemR - waistR) * Math.pow(1 - t, 1.7); // flare low
-    rings.push({ y, pts: ngon(sides, r, r * 0.92, Math.PI / sides) });
+    // columnar: stay near the waist radius for the upper body, flare ONLY low
+    const r = waistR + (hemR - waistR) * Math.pow(1 - t, 3.2);
+    rings.push({ y, pts: ngon(sides, r, r * 0.9, Math.PI / sides) });
   }
   return loft(rings, { capTop: true, capBottom: false });
 }
@@ -127,12 +128,13 @@ export function createHoodGeometry(): THREE.BufferGeometry {
   const ring = (y: number, rx: number, rz: number, zoff: number): Ring => ({
     y, pts: arc(S, rx, rz, gapStart, sweep).map(([x, z]) => [x, z + zoff] as V2),
   });
+  // shorter + wider => a hood/cowl, not a tall ice-cream cone
   return loft([
-    ring(0.00, 0.46, 0.50, 0.02),
-    ring(0.34, 0.44, 0.48, -0.04),
-    ring(0.62, 0.34, 0.38, -0.13),
-    ring(0.84, 0.18, 0.22, -0.22),
-    ring(1.00, 0.06, 0.08, -0.28),
+    ring(0.00, 0.48, 0.52, 0.02),
+    ring(0.24, 0.46, 0.50, -0.04),
+    ring(0.42, 0.38, 0.42, -0.12),
+    ring(0.56, 0.26, 0.30, -0.18),
+    ring(0.66, 0.11, 0.14, -0.22),
   ], { closed: false });
 }
 

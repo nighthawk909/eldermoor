@@ -4,7 +4,7 @@ _Snapshot 2026-06-30. Honest counts; integrated ≠ playtested._
 
 ## Headline
 - **Overall:** ~24% complete (integrated + boot-verified).
-- **Live version:** v32.
+- **Live version:** v33.
 
 ## Features
 | State | Count | Definition |
@@ -30,7 +30,8 @@ _Snapshot 2026-06-30. Honest counts; integrated ≠ playtested._
   v30 = test infrastructure — dev test character (all-99 + combat kit each load) + in-game QA checklist panel
   (Pass/Fail/Skip + notes per item, one-tap Copy/Share/Download report). Not a player feature.
   v31 = live QA sync backend — api/qa.js (Vercel KV) + QA panel auto-POST (needs KV connected);
-  v32 = QA findability — version shown on the QA button + XP counter moved below it (top-left de-overlap).
+  v32 = QA findability — version on QA button + XP counter de-overlap;
+  v33 = character-creator live 2D paper-doll preview (updates on every part/colour toggle).
 - Mobile Sprint plan: 1A framework (v28, done/await QA) → 1B inventory+equipment → 1C combat loop →
   1D tutorial progression → 1E audio/settings/prayer/save/logout. Each gated by Josh's on-device QA.
 - Tooling: policy-driven Claude Code config installed (commit 3a9fe8d) — `.claude/settings.json` +

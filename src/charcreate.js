@@ -215,6 +215,12 @@ function injectCSS(){
 #${ROOT_ID} .em-cc-err{
   min-height:15px; margin:-2px 0 6px; font-size:12px; color:#e88; text-align:center;
 }
+#${ROOT_ID} .em-cc-preview{
+  position:sticky; top:0; z-index:3; display:flex; justify-content:center; align-items:flex-end;
+  background:linear-gradient(#2a2112,#16110a); border:1px solid #6b5326; border-radius:8px;
+  padding:6px; margin:0 0 10px;
+}
+#${ROOT_ID} .em-cc-preview svg{ width:118px; height:196px; max-height:32vh; display:block; }
 `;
   document.head.appendChild(st);
 }
@@ -313,6 +319,74 @@ function buildSwatches(label, colours, current, onChange){
   return row;
 }
 
+/* ------------------------------------------------ live paper-doll preview
+   A 2D SVG figure that updates as the player toggles parts/colours. It shows
+   part SHAPES the current static 3D model can't (hood/beard, robe/tunic/yoke,
+   skirt/trousers/breeches, boots/shoes/sandals, sleeves, body type) plus the
+   chosen colours — so the creator has a real live preview now, independent of
+   the parameterized-model work. Shapes carry pd-* classes for testability. */
+const PD_DEF = { skin:'#e8b98e', hair:'#3a2a1c', torso:'#3f6f8c', legs:'#2f3742', feet:'#5a3f28' };
+function pdCol(sel, k){ const c = sel && sel.colours && sel.colours[k]; return c || PD_DEF[k]; }
+function pdDark(hex){
+  try { const n = parseInt(String(hex).slice(1), 16); let r=(n>>16)&255, g=(n>>8)&255, b=n&255;
+    r=(r*0.55)|0; g=(g*0.55)|0; b=(b*0.55)|0; return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1); }
+  catch(e){ return '#222'; }
+}
+function paperDollSVG(sel){
+  const p = (sel && sel.parts) || {};
+  const head=String(p.head||''), torso=String(p.torso||''), arms=String(p.arms||''),
+        hands=String(p.hands||''), legs=String(p.legs||''), feet=String(p.feet||'');
+  const skin=pdCol(sel,'skin'), hair=pdCol(sel,'hair'), tcol=pdCol(sel,'torso'),
+        lcol=pdCol(sel,'legs'), fcol=pdCol(sel,'feet');
+  const hooded=/hood/.test(head), beard=/beard/.test(head), longB=/long/.test(head);
+  const robe=/robe/.test(torso), yoke=/yoke/.test(torso), jerkin=/jerkin/.test(torso);
+  const skirt=/skirt/.test(legs), breeches=/breech/.test(legs);
+  const bare=/bare/.test(arms), wrapped=/wrap/.test(arms);
+  const gloves=/glove/.test(hands), bracers=/bracer/.test(hands);
+  const boots=/boot/.test(feet), sandals=/sandal/.test(feet);
+  const wide = sel && sel.bodyType === 'B';
+  const sw = wide?22:17, tx0=60-sw, tx1=60+sw, torsoBot = robe?152:106;
+  const armCol = bare?skin:(wrapped?skin:tcol), handCol = gloves?pdDark(tcol):skin;
+  const s = [];
+  if(hooded) s.push(`<path class="pd-hood" d="M40 30 Q60 6 80 30 L80 46 Q60 36 40 46 Z" fill="${tcol}"/>`);
+  else s.push(`<path class="pd-hair" d="M44 28 a16 16 0 0 1 32 0 q-16 -12 -32 0 z" fill="${hair}"/>`);
+  s.push(`<circle class="pd-face" cx="60" cy="30" r="15" fill="${skin}"/>`);
+  if(beard) s.push(`<rect class="pd-beard" x="48" y="34" width="24" height="${longB?16:9}" rx="5" fill="${hair}"/>`);
+  s.push(`<rect x="56" y="43" width="8" height="9" fill="${skin}"/>`);
+  s.push(`<rect class="pd-arm" x="${tx0-8}" y="54" width="7" height="46" rx="3" fill="${armCol}"/>`);
+  s.push(`<rect class="pd-arm" x="${tx1+1}" y="54" width="7" height="46" rx="3" fill="${armCol}"/>`);
+  if(wrapped){ for(let y=58;y<98;y+=10){ s.push(`<rect x="${tx0-8}" y="${y}" width="7" height="3" fill="${pdDark(skin)}"/>`); s.push(`<rect x="${tx1+1}" y="${y}" width="7" height="3" fill="${pdDark(skin)}"/>`);} }
+  if(yoke) s.push(`<polygon class="pd-torso pd-yoke" points="${tx0-6},52 ${tx1+6},52 ${tx1},${torsoBot} ${tx0},${torsoBot}" fill="${tcol}"/>`);
+  else s.push(`<rect class="pd-torso${robe?' pd-robe':''}" x="${tx0}" y="52" width="${tx1-tx0}" height="${torsoBot-52}" rx="5" fill="${tcol}"/>`);
+  if(jerkin) s.push(`<rect class="pd-belt" x="${tx0}" y="${torsoBot-14}" width="${tx1-tx0}" height="4" fill="${pdDark(tcol)}"/>`);
+  if(bracers){ s.push(`<rect x="${tx0-8}" y="98" width="7" height="4" fill="${pdDark(fcol)}"/>`); s.push(`<rect x="${tx1+1}" y="98" width="7" height="4" fill="${pdDark(fcol)}"/>`); }
+  s.push(`<circle class="pd-hand" cx="${tx0-4}" cy="104" r="4.5" fill="${handCol}"/>`);
+  s.push(`<circle class="pd-hand" cx="${tx1+4}" cy="104" r="4.5" fill="${handCol}"/>`);
+  let footTop = robe?150:162;
+  if(!robe){
+    if(skirt){
+      s.push(`<polygon class="pd-legs pd-skirt" points="${tx0+2},108 ${tx1-2},108 ${tx1+6},150 ${tx0-6},150" fill="${lcol}"/>`);
+      s.push(`<rect x="51" y="150" width="8" height="12" fill="${skin}"/><rect x="61" y="150" width="8" height="12" fill="${skin}"/>`);
+      footTop=160;
+    } else if(breeches){
+      s.push(`<rect class="pd-legs pd-breeches" x="50" y="108" width="9" height="32" fill="${lcol}"/><rect class="pd-legs pd-breeches" x="61" y="108" width="9" height="32" fill="${lcol}"/>`);
+      s.push(`<rect x="51" y="140" width="8" height="22" fill="${skin}"/><rect x="61" y="140" width="8" height="22" fill="${skin}"/>`);
+    } else {
+      s.push(`<rect class="pd-legs pd-trousers" x="50" y="108" width="9" height="54" fill="${lcol}"/><rect class="pd-legs pd-trousers" x="61" y="108" width="9" height="54" fill="${lcol}"/>`);
+    }
+  }
+  if(sandals){
+    s.push(`<rect class="pd-feet pd-sandals" x="49" y="${footTop+8}" width="12" height="4" fill="${skin}"/><rect class="pd-feet pd-sandals" x="59" y="${footTop+8}" width="12" height="4" fill="${skin}"/>`);
+    s.push(`<rect x="51" y="${footTop+4}" width="8" height="4" fill="${fcol}"/><rect x="61" y="${footTop+4}" width="8" height="4" fill="${fcol}"/>`);
+  } else {
+    const h = boots?16:9, y = footTop + (boots?0:7);
+    s.push(`<rect class="pd-feet ${boots?'pd-boots':'pd-shoes'}" x="48" y="${y}" width="12" height="${h}" rx="2" fill="${fcol}"/>`);
+    s.push(`<rect class="pd-feet ${boots?'pd-boots':'pd-shoes'}" x="60" y="${y}" width="12" height="${h}" rx="2" fill="${fcol}"/>`);
+  }
+  return `<svg viewBox="0 0 120 200" class="pd-svg" xmlns="http://www.w3.org/2000/svg">${s.join('')}</svg>`;
+}
+function drawPreview(host, sel){ if(host) host.innerHTML = paperDollSVG(sel); }
+
 /* --------------------------------------------------------- the panel */
 function buildPanel(data, onConfirm){
   // Working selection, seeded from defaults (first of everything).
@@ -333,6 +407,13 @@ function buildPanel(data, onConfirm){
   sub.className = 'em-cc-sub';
   sub.textContent = 'Name your adventurer and choose a look, then confirm to enter Eldermoor.';
   panel.appendChild(sub);
+
+  // Live preview (sticky) — updates as parts/colours change.
+  const preview = document.createElement('div');
+  preview.className = 'em-cc-preview';
+  panel.appendChild(preview);
+  const redraw = () => drawPreview(preview, sel);
+  redraw();
 
   // Name entry (validated on Confirm).
   const nameInput = document.createElement('input');
@@ -364,7 +445,7 @@ function buildPanel(data, onConfirm){
       sel.parts[key],
       o => o.id,
       o => o.label,
-      v => { sel.parts[key] = v; }
+      v => { sel.parts[key] = v; redraw(); }
     ));
   }
 
@@ -376,7 +457,7 @@ function buildPanel(data, onConfirm){
       COLOUR_LABELS[key],
       list,
       sel.colours[key],
-      v => { sel.colours[key] = v; }
+      v => { sel.colours[key] = v; redraw(); }
     ));
   }
 
@@ -389,7 +470,7 @@ function buildPanel(data, onConfirm){
       sel.bodyType,
       o => o,
       o => 'Type ' + o,
-      v => { sel.bodyType = v; }
+      v => { sel.bodyType = v; redraw(); }
     ));
   }
 

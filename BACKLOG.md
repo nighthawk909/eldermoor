@@ -25,10 +25,9 @@ Outstanding work to 100%. Item-level pass/fail tests in `PARITY_AUDIT.md` (~645 
       swappable glTFs keyed by the existing part ids; `appearance-apply.js` shows/hides + tints by id.
       Constraint: **must read the current save shape as-is** (no migration). Keep ALL customization options
       that are part of the long-term vision — do not trim the creator to match current model limits.
-- [ ] **Character-creator live preview** — show the avatar updating as you toggle parts/colours in the
-      creator (currently no preview). Best built together with the parameterized model above: render a small
-      live model (or a 2D paper-doll) in the creator overlay that reflects the current selection. Until the
-      model is parameterized, a preview can only reflect colours; full part-shape preview depends on that work.
+- [x] **Character-creator live preview** — DONE v33: a 2D SVG paper-doll in the creator updates live on every
+      part/colour toggle (reflects part shapes + colours). Future: an in-world/3D preview once the
+      parameterized player model exists (above).
 - [ ] **1B** Inventory + Equipment mobile interactions.
 - [ ] **1C** Combat loop end-to-end on mobile.
 - [ ] **1D** Tutorial progression on mobile.

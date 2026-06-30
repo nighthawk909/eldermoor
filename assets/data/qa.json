@@ -1,5 +1,5 @@
 {
-  "version": "v32",
+  "version": "v33",
   "title": "Mobile 1A re-QA + test tools",
   "items": [
     {
@@ -56,6 +56,11 @@
       "id": "name",
       "title": "Character name entry",
       "how": "On a fresh character you're asked for a name; an invalid name is blocked, a valid one saves."
+    },
+    {
+      "id": "creator-preview",
+      "title": "Character-creator live preview",
+      "how": "In the creator, toggle Head/Torso/Legs/Feet and the colour swatches \u2014 the figure preview at the top updates live (hood/beard, robe/skirt/trousers, boots/shoes/sandals, colours)."
     },
     {
       "id": "touch",

@@ -4,7 +4,7 @@
 For the full narrative handoff see `PROJECT_HANDOFF.md`; phase status in `ROADMAP.md`; item-level tests in
 `PARITY_AUDIT.md`.
 
-- **Live version:** v32 · **Link:** https://eldermoor.vercel.app
+- **Live version:** v33 · **Link:** https://eldermoor.vercel.app
 - **Overall:** ~24% (features integrated + boot-verified; **live-playtested separately — see METRICS**).
 - **Client:** modular ES (`src/*.js`, ~37 modules) + `index.modular.html` shell, Three.js r128 (CDN),
   data-driven from `assets/data/*.json`. Deployed on Vercel. `eldermoor_client.html` = frozen v17 rollback.
@@ -25,6 +25,12 @@ complete flow · action SFX coverage (`sfx-actions.js`) · lesson gating (`gatin
 game tick (`tick.js`, shared by combat + skilling).
 
 ## Recently resolved
+- **v33 — Character-creator LIVE PREVIEW (owner-requested):** a 2D SVG paper-doll in the
+  creator (`charcreate.js`) updates as you toggle every option (hood/beard, tunic/robe/jerkin/yoke,
+  trousers/skirt/breeches, boots/shoes/sandals, sleeved/bare/wrapped arms, gloves/bracers, body type) plus
+  all colours (skin/hair/torso/legs/feet). Sticky at the top of the creator so it stays visible while cycling.
+  It shows part shapes the static 3D model does not, so it is a real preview now; a 3D/in-world preview can
+  follow with the parameterized model. Boot-verified 11/11 headless.
 - **v32 — QA findability + top-left declutter (1A polish from on-device QA):** the in-game **QA**
   button now shows the build **version** (the game HUD hides the original version bar, so this is where you
   read it) and is bigger/clearer; the XP-gained counter was moved BELOW the QA button so the two no longer

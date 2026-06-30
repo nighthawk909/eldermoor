@@ -89,9 +89,15 @@ silently downgrading — and leave `boot-pending` / `deploy-pending` set until t
 
 These override convenience, speed, and token cost. If a step would violate one, stop.
 
-1. **Claude-built only.** All geometry, meshes, UVs, textures, materials, shaders, and
-   code are produced by Claude (by scripting Blender/Python/etc.). No outsourced human
-   modeling, no stock assets, no asset-store purchases, no image-to-3D black boxes.
+1. **Claude-built OR free-licensed assets (REVISED 2026-06-30, owner-directed).** Code is
+   Claude-built. 3D assets may be either Claude-authored (Blender/Python) **or** sourced from
+   **free, permissively-licensed (CC0 / public-domain) libraries** — Quaternius, Kenney,
+   Poly Pizza, KhronosGroup samples, etc. The purely-procedural blocky avatar was the cost of
+   the old "Claude-built only" rule; we now use real low-poly models for characters + gear so
+   the game actually looks good. STILL FORBIDDEN: ripped/proprietary models, anything copying
+   Jagex/RuneScape's specific expression (§2), and paid assets without owner approval. Every
+   external asset's source + license is recorded in **ASSET_LICENSES.md** (CC0 needs no
+   attribution but we log provenance anyway).
 2. **No shortcuts, ever.** Never silently lower the bar to fit a constraint. If hardware
    (e.g. a sandbox with no GPU) blocks full quality, say so and route around it (render on
    the Victus GPU) — do not quietly ship the lesser thing and call it done.

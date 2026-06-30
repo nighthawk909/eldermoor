@@ -50,8 +50,12 @@ Outstanding work to 100%. Item-level pass/fail tests in `PARITY_AUDIT.md` (~645 
 - [x] Magic cast (combat spell → mob, consume runes, bolt projectile, Magic+HP XP) — integrated v24, playtest pending.
 - [x] Prayer points pool + activation drain + bury-bones — integrated v25, playtest pending.
 - [x] Route smithing/cooking through the Make-X interface — integrated v25, playtest pending.
-- [ ] Equipment renders on the 3D avatar. *(reference impl salvaged from the retired fork:
-      `salvage/opus-wave-v26/worn-render.js` — port onto v31 in Milestone 1B.)*
+- [x] Equipment renders on the 3D avatar — DONE v36: `avatar.js` `renderWorn()` renders all worn slots
+      (weapon/shield/body/cape/gloves + helm/legs/feet anchors) from `EMEQUIP.worn`; unequip removes the
+      mesh. Procedural low-poly; a higher-fidelity per-item mesh set can replace it later behind the same
+      data contract (see the Blender high-fidelity item below).
+- [ ] Combat pathing + death/respawn + attack/death animation (1C) — character must walk to a distant mob
+      before attacking; death anim + respawn. *(FAIL in v35 owner QA.)*
 
 ## P2 — world build-out (needs assets via build_kit.py)
 - [ ] 9 missing zones: spawn house, full survival area, cook's house, quest house, mine/underground,

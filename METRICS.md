@@ -4,7 +4,7 @@ _Snapshot 2026-06-30. Honest counts; integrated ≠ playtested._
 
 ## Headline
 - **Overall:** ~24% complete (integrated + boot-verified).
-- **Live version:** v35.
+- **Live version:** v36.
 
 ## Features
 | State | Count | Definition |

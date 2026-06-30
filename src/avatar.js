@@ -95,7 +95,10 @@ function buildBody(sel){
   if(skirt) g.add(place(cyl(0.26*bw, 0.42*bw, 0.5, lcol), 0, 0.70, 0));         // skirt drape over the legs
   else if(breeches) { g.add(place(box(0.20*bw,0.4,0.22,lcol),0,1.0,0)); }       // breeches cover upper legs
 
-  return { group:g, pivots:{ legL:lL, legR:lR, armL:aL.pv, armR:aR.pv }, handR:aR.hand, handL:aL.hand };
+  // metrics so worn-gear overlays (body/cape/helm/legs/feet) land on the right
+  // anchors regardless of body type / robe.
+  const metrics = { bw, torsoY, torsoH, headY:1.62, hipY, legLen, robe:!!robe };
+  return { group:g, pivots:{ legL:lL, legR:lR, armL:aL.pv, armR:aR.pv }, handR:aR.hand, handL:aL.hand, metrics };
 }
 
 export function initAvatar(){
@@ -146,33 +149,82 @@ export function initAvatar(){
     return true;
   }
 
-  /* attach worn weapon (right hand) + shield (left arm) primitives */
+  /* read the live worn map ({slot -> {id,count}|string}) as a plain {slot:id} */
   function wornState(){
     const e = window.EMEQUIP; const w = (e && e.worn) || {};
-    const id = s => { const v = w[s]; return v && (v.id || v) || null; };
-    return { weapon:id('weapon'), shield:id('shield') };
+    const out = {};
+    Object.keys(w).forEach(slot => { const v = w[slot]; const id = v && (v.id || v); if(id) out[slot] = String(id); });
+    return out;
   }
+
+  /* low-poly substance colour for a worn item, derived from its id keywords */
+  function gearColor(slot, id){
+    id = String(id||'');
+    if(/gold|gilded|brass/.test(id)) return '#d8b25a';
+    if(/leather|hide|studded/.test(id)) return '#5a3f28';
+    if(/bronze/.test(id)) return '#8a6b3a';
+    if(/iron/.test(id)) return '#6b7178';
+    if(/steel|metal|plate|chain|mail/.test(id)) return '#c2cad4';
+    if(/wood|oak|wooden/.test(id)) return '#6b4f2e';
+    if(slot === 'cape') return '#9c3030';
+    if(slot === 'weapon') return '#c2cad4';
+    if(slot === 'shield') return '#5a3f28';
+    return '#7a6a52';
+  }
+
+  /* (re)build EVERY worn item onto the avatar: weapon+shield ride the hands so
+     they swing with the walk cycle; body/cape/helm/legs/feet are body-fixed
+     overlays. Items unequipped since last call are removed. */
   function renderWorn(){
     if(!current) return;
     const T = TH(); if(!T) return;
     const ws = wornState();
-    const sig = (ws.weapon||'') + '|' + (ws.shield||'');
+    const sig = Object.keys(ws).sort().map(s => s + ':' + ws[s]).join('|');
     if(sig === wornSig) return;
     wornSig = sig;
-    // clear previous worn meshes
-    ['_wWeapon','_wShield'].forEach(k => { if(current[k]){ disposeGroup(current[k]); current[k]=null; } });
-    if(ws.weapon && current.handR){
-      const id = ws.weapon;
-      let mesh;
-      if(/bow/.test(id)) mesh = place(box(0.06,0.7,0.04,'#5a3f28'), 0, -0.2, 0.05);
-      else if(/staff|wand/.test(id)) mesh = place(box(0.05,0.8,0.05,'#5a3f28'), 0, -0.2, 0);
-      else mesh = place(box(0.06,0.5,0.12,'#c2cad4'), 0, -0.28, 0.04);          // blade
-      current.handR.add(mesh); current._wWeapon = mesh;
-    }
-    if(ws.shield && current.handL){
-      const sh = cyl(0.22,0.22,0.05,'#5a3f28'); sh.rotation.x = Math.PI/2; place(sh, 0, -0.1, 0.06);
-      current.handL.add(sh); current._wShield = sh;
-    }
+
+    // tear down the previous worn meshes (each remembers its own parent)
+    if(current._worn) current._worn.forEach(m => disposeGroup(m));
+    current._worn = [];
+    const add = (mesh, parent) => { if(mesh && parent){ parent.add(mesh); current._worn.push(mesh); } };
+
+    const m = current.metrics || { bw:1, torsoY:1.15, torsoH:0.55, headY:1.62, hipY:0.92, legLen:0.9, robe:false };
+    const bw = m.bw;
+
+    Object.keys(ws).forEach(slot => {
+      const id = ws[slot];
+      const c = gearColor(slot, id);
+      if(slot === 'weapon'){
+        let mesh;
+        if(/bow/.test(id)) mesh = place(box(0.06,0.7,0.04,'#5a3f28'), 0, -0.2, 0.05);
+        else if(/staff|wand/.test(id)) mesh = place(box(0.05,0.8,0.05,'#5a3f28'), 0, -0.2, 0);
+        else if(/pick/.test(id)) mesh = place(box(0.06,0.34,0.30, c), 0, -0.22, 0.06);
+        else if(/axe|hatchet/.test(id)){ mesh = place(box(0.05,0.40,0.05,'#5a3f28'),0,-0.24,0.04); add(place(box(0.16,0.16,0.08,c),0,-0.04,0.06), mesh); }
+        else mesh = place(box(0.06,0.5,0.12, c), 0, -0.28, 0.04);              // blade/dagger
+        add(mesh, current.handR);
+      } else if(slot === 'shield'){
+        const sh = cyl(0.22,0.22,0.05, c); sh.rotation.x = Math.PI/2; place(sh, 0, -0.1, 0.06);
+        add(sh, current.handL);
+      } else if(slot === 'body'){
+        // armour shell over the torso (slightly larger so it reads as worn)
+        add(place(box(0.56*bw, m.torsoH+0.06, 0.34, c), 0, m.torsoY, 0), current.group);
+        add(place(box(0.70*bw, 0.12, 0.36, c), 0, m.torsoY + m.torsoH/2, 0), current.group); // shoulder pauldrons
+      } else if(slot === 'cape'){
+        add(place(box(0.46*bw, 0.9, 0.05, c), 0, m.torsoY - 0.05, -0.20), current.group);     // draped on the back
+      } else if(slot === 'head' || slot === 'helm'){
+        add(place(box(0.40, 0.22, 0.40, c), 0, m.headY + 0.16, 0), current.group);            // helm shell
+      } else if(slot === 'legs'){
+        add(place(box(0.46*bw, 0.5, 0.30, c), 0, m.hipY - 0.18, 0), current.group);           // greaves/skirt of mail
+      } else if(slot === 'feet'){
+        add(place(box(0.20, 0.16, 0.30, c), -0.13*bw, m.hipY - m.legLen, 0.04), current.group);
+        add(place(box(0.20, 0.16, 0.30, c),  0.13*bw, m.hipY - m.legLen, 0.04), current.group);
+      } else if(slot === 'hands'){
+        // gloves: small cubes over both hands
+        if(current.handR) add(box(0.16,0.16,0.16, c), current.handR);
+        if(current.handL) add(box(0.16,0.16,0.16, c), current.handL);
+      }
+      // ammo / ring / amulet: no visible mesh (parity with OSRS scale)
+    });
   }
 
   // build when ready / on appearance change; poll worn gear for equip/unequip

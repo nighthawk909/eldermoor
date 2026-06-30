@@ -39,7 +39,19 @@ Source of truth for the wider list: `BACKLOG.md` / `ROADMAP.md` / `PARITY_AUDIT.
 - [x] **v35 parameterized player avatar** (`avatar.js`): character-creator parts + colours + body type now
       render on the in-world 3D body (was colour-only); limb pivots drive the walk cycle; worn weapon/shield
       show in the hands; `bury` op added. Fixed a glb-vs-avatar render race (loaders.js re-asserts the avatar
-      after `player.glb` loads). Agent-QA'd before owner QA + 10/10 THREE-stub logic test. **Awaiting on-device QA.**
+      after `player.glb` loads). Agent-QA'd before owner QA + 10/10 THREE-stub logic test.
+- [x] **v36 worn gear on avatar + v35-QA fixes**: `avatar.js` renders ALL worn slots (weapon/shield/body/
+      cape/gloves + helm/legs/feet anchors), not just weapon/shield; unequip removes the mesh. Tab panel
+      translucent so the character is visible while equipping (`mobile-ui.js`). Name entry enforces 2–12
+      chars w/ live counter. Objective fixed: dropped the bogus hardcoded "Brother Aldric" line + charcreate
+      fires `appearance_confirmed` so L0 completes and the objective advances. Agent-QA'd + 8/8 logic test.
+      **Awaiting on-device QA (dispatch can screenshot).**
+
+## Still open from v35/v36 owner QA (next focused rounds)
+- [ ] **1C combat smoke**: character must PATH to a distant mob before attacking; add death/respawn +
+      basic attack/death animation. (FAIL in v35 QA.)
+- [ ] **Landscape panel polish**: inventory/equipment panel clipping "top-right stuff" in landscape. (FAIL.)
+- [ ] **3D in-creator preview**: current creator preview is 2D + basic — replace with the live 3D avatar.
 
 ## Mobile Sprint 1 — remaining milestones (sequential, each gated by on-device QA)
 - **1B** Inventory + Equipment mobile interactions (tap/long-press use/wield/drop on touch).

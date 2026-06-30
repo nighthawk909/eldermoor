@@ -1,7 +1,7 @@
 # PROJECT HANDOFF — Eldermoor
 
-**Version (live):** v35 · **Live link:** https://eldermoor.vercel.app
-**Working copy:** v35 (parameterized player avatar + Mobile 1A QA round 3 + test infra + QA sync) on `claude/modular-v23`.
+**Version (live):** v36 · **Live link:** https://eldermoor.vercel.app (production auto-deploys from `claude/modular-v23`)
+**Working copy:** v36 (worn gear on avatar all-slots + v35-QA fixes: panel translucency, name 2–12, objective advance) on `claude/modular-v23`.
 **Test tools (v30):** dev test character (`devtest.js`, all-99 + combat kit each load) and an in-game QA
 panel (`qa-panel.js` + `assets/data/qa.json`) — tester checks Pass/Fail/Skip + notes per item and sends back
 ONE Copy/Share/Download report. Refresh `qa.json` every release. v31 adds the FIRST backend — `api/qa.js` + Vercel KV — so the QA

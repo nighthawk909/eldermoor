@@ -1,6 +1,6 @@
 {
-  "version": "v35",
-  "title": "Mobile 1A re-QA + parameterized avatar",
+  "version": "v36",
+  "title": "v36 — worn gear on avatar + visibility + name/objective fixes",
   "items": [
     {
       "id": "portrait",
@@ -65,7 +65,17 @@
     {
       "id": "avatar-ingame",
       "title": "Creator choices show on the in-world body",
-      "how": "After confirming your character, the 3D body in the world matches your picks: hood/beard/hair, robe vs tunic, skirt/trousers, boots/shoes/sandals, body type, and the colours. Equip a weapon/shield — they appear in the hands."
+      "how": "After confirming your character, the 3D body in the world matches your picks: hood/beard/hair, robe vs tunic, skirt/trousers, boots/shoes/sandals, body type, and the colours."
+    },
+    {
+      "id": "worn-gear",
+      "title": "Equipped gear shows on the character (all slots)",
+      "how": "Equip each gear type from the bag: weapon (in hand), shield (other hand), body/armour (over the torso), cape (on the back), gloves (on the hands). Each appears on the 3D body; unequipping removes it."
+    },
+    {
+      "id": "see-char",
+      "title": "Character visible while inventory is open",
+      "how": "Open the Inventory/Equipment tab — the panel is translucent so you can still see the 3D character behind it and watch gear appear/disappear as you equip."
     },
     {
       "id": "touch",

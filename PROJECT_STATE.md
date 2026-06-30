@@ -4,7 +4,7 @@
 For the full narrative handoff see `PROJECT_HANDOFF.md`; phase status in `ROADMAP.md`; item-level tests in
 `PARITY_AUDIT.md`.
 
-- **Live version:** v35 · **Link:** https://eldermoor.vercel.app
+- **Live version:** v36 · **Link:** https://eldermoor.vercel.app (production auto-deploys from `claude/modular-v23`)
 - **Overall:** ~24% (features integrated + boot-verified; **live-playtested separately — see METRICS**).
 - **Client:** modular ES (`src/*.js`, ~37 modules) + `index.modular.html` shell, Three.js r128 (CDN),
   data-driven from `assets/data/*.json`. Deployed on Vercel. `eldermoor_client.html` = frozen v17 rollback.
@@ -25,6 +25,16 @@ complete flow · action SFX coverage (`sfx-actions.js`) · lesson gating (`gatin
 game tick (`tick.js`, shared by combat + skilling).
 
 ## Recently resolved
+- **v36 — Worn gear on the avatar (all slots) + QA fixes (from v35 owner QA):** `avatar.js` `renderWorn()`
+  now renders EVERY worn slot, not just weapon/shield — weapon (hand), shield (hand), body/armour
+  (torso shell + pauldrons), cape (back), gloves (hands), and helm/legs/feet anchors are ready for
+  future items; unequipping removes the mesh. The tab panel (`mobile-ui.js`) is now translucent so the
+  3D character is visible behind the open Inventory/Equipment panel (you can watch gear appear). Name
+  entry enforces **2–12 chars** with a live counter/hint. Objective no longer stale: removed the bogus
+  hardcoded "Brother Aldric" objective (NPC not in data) and charcreate now fires `appearance_confirmed`
+  so lesson L0 completes and the objective advances after character creation. Production now
+  auto-deploys from `claude/modular-v23` (Vercel Production Branch switched). Agent-QA'd + 8/8 worn-gear
+  logic test. **Still open from v35 QA: combat pathing/death/respawn (1C); landscape panel polish.**
 - **v35 — Parameterized player avatar (`avatar.js`):** the character-creator picks now appear on the
   in-world 3D body. A procedural humanoid is built from THREE primitives off `window.EMAPPEARANCE`
   (parts + colours + body type): head/hair/beard/hood, torso (tunic/robe/jerkin/yoke), arms

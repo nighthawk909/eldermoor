@@ -149,6 +149,15 @@ body.em-landscape.em-dlg-open #emchat{ display:none !important; }
 /* never let any panel render off the left/right edge */
 #empanel{ max-width:calc(100vw - 12px) !important; }
 
+/* ---- SEE THE CHARACTER while managing gear: the inventory/equipment panel is
+   translucent so the 3D avatar shows through it, and a touch shorter in portrait
+   so the upper body (where worn gear lands) stays in view. Inventory slots keep
+   an opaque tile so icons stay readable over the scene. ---- */
+#empanel{ background-color:rgba(28,23,18,.82) !important; backdrop-filter:blur(2px); -webkit-backdrop-filter:blur(2px); }
+body.em-portrait #empanel{ max-height:38vh !important; }
+.eminv .s{ background:#2b2620 !important; }
+.emeq .s{ background:#2b2620 !important; }
+
 /* small phones: shrink chrome a touch more */
 @media (max-width:380px){
   body.em-portrait #emchat{ width:58vw !important; height:112px; }

@@ -123,11 +123,13 @@ function defaultSelection(data){
 }
 
 /* ------------------------------------------------ name validation */
-// Tutorial-Island display name: 1-12 chars, letters/digits/single spaces.
+// Tutorial-Island display name: 2-12 chars, letters/digits/single spaces.
+const NAME_MIN = 2, NAME_MAX = 12;
 function validateName(raw){
   const collapsed = String(raw == null ? '' : raw).replace(/\s+/g, ' ').trim();
-  if(!collapsed)               return { ok:false, value:'', error:'Enter a name.' };
-  if(collapsed.length > 12)    return { ok:false, value:collapsed, error:'Max 12 characters.' };
+  if(!collapsed)                       return { ok:false, value:'', error:'Enter a name.' };
+  if(collapsed.length < NAME_MIN)      return { ok:false, value:collapsed, error:'At least ' + NAME_MIN + ' characters.' };
+  if(collapsed.length > NAME_MAX)      return { ok:false, value:collapsed, error:'Max ' + NAME_MAX + ' characters.' };
   if(!/^[A-Za-z0-9 ]+$/.test(collapsed)) return { ok:false, value:collapsed, error:'Letters, numbers and spaces only.' };
   return { ok:true, value:collapsed, error:'' };
 }
@@ -215,6 +217,10 @@ function injectCSS(){
 #${ROOT_ID} .em-cc-err{
   min-height:15px; margin:-2px 0 6px; font-size:12px; color:#e88; text-align:center;
 }
+#${ROOT_ID} .em-cc-hint{
+  margin:4px 0 2px; font-size:11px; color:#9a8c6c; text-align:center; letter-spacing:.02em;
+}
+#${ROOT_ID} .em-cc-hint.em-bad{ color:#e0a23a; }
 #${ROOT_ID} .em-cc-preview{
   position:sticky; top:0; z-index:3; display:flex; justify-content:center; align-items:flex-end;
   background:linear-gradient(#2a2112,#16110a); border:1px solid #6b5326; border-radius:8px;
@@ -419,21 +425,32 @@ function buildPanel(data, onConfirm){
   const nameInput = document.createElement('input');
   nameInput.className = 'em-cc-name';
   nameInput.type = 'text';
-  nameInput.maxLength = 12;
+  nameInput.maxLength = NAME_MAX;
   nameInput.placeholder = 'Character name';
   nameInput.setAttribute('aria-label', 'Character name');
   nameInput.autocomplete = 'off';
   nameInput.spellcheck = false;
+  const updHint = () => {
+    const len = String(nameInput.value || '').replace(/\s+/g, ' ').trim().length;
+    hintEl.textContent = NAME_MIN + '–' + NAME_MAX + ' letters, numbers or spaces · ' + len + '/' + NAME_MAX;
+    hintEl.classList.toggle('em-bad', len > 0 && len < NAME_MIN);
+  };
   nameInput.addEventListener('input', () => {
     sel.name = nameInput.value;
     nameInput.classList.remove('em-bad');
     errEl.textContent = '';
+    updHint();
   });
   panel.appendChild(nameInput);
+
+  const hintEl = document.createElement('div');
+  hintEl.className = 'em-cc-hint';
+  panel.appendChild(hintEl);
 
   const errEl = document.createElement('div');
   errEl.className = 'em-cc-err';
   panel.appendChild(errEl);
+  updHint();
 
   // Part cyclers (head/torso/arms/hands/legs/feet).
   for(const key of PART_KEYS){
@@ -561,6 +578,9 @@ function open(){
     try { window.EMAPPEARANCE = appearance; } catch(e){ /* ignore */ }
     try {
       window.dispatchEvent(new CustomEvent('em-appearance', { detail: appearance }));
+      // Completes tutorial lesson L0 (complete_when: flag:appearance_confirmed) so the
+      // objective advances past character creation instead of sitting on a stale step.
+      window.dispatchEvent(new CustomEvent('em-flag', { detail: 'appearance_confirmed' }));
     } catch(e){ /* CustomEvent unsupported - non-fatal */ }
     close();
   };

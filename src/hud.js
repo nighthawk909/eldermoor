@@ -223,9 +223,11 @@ export function initHud(){
     SK.skills.forEach(s=>skillXp[s.id]=0);
     const start=SK.startLevels||{}; for(const k in start){ skillXp[k]=SK.xpTable[(start[k]||1)-1]||0; }
     ready=true; showTab('inv');
-    EMHUD.addChat('Welcome to <b>Eldermoor</b> <span style="opacity:.6">(v35)</span>.','', true);
+    EMHUD.addChat('Welcome to <b>Eldermoor</b> <span style="opacity:.6">(v36)</span>.','', true);
     EMHUD.addChat('Tap the world to walk. Tap an NPC to talk.','', true);
-    EMHUD.setObjective('Speak to Brother Aldric in the chapel');
+    // Neutral default; the lesson state machine (lessons.js) replaces this with the
+    // current data-driven objective as soon as EMDATA.lessons loads.
+    EMHUD.setObjective('Confirm your appearance to begin your training.');
     // a few starting items so the bag isn\'t empty (placeholder)
     ['bronze-axe','tinderbox','coins'].forEach(id=>{ if(IT[id]) EMHUD.giveItem(id, id==='coins'?25:1); });
   }).catch(e=>{ if(window.EMHUD) EMHUD.addChat('HUD data failed to load.'); });

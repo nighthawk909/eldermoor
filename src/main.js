@@ -42,6 +42,7 @@ import { initBank } from './bank.js';
 import { initLogoutTab } from './logout-tab.js';
 import { initAppearanceApply } from './appearance-apply.js';
 import { initMakeInterface } from './make-interface.js';
+import { initSfxActions } from './sfx-actions.js';
 
 /* --- shared globals the feature modules read (player pos/rig/move, walk, scene) --- */
 window.EMPLAYERPOS = pos;          // live Vector3 (mutated in place) → {x,z} reads stay current
@@ -63,7 +64,7 @@ initHud();                          // window.EMHUD now exists for the feature m
   initCombat, initSkilling, initEquipment, initEquipTab, initPrayerTab, initMagicTab,
   initQuestsTab, initSettingsTab, initInvOps, initMinimapNav,
   initLessons, initCharCreate, initMusicTab, initSocial, initSkillGuide, initMinimapRender,
-  initBank, initLogoutTab, initAppearanceApply, initMakeInterface
+  initBank, initLogoutTab, initAppearanceApply, initMakeInterface, initSfxActions
 ].forEach(fn => { try { fn(); } catch(e){ console.warn('[em] init failed:', fn.name, e); } });
 
 /* minimap click-to-walk fallback (when EMWALK isn\'t reached directly) */

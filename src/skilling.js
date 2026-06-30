@@ -14,7 +14,7 @@
 const TICK_MS = 600;            // OSRS-style game tick (~0.6s)
 const BAG_SLOTS = 28;
 
-/* verb → skill (matches assets/data/skills.json names) */
+/* verb -> skill (matches assets/data/skills.json names) */
 const SKILL = {
   chop:  'Woodcutting',
   mine:  'Mining',
@@ -45,7 +45,7 @@ const RECIPE = {
            start:'You hammer the bar on the anvil...', success:'You forge a bronze dagger.' },
 };
 
-/* scenery node type → verb (routes 'Chop down'/'Mine'/'Search' through here) */
+/* scenery node type -> verb (routes 'Chop down'/'Mine'/'Search' through here) */
 const SCENERY_VERB = { tree:'chop', rock:'mine', bush:'fish' };
 
 /* ----------------------------------------------------------------- helpers */
@@ -57,20 +57,20 @@ function chat(text){ const h = hud(); if(h && h.addChat) h.addChat(text, '', tru
 /* count free inventory slots, honouring stackables already in the bag */
 function bagFull(outputId){
   const h = hud();
-  if(!h || !h.getInv || !h.getItems) return false;        // can\'t tell → assume room
+  if(!h || !h.getInv || !h.getItems) return false;        // can't tell -> assume room
   const inv = h.getInv() || [];
   if(inv.length < BAG_SLOTS) return false;                 // a free slot exists
   if(!outputId) return false;                              // no item to store (e.g. lighting a fire)
   const items = h.getItems() || {};
   const def = items[outputId];
   if(def && def.stackable && inv.find(x => x && x.id === outputId)) return false; // stacks onto existing
-  return true;                                             // 28 used and no stack to merge → full
+  return true;                                             // 28 used and no stack to merge -> full
 }
 
 /* does the bag hold this item id? */
 function hasItem(id){
   const h = hud();
-  if(!h || !h.getInv) return true;                         // unknown → don\'t block
+  if(!h || !h.getInv) return true;                         // unknown -> don't block
   return !!(h.getInv() || []).find(x => x && x.id === id);
 }
 
@@ -126,7 +126,7 @@ function tick(){
   if(a.scenery){
     const w = world();
     if(w && w.deplete) w.deplete(a.scenery);
-    stop();                                                // node consumed → action ends
+    stop();                                                // node consumed -> action ends
     return;
   }
 
@@ -138,7 +138,7 @@ function tick(){
 function begin(verb, opts){
   const r = RECIPE[verb];
   if(!r){ return false; }
-  if(!hud()){ return false; }                              // no HUD → nothing to grant into; no-op
+  if(!hud()){ return false; }                              // no HUD -> nothing to grant into; no-op
 
   // pre-flight: full bag stops before we start
   if(bagFull(r.output)){ chat('Your inventory is too full to hold any more.'); return false; }
@@ -162,18 +162,117 @@ function begin(verb, opts){
   return true;
 }
 
+/* ----------------------------------------------------------------- Make-X helpers */
+
+/* Run the produce logic for `verb` up to `qty` times, one unit per TICK_MS.
+   Stops early if the bag fills or required inputs are exhausted.
+   Returns void; side-effects via HUD. */
+function runProduceQty(verb, qty){
+  const r = RECIPE[verb];
+  if(!r) return;
+  let remaining = qty;
+
+  stop(); // cancel any existing action
+
+  function step(){
+    if(remaining <= 0){ stop(); return; }
+    // gate check before each unit
+    if(bagFull(r.output)){ stop('Your inventory is too full to hold any more.'); return; }
+    if(r.consume && !hasItem(r.consume)){
+      stop('You have run out of ' + r.consume.replace(/-/g, ' ') + '.'); return;
+    }
+    if(r.consume2 && !r.consume2.every(hasItem)){ stop('You do not have all the materials you need.'); return; }
+
+    // success roll (always succeeds for smith/cook on first tick when chance===1.0,
+    // otherwise we keep rolling until we land - matches OSRS cook burn chance)
+    const rollAndGrant = () => {
+      if(Math.random() >= r.chance) return false; // miss this tick
+      if(verb === 'cook' && r.burnt && Math.random() < 0.20){
+        grantItem(r.burnt);
+        chat('Oops! You accidentally burn the food.');
+      } else {
+        if(r.output) grantItem(r.output);
+        chat(r.success);
+      }
+      grantXp(r.skill, r.xp);
+      return true;
+    };
+
+    // for chance===1.0 verbs (smith) this always lands; for cook (0.70) it may miss
+    // to keep things simple we just re-tick on miss (same as existing oneShot path)
+    if(!rollAndGrant()){
+      // missed tick - schedule another attempt for the same unit
+      active = active || { timer: null };
+      active.timer = setTimeout(step, TICK_MS);
+      return;
+    }
+
+    remaining--;
+    if(remaining > 0){
+      active = active || { timer: null };
+      active.timer = setTimeout(step, TICK_MS);
+    } else {
+      active = null;
+    }
+  }
+
+  active = { verb, recipe: Object.assign({}, r), scenery: null, ctx: null, timer: null };
+  chat(r.start);
+  active.timer = setTimeout(step, TICK_MS);
+}
+
+/* Open Make-X for smithing (anvil + bronze-bar -> products).
+   Falls back to single-item smith if EMMAKE is absent. */
+function smithMakeX(){
+  if(typeof window !== 'undefined' && window.EMMAKE && window.EMMAKE.open){
+    window.EMMAKE.open({
+      title: 'What would you like to make?',
+      products: [
+        { id: 'bronze-dagger', name: 'Bronze dagger', requires: ['bronze-bar'] },
+      ],
+      onMake: function(productId, qty){
+        // only bronze-dagger is currently supported; route through smith recipe
+        runProduceQty('smith', qty);
+      },
+    });
+    return true;
+  }
+  // fallback: make one
+  return begin('smith');
+}
+
+/* Open Make-X for cooking (range/fire -> cooked product).
+   Falls back to single-item cook if EMMAKE is absent. */
+function cookMakeX(food, fire){
+  if(typeof window !== 'undefined' && window.EMMAKE && window.EMMAKE.open){
+    const r = RECIPE.cook;
+    window.EMMAKE.open({
+      title: 'What would you like to cook?',
+      products: [
+        { id: r.output, name: 'Cooked shrimp', requires: ['raw-shrimp'] },
+      ],
+      onMake: function(productId, qty){
+        runProduceQty('cook', qty);
+      },
+    });
+    return true;
+  }
+  // fallback: cook one
+  return begin('cook', { ctx: { food, fire } });
+}
+
 /* ----------------------------------------------------------------- public verbs */
 function chop(scenery){ return begin('chop', { scenery }); }
 function mine(scenery){ return begin('mine', { scenery }); }
 function fish(spot){    return begin('fish', { scenery: spot }); }
 function light(logsUseTarget){ return begin('light', { ctx: logsUseTarget }); }
-function cook(food, fire){ return begin('cook', { ctx: { food, fire } }); }
+function cook(food, fire){ return cookMakeX(food, fire); }
 function smelt(){ return begin('smelt'); }
-function smith(){ return begin('smith'); }
+function smith(){ return smithMakeX(); }
 
 /* route a scenery `kind:'scenery'` interaction (Chop down / Mine / Search) here.
    The interact layer can call window.EMSKILL.doSceneryVerb(scenery). Returns true
-   if the verb was handled by skilling, false if it\'s not a gather node. */
+   if the verb was handled by skilling, false if it's not a gather node. */
 function doSceneryVerb(scenery){
   if(!scenery || scenery.kind !== 'scenery') return false;
   const verb = SCENERY_VERB[scenery.type];

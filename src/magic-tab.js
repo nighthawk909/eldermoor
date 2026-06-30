@@ -456,7 +456,7 @@ export function initMagicTab(){
         const wrap = panel.querySelector('#emmag-wrap');
         if(wrap) wrap.appendChild(bar);
       }
-      bar.textContent = sp.icon + ' ' + sp.name + ' — click a target (Esc to cancel)';
+      bar.textContent = sp.icon + ' ' + sp.name + ' - click a target (Esc to cancel)';
     }
 
     // wrap EMCOMBAT.attack while it exists; re-check at click time if it was
@@ -563,7 +563,7 @@ export function initMagicTab(){
       + `</div>`;
 
     const castBar = castId
-      ? `<div id="emmag-castbar">${esc(list.find(s=>s.id===castId)?list.find(s=>s.id===castId).icon:'') } Targeting — click a mob (Esc to cancel)</div>`
+      ? `<div id="emmag-castbar">${esc(list.find(s=>s.id===castId)?list.find(s=>s.id===castId).icon:'') } Targeting - click a mob (Esc to cancel)</div>`
       : '';
 
     panel.innerHTML = `<div id="emmag-wrap"><h4>Spellbook</h4>${grid}${castBar}${foot}</div>`;

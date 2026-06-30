@@ -513,7 +513,7 @@ export function initCombat() {
     // range gate: if using melee and still too far, wait for the walk-in system.
     // ranged lets us stand up to RANGED_RANGE away; if even that is exceeded, wait.
     if (pp && d2 > maxRangeSq) {
-      return; // still approaching — player module walks us in; try again next tick
+      return; // still approaching - player module walks us in; try again next tick
     }
 
     ensureHpBar(mob);

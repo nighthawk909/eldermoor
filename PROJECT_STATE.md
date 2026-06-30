@@ -4,7 +4,7 @@
 For the full narrative handoff see `PROJECT_HANDOFF.md`; phase status in `ROADMAP.md`; item-level tests in
 `PARITY_AUDIT.md`.
 
-- **Live version:** v29 · **Link:** https://eldermoor.vercel.app
+- **Live version:** v30 · **Link:** https://eldermoor.vercel.app
 - **Overall:** ~24% (features integrated + boot-verified; **live-playtested separately — see METRICS**).
 - **Client:** modular ES (`src/*.js`, ~37 modules) + `index.modular.html` shell, Three.js r128 (CDN),
   data-driven from `assets/data/*.json`. Deployed on Vercel. `eldermoor_client.html` = frozen v17 rollback.
@@ -25,6 +25,17 @@ complete flow · action SFX coverage (`sfx-actions.js`) · lesson gating (`gatin
 game tick (`tick.js`, shared by combat + skilling).
 
 ## Recently resolved
+- **v30 — Test infrastructure (owner-requested; not Milestone 1B):**
+  - **Dev test character** (`src/devtest.js`, `window.EMDEV`): on every load sets all skills to level 99
+    and tops up a combat kit in the bag (bronze-sword, shortbow, 500 arrows, 1000 air+mind runes,
+    bronze-dagger, cooked-shrimp, bones, 10k coins). Idempotent (ensures quantities, never overflows);
+    no auto-equip yet (equip via inventory long-press → Wield; auto-equip waits for 1B's equip-tab fix).
+    Default-on; toggle `EMDEV.setEnabled(false)` / `window.EM_DEVTEST_OFF`.
+  - **In-game QA panel** (`src/qa-panel.js`, `window.EMQA`, `assets/data/qa.json`): a "QA" launcher
+    (top-left) opens a mobile-first checklist for the current build — Pass/Fail/Skip + a note field per
+    item, persisted to `eldermoor:qa:<version>`, compiled into one Markdown report with Copy / Share /
+    Download. The tester checks off items in-game and sends back ONE report instead of retyping per item.
+    I update `qa.json` each release with what to test. Boot-verified by an 18/18 headless test.
 - **v29 — Milestone 1A QA fixes (round 2):** dedicated **landscape** layout (tab panel docks left,
   anchored top+bottom so it never clips; minimap cluster top-right; tabs bottom-right); the top-right HUD
   cluster (minimap/orbs/world-map button) reflowed into one non-overlapping right-edge stack and the XP

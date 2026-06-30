@@ -3,6 +3,13 @@
 Outstanding work to 100%. Item-level pass/fail tests in `PARITY_AUDIT.md` (~645 items); phase status in
 `ROADMAP.md`. This is the prioritized feature backlog.
 
+## Test infrastructure (v30 — supports QA; keep current each release)
+- [x] Dev test character (`devtest.js`) — all skills 99 + combat kit every load (idempotent; `EMDEV` toggle).
+- [x] In-game QA panel (`qa-panel.js` + `assets/data/qa.json`) — per-item Pass/Fail/Skip + notes, one-tap
+      Copy/Share/Download report. **Per-release chore:** refresh `assets/data/qa.json` with the build's test items.
+- [ ] *(future)* QA report auto-delivery (needs a backend/endpoint — currently the tester sends the report
+      blob back manually; the static client + sandbox network can't POST it).
+
 ## P0 — Mobile Playability (Sprint 1, ACTIVE — blocks new gameplay)
 - [~] **1A Responsive UI framework** (v28→v29) — orientation, single-panel docking, bottom-sheet dialogue,
       chat collapse, objective auto-hide+persist, ≥44px touch targets, haptics, name entry, FAB removed;

@@ -1,0 +1,21 @@
+{
+  "version": "v30",
+  "title": "Mobile 1A re-QA + test tools",
+  "items": [
+    { "id": "portrait",       "title": "Portrait layout usable",      "how": "In portrait: walk, open tabs, read chat. Everything reachable, nothing off-screen." },
+    { "id": "landscape",      "title": "Landscape layout usable",     "how": "Rotate to landscape: panel docks left, not clipped, not under the minimap/orbs; tabs reachable." },
+    { "id": "hud-overlap",    "title": "No overlapping HUD",          "how": "Minimap, orbs, XP counter, world-map button don't overlap each other or cover an open panel." },
+    { "id": "panel-size",     "title": "Panels fit the screen",       "how": "Open each tab; the panel fits on-screen and scrolls — nothing cut off." },
+    { "id": "chat-collapse",  "title": "Chat collapse / expand",      "how": "Tap the chat header bar to collapse, tap again to expand." },
+    { "id": "dialogue-sheet", "title": "Dialogue bottom sheet",       "how": "Talk to Brother Aldric — dialogue is docked at the bottom, not floating mid-screen." },
+    { "id": "objective",      "title": "Objective banner",            "how": "After entering, the objective shows at top and auto-hides after a few seconds; tap it to bring it back." },
+    { "id": "inv-tap",        "title": "Inventory tap (default)",     "how": "Tap an inventory item — it performs its default action / prints a line." },
+    { "id": "inv-longpress",  "title": "Inventory long-press menu",   "how": "Long-press an inventory item — an option menu opens (Use/Wield/Eat/Drop/Examine)." },
+    { "id": "inv-examine",    "title": "Examine works",               "how": "From the long-press menu, Examine prints the item's description to chat." },
+    { "id": "name",           "title": "Character name entry",        "how": "On a fresh character you're asked for a name; an invalid name is blocked, a valid one saves." },
+    { "id": "touch",          "title": "Touch targets",               "how": "Buttons are comfortably tappable with no mis-taps." },
+    { "id": "devchar",        "title": "Test character loaded",       "how": "On load you have level 99 in all skills + a combat kit (sword, bow, arrows, runes, food, bones, coins) in the bag." },
+    { "id": "combat-smoke",   "title": "Combat smoke test",           "how": "Attack the giant rat: you hit it, it can die and respawn. (Long-press the bow + arrows -> Wield for ranged; runes are in the bag for magic.)" },
+    { "id": "qa-panel",       "title": "This QA panel",               "how": "You can set Pass/Fail/Skip and type a note per item, then Copy or Download the report to send back." }
+  ]
+}

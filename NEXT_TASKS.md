@@ -24,6 +24,11 @@ Source of truth for the wider list: `BACKLOG.md` / `ROADMAP.md` / `PARITY_AUDIT.
       *Open: character-creator part SHAPES don't change the static model (colour-only) — needs a parameterized
       player model (modeling milestone); options/skirts/footwear themselves are present + persisted.*
 
+## Test infrastructure (v30, owner-requested — supports the QA loop, not a milestone)
+- [x] **Dev test character** (`devtest.js`): all skills 99 + combat kit each load (idempotent; toggle EMDEV).
+- [x] **In-game QA panel** (`qa-panel.js` + `assets/data/qa.json`): per-item Pass/Fail/Skip + notes, one
+      Copy/Share/Download report. **Process:** update `assets/data/qa.json` every release with what to test.
+
 ## Mobile Sprint 1 — remaining milestones (sequential, each gated by on-device QA)
 - **1B** Inventory + Equipment mobile interactions (tap/long-press use/wield/drop on touch).
 - **1C** Combat loop end-to-end on mobile (path → attack → hits → death → respawn).

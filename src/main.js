@@ -46,6 +46,8 @@ import { initSfxActions } from './sfx-actions.js';
 import { initGating } from './gating.js';
 import { initTick } from './tick.js';
 import { initMobileUI } from './mobile-ui.js';
+import { initDevTest } from './devtest.js';
+import { initQaPanel } from './qa-panel.js';
 
 /* --- shared globals the feature modules read (player pos/rig/move, walk, scene) --- */
 window.EMPLAYERPOS = pos;          // live Vector3 (mutated in place) → {x,z} reads stay current
@@ -68,7 +70,8 @@ initMobileUI();                     // responsive layout/orientation/haptics ove
   initCombat, initSkilling, initEquipment, initEquipTab, initPrayerTab, initMagicTab,
   initQuestsTab, initSettingsTab, initInvOps, initMinimapNav,
   initLessons, initGating, initCharCreate, initMusicTab, initSocial, initSkillGuide, initMinimapRender,
-  initBank, initLogoutTab, initAppearanceApply, initMakeInterface, initSfxActions
+  initBank, initLogoutTab, initAppearanceApply, initMakeInterface, initSfxActions,
+  initDevTest, initQaPanel
 ].forEach(fn => { try { fn(); } catch(e){ console.warn('[em] init failed:', fn.name, e); } });
 
 /* minimap click-to-walk fallback (when EMWALK isn\'t reached directly) */

@@ -1,5 +1,5 @@
 {
-  "updated": 1782861546415,
+  "updated": 1782861990913,
   "version": "v41",
   "note": "Live fleet board. Reflects v36 owner QA + browser screenshots. Character art (studio + in-world avatar/creator) owned by a separate chat. Statuses: queued | building | review | requeue | shipped | done | blocked | failed.",
   "board": [
@@ -358,10 +358,28 @@
       "id": "ZONE-EXPORT",
       "epic": "P4 World",
       "title": "ZONE-EXPORT",
-      "status": "queued",
-      "agent": "null",
-      "note": "OPTIONAL polish: Blender-export 8 fixture glb to replace procedural fixture/marker primitives",
-      "ts": 1782861546415
+      "status": "shipped",
+      "agent": "orchestrator",
+      "note": "8 fixture meshes exported + wired (real props in zones); v43",
+      "ts": 1782861989451
+    },
+    {
+      "id": "BANK-DEPTH",
+      "epic": "P3 Systems",
+      "title": "BANK-DEPTH",
+      "status": "shipped",
+      "agent": "builder-bank",
+      "note": "tabs/search/withdraw-as-note/placeholders/4-digit PIN; v43",
+      "ts": 1782861990178
+    },
+    {
+      "id": "QUEST-REWARD",
+      "epic": "P3 Quests",
+      "title": "QUEST-REWARD",
+      "status": "shipped",
+      "agent": "builder-quest2",
+      "note": "OSRS reward scroll on completion; v43",
+      "ts": 1782861990913
     }
   ]
 }

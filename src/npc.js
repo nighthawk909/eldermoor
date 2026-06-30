@@ -173,3 +173,49 @@ export function updateNpcs(dt){
     if(c.rig.armL){ c.rig.armL.rotation.x = -sw*0.5; c.rig.armR.rotation.x =  sw*0.5; }
   }
 }
+
+/* ============================================================ runtime NPC spawn
+   Build a visible, walking, talkable instructor from a world.manifest npc spec —
+   procedural low-poly body (no glb needed), nameplate, click proxy, body collider,
+   dialogue (talk() resolves the tree by npc.id), and optional wander. Called by
+   world.js instanceManifest() via window.EMNPC.add after the world loads. */
+const NPC_BODY_COLORS = {
+  guide:0x3f6f8c, survival:0x4f8a3c, chef:0xd8d1c0, quest:0x9c3030, miner:0x8c6b40,
+  guard:0xc2cad4, banker:0xd8b25a, account:0x5a3f28, wizard:0x3a2a6c, monklike:0x6a5a3a, default:0x7a6a52,
+};
+function npcMat(c){ return new THREE.MeshStandardMaterial({ color:c, flatShading:true }); }
+function buildNpcBody(role){
+  const g = new THREE.Group();
+  const body = NPC_BODY_COLORS[role] || NPC_BODY_COLORS.default, skin = 0xe8b98e, trews = 0x2f3742;
+  const legGeo = new THREE.BoxGeometry(0.22,0.85,0.24);
+  const legL = new THREE.Group(); legL.position.set(-0.16,0.9,0); const lm=new THREE.Mesh(legGeo,npcMat(trews)); lm.position.y=-0.42; legL.add(lm); g.add(legL);
+  const legR = new THREE.Group(); legR.position.set( 0.16,0.9,0); const rm=new THREE.Mesh(legGeo,npcMat(trews)); rm.position.y=-0.42; legR.add(rm); g.add(legR);
+  const torso = new THREE.Mesh(new THREE.BoxGeometry(0.6,0.8,0.34), npcMat(body)); torso.position.y=1.3; g.add(torso);
+  const armGeo = new THREE.BoxGeometry(0.18,0.7,0.2);
+  const armL = new THREE.Group(); armL.position.set(-0.4,1.6,0); const am=new THREE.Mesh(armGeo,npcMat(body)); am.position.y=-0.35; armL.add(am); g.add(armL);
+  const armR = new THREE.Group(); armR.position.set( 0.4,1.6,0); const ar=new THREE.Mesh(armGeo,npcMat(body)); ar.position.y=-0.35; armR.add(ar); g.add(armR);
+  const head = new THREE.Mesh(new THREE.BoxGeometry(0.42,0.42,0.42), npcMat(skin)); head.position.y=1.98; g.add(head);
+  g.userData.rig = { legL, legR, armL, armR };
+  return g;
+}
+export function addNpc(spec){
+  if(!spec || spec.x==null || spec.z==null) return null;
+  const id = spec.dialogue || spec.id;
+  if(!id || NPCS.some(n => n.id === id)) return null;            // skip dupes (e.g. the baked monk)
+  const x = spec.x, z = spec.z, rotY = spec.rot || 0;
+  const npc = { id, name: spec.name || id, x, z, talkRange: spec.talkRange || 1.5,
+    examine: spec.examine || ('A ' + (spec.role || 'villager') + '.'), wander: spec.wander || 0 };
+  const body = buildNpcBody(spec.type || 'default'); body.position.set(x,0,z); body.rotation.y = rotY; scene.add(body);
+  const plate = nameplate(npc.name, '#ffd98a', 2.35); plate.position.set(x,2.35,z); scene.add(plate);
+  const proxy = new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.5,2.1,8), new THREE.MeshBasicMaterial({visible:false}));
+  proxy.position.set(x,1.05,z); proxy.userData.npc = npc; scene.add(proxy); clickTargets.push(proxy);
+  const col = { x, z, r:0.42 }; NPCCOLS.push(col);
+  npc._proxy = proxy; npc._plate = plate; npc._col = col; npc._body = body;
+  NPCS.push(npc);
+  if(npc.wander > 0){
+    npcCtrl.push({ n:npc, group:body, rig:body.userData.rig, col, home:{x,z},
+      px:x, pz:z, tx:x, tz:z, rotY, moving:false, phase:0, waitT:1+Math.random()*3 });
+  }
+  return npc;
+}
+if(typeof window !== 'undefined'){ window.EMNPC = window.EMNPC || {}; window.EMNPC.add = addNpc; }

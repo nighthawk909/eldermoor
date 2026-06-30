@@ -1,6 +1,6 @@
 {
-  "version": "v41",
-  "title": "v41 — unique generative per-zone music + wave-2",
+  "version": "v42",
+  "title": "v42 — walkable 9-zone island + instructors",
   "items": [
     {
       "id": "login",
@@ -116,6 +116,11 @@
       "id": "zone-music-unique",
       "title": "Unique per-zone music",
       "how": "Each zone has its OWN melodic theme (lead+bass+arp+perc), not a drone; themes crossfade on zone change; jukebox (Music tab) plays each."
+    },
+    {
+      "id": "zones-walkable",
+      "title": "Walk the whole island",
+      "how": "Walk north from the chapel through all 9 zones (survival, cooks, quest, mine, combat, bank, wizard, dock); each has a building/fixtures and a named instructor you can talk to (correct dialogue)."
     }
   ]
 }

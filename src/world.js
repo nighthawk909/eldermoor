@@ -241,6 +241,26 @@ export function placeFixture(type, x, z){
   scene.add(proxy); clickTargets.push(proxy);
   return node;
 }
+/* ---- procedural building + marker rendering for the multi-zone manifest (no glb needed) ---- */
+function placeHouse(b){
+  const w=b.w||8, d=b.d||7, x=b.x, z=b.z, h=3.0, t=0.3, doorw=b.doorw||2;
+  const wallMat = new THREE.MeshStandardMaterial({ color:0xcdbf98, flatShading:true });
+  const wall = (cx,cz,ww,dd) => { const m=new THREE.Mesh(new THREE.BoxGeometry(ww,h,dd), wallMat); m.position.set(cx,h/2,cz); scene.add(m); };
+  wall(x, z+d/2, w, t);                                   // north wall
+  wall(x-w/2, z, t, d);                                   // west wall
+  wall(x+w/2, z, t, d);                                   // east wall
+  const seg=Math.max(0.4,(w-doorw)/2);
+  wall(x-(doorw/2+seg/2), z-d/2, seg, t);                 // south wall, left of door
+  wall(x+(doorw/2+seg/2), z-d/2, seg, t);                 // south wall, right of door (door faces -z)
+  const roof=new THREE.Mesh(new THREE.BoxGeometry(w+0.6,0.4,d+0.6), new THREE.MeshStandardMaterial({ color:0x6b3f2a, flatShading:true }));
+  roof.position.set(x,h+0.2,z); scene.add(roof);
+}
+function placeMarker(x,z){   // visible placeholder landmark for fixtures without a mesh yet (ladder/gate/altar/dock/etc.)
+  const m=new THREE.Mesh(new THREE.BoxGeometry(0.8,0.9,0.8), new THREE.MeshStandardMaterial({ color:0x7a5c30, flatShading:true }));
+  m.position.set(x,0.45,z); scene.add(m);
+}
+const MANIFEST_FIX = { fishing_spot:'fishing-spot', fire_ring:'fire', cooking_range:'fire',
+  furnace:'furnace', anvil:'anvil', bank_booth:'bank-booth', poll_booth:'poll-booth' };
 export function instanceManifest(data){
   (data.objects || []).forEach(o => place(o.type, o.x, o.z, o.rot||0, o.scale||1));   // explicit placements
   (data.scatter || []).forEach(s => {                                                  // procedural fill
@@ -266,6 +286,17 @@ export function instanceManifest(data){
   placeFixture('poll-booth', -6, 2);
   // default mobs
   placeMob('giant-rat', -3, 6, 'Giant Rat');
+
+  // --- multi-zone manifest: render houses, marker fixtures/mobs, and instructor NPCs (all defensive) ---
+  (data.buildings || []).forEach(b => { try { if(b.type === 'house') placeHouse(b); } catch(e){ console.warn('[em] building', e); } });
+  (data.objects || []).forEach(o => { try {
+    if(MANIFEST_FIX[o.type]) placeFixture(MANIFEST_FIX[o.type], o.x, o.z);          // skilling fixtures
+    else if(o.type === 'rat_spawn'){ const n=o.count||1; for(let i=0;i<n;i++) placeMob('giant-rat', o.x + i*1.3, o.z, 'Giant Rat'); }
+    else if(o.type === 'practice_chicken'){ placeMob('giant-rat', o.x, o.z, 'Chicken'); }
+    else if(!PIECES[o.type]) placeMarker(o.x, o.z);                                 // landmark placeholder for not-yet-modelled props
+  } catch(e){ console.warn('[em] object', e); } });
+  (data.npcs || []).forEach(n => { try { if(window.EMNPC && window.EMNPC.add) window.EMNPC.add(n); } catch(e){ console.warn('[em] npc', e); } });
+
   buildGrid();                                       // rebake the path grid with all the new colliders
 }
 

@@ -89,7 +89,8 @@ body.em-panel-open #dlg{ display:none !important; }
 #emmap{ top:calc(8px + var(--em-safe-t)) !important; right:8px !important; }
 #emorbs{ right:8px !important; left:auto !important; flex-direction:row !important; gap:5px !important; }
 #emwmap-btn{ right:8px !important; }
-#em-xpcounter{ top:calc(8px + var(--em-safe-t)) !important; left:8px !important; right:auto !important; }
+/* XP counter sits BELOW the top-left QA button so the two don't overlap */
+#em-xpcounter{ top:calc(52px + var(--em-safe-t)) !important; left:8px !important; right:auto !important; }
 body.em-portrait #emmap{ width:84px !important; height:84px !important; }
 body.em-portrait #emorbs{ top:calc(100px + var(--em-safe-t)) !important; }
 body.em-portrait #emwmap-btn{ top:calc(138px + var(--em-safe-t)) !important; width:84px !important; }

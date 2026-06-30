@@ -4,7 +4,7 @@
 For the full narrative handoff see `PROJECT_HANDOFF.md`; phase status in `ROADMAP.md`; item-level tests in
 `PARITY_AUDIT.md`.
 
-- **Live version:** v31 · **Link:** https://eldermoor.vercel.app
+- **Live version:** v32 · **Link:** https://eldermoor.vercel.app
 - **Overall:** ~24% (features integrated + boot-verified; **live-playtested separately — see METRICS**).
 - **Client:** modular ES (`src/*.js`, ~37 modules) + `index.modular.html` shell, Three.js r128 (CDN),
   data-driven from `assets/data/*.json`. Deployed on Vercel. `eldermoor_client.html` = frozen v17 rollback.
@@ -25,6 +25,11 @@ complete flow · action SFX coverage (`sfx-actions.js`) · lesson gating (`gatin
 game tick (`tick.js`, shared by combat + skilling).
 
 ## Recently resolved
+- **v32 — QA findability + top-left declutter (1A polish from on-device QA):** the in-game **QA**
+  button now shows the build **version** (the game HUD hides the original version bar, so this is where you
+  read it) and is bigger/clearer; the XP-gained counter was moved BELOW the QA button so the two no longer
+  overlap in the top-left. Boot-verified 9/9 (button visible, shows v32, ≥40px, no XP overlap, overlay+notes
+  open). Backlogged (owner-requested): a **character-creator live preview**. 
 - **v31 — Live QA sync backend (owner-requested):** the project gains its first **backend** — a
   zero-dependency Vercel serverless function `api/qa.js` backed by **Vercel KV** (Upstash REST via the
   injected `KV_REST_API_URL`/`KV_REST_API_TOKEN`). The QA panel (`qa-panel.js`) now auto-POSTs results

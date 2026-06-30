@@ -222,7 +222,7 @@ export function initHud(){
     SK.skills.forEach(s=>skillXp[s.id]=0);
     const start=SK.startLevels||{}; for(const k in start){ skillXp[k]=SK.xpTable[(start[k]||1)-1]||0; }
     ready=true; showTab('inv');
-    EMHUD.addChat('Welcome to <b>Eldermoor</b> <span style="opacity:.6">(v31)</span>.','', true);
+    EMHUD.addChat('Welcome to <b>Eldermoor</b> <span style="opacity:.6">(v32)</span>.','', true);
     EMHUD.addChat('Tap the world to walk. Tap an NPC to talk.','', true);
     EMHUD.setObjective('Speak to Brother Aldric in the chapel');
     // a few starting items so the bag isn\'t empty (placeholder)

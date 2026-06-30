@@ -40,10 +40,12 @@ function saveResults(ver, results){ try { localStorage.setItem(storeKey(ver), JS
 function injectCss(){
   if (document.getElementById('emqa-css')) return;
   const css = `
-  #${BTN_ID}{position:fixed;z-index:40;top:calc(8px + env(safe-area-inset-top,0px));left:8px;
-    min-height:34px;padding:5px 10px;border-radius:8px;background:#2d5a34;border:2px solid #6fbf7a;
-    color:#eafff0;font:bold 12px "Trebuchet MS",sans-serif;cursor:pointer;box-shadow:0 3px 12px #0008;}
-  #${BTN_ID} .b{background:#1f3f25;border-radius:6px;padding:0 5px;margin-left:5px;}
+  #${BTN_ID}{position:fixed;z-index:45;top:calc(8px + env(safe-area-inset-top,0px));left:8px;
+    min-height:40px;padding:7px 12px;border-radius:9px;background:#2d5a34;border:2px solid #6fbf7a;
+    color:#eafff0;font:bold 13px "Trebuchet MS",sans-serif;cursor:pointer;box-shadow:0 3px 12px #0009;
+    display:flex;align-items:center;gap:6px;}
+  #${BTN_ID} .ver{color:#cfe8d2;font-weight:bold;opacity:.95;}
+  #${BTN_ID} .b{background:#1f3f25;border-radius:6px;padding:1px 6px;min-width:16px;text-align:center;}
   #${OV_ID}{position:fixed;inset:0;z-index:9500;display:none;background:rgba(10,12,10,.92);
     overflow:auto;-webkit-overflow-scrolling:touch;font-family:"Trebuchet MS",sans-serif;color:#eee4cc;
     padding:calc(10px + env(safe-area-inset-top,0px)) 10px calc(16px + env(safe-area-inset-bottom,0px));}
@@ -90,7 +92,7 @@ export function initQaPanel(){
   // launcher
   const btn = document.createElement('button');
   btn.id = BTN_ID; btn.type = 'button';
-  btn.innerHTML = 'QA <span class="b">!</span>';
+  btn.innerHTML = 'QA <span class="ver"></span><span class="b">!</span>';
   btn.title = 'Open the test checklist';
   document.body.appendChild(btn);
 
@@ -104,7 +106,11 @@ export function initQaPanel(){
     spec.items.forEach(it => { const r = results[it.id]; if(r && r.status==='pass')p++; else if(r&&r.status==='fail')f++; else if(r&&r.status==='skip')s++; });
     return { p, f, s, n, todo: n-p-f-s };
   }
-  function badge(){ const c = counts(); btn.querySelector('.b').textContent = c.f ? (c.f+'✗') : (c.todo ? c.todo : '✓'); }
+  function badge(){
+    const c = counts();
+    btn.querySelector('.b').textContent = c.f ? (c.f + '✗') : (c.todo ? c.todo : '✓');
+    const v = btn.querySelector('.ver'); if (v) v.textContent = spec.version || '';   // show the build version on the button
+  }
 
   function buildReport(){
     const c = counts();

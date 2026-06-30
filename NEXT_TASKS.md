@@ -30,6 +30,8 @@ Source of truth for the wider list: `BACKLOG.md` / `ROADMAP.md` / `PARITY_AUDIT.
       Copy/Share/Download report. **Process:** update `assets/data/qa.json` every release with what to test.
 - [x] **Live QA sync** (v31, `api/qa.js` + Vercel KV): QA panel auto-POSTs results; dev reads `GET /api/qa`.
       **Setup (Josh):** connect Vercel KV + redeploy (HUMAN_ACTIONS.md).
+- [x] **v32 QA findability**: version shown on the QA button (HUD hides the old version bar); XP counter moved
+      below it so the top-left no longer overlaps. Backlogged: character-creator live preview.
 
 ## Mobile Sprint 1 — remaining milestones (sequential, each gated by on-device QA)
 - **1B** Inventory + Equipment mobile interactions (tap/long-press use/wield/drop on touch).

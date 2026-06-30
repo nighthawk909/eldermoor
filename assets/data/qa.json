@@ -1,6 +1,6 @@
 {
-  "version": "v43",
-  "title": "v43 — real zone props + bank depth + quest reward scroll",
+  "version": "v44",
+  "title": "v44 — all zone props modelled (no placeholders)",
   "items": [
     {
       "id": "login",

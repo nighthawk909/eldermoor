@@ -176,6 +176,10 @@ export const PIECES = {
   ladder:     { url:'assets/kit/ladder.glb',     r:0.30, tpl:null },
   signpost:   { url:'assets/kit/signpost.glb',   r:0.20, tpl:null },
   dock:       { url:'assets/kit/dock.glb',       r:0.30, tpl:null },
+  rat_pen_gate:{ url:'assets/kit/rat_pen_gate.glb', r:0.45, tpl:null },
+  target_butt:{ url:'assets/kit/target_butt.glb', r:0.35, tpl:null },
+  rune_rack:  { url:'assets/kit/rune_rack.glb',   r:0.35, tpl:null },
+  boat:       { url:'assets/kit/boat.glb',        r:0.30, tpl:null },
 };
 export const mulberry32 = a => () => { a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a);
   t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; };
@@ -278,7 +282,8 @@ function placeMarker(x,z){   // visible placeholder landmark for fixtures withou
 const MANIFEST_FIX = { fishing_spot:'fishing-spot', fire_ring:'fire', cooking_range:'range',
   furnace:'furnace', anvil:'anvil', bank_booth:'bank-booth', poll_booth:'poll-booth' };
 // marker types that now have a Blender-authored kit mesh -> place the real prop
-const MARKER_PIECE = { ladder_down:'ladder', ladder_up:'ladder', altar:'altar', signpost:'signpost', dock_planks:'dock' };
+const MARKER_PIECE = { ladder_down:'ladder', ladder_up:'ladder', altar:'altar', signpost:'signpost', dock_planks:'dock',
+  rat_pen_gate:'rat_pen_gate', target_butt:'target_butt', rune_rack:'rune_rack', boat:'boat' };
 export function instanceManifest(data){
   (data.objects || []).forEach(o => place(o.type, o.x, o.z, o.rot||0, o.scale||1));   // explicit placements
   (data.scatter || []).forEach(s => {                                                  // procedural fill

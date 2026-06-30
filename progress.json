@@ -1,5 +1,5 @@
 {
-  "updated": 1782860861432,
+  "updated": 1782861022439,
   "version": "v41",
   "note": "Live fleet board. Reflects v36 owner QA + browser screenshots. Character art (studio + in-world avatar/creator) owned by a separate chat. Statuses: queued | building | review | requeue | shipped | done | blocked | failed.",
   "board": [
@@ -313,10 +313,10 @@
       "id": "P4-ZONES",
       "epic": "P4 World",
       "title": "Lay out 9 zones + instructor NPC placement in world.manifest.json",
-      "status": "building",
+      "status": "review",
       "agent": "builder-world",
-      "note": "Lay out 9 zones + instructor NPC placement in world.manifest.json",
-      "ts": 1782860585738
+      "note": "9 zones + instructors authored (ids reconciled); BUT runtime instanceManifest reads only objects/scatter/fixtures -> needs client wiring + fixture meshes to render",
+      "ts": 1782861021704
     },
     {
       "id": "P4-QUESTS",
@@ -344,6 +344,24 @@
       "agent": "builder-modeler",
       "note": "8 fixture builders (range/furnace/anvil/bank/altar/ladder/signpost/dock); needs Blender export to glb",
       "ts": 1782860834426
+    },
+    {
+      "id": "ZONE-RENDER",
+      "epic": "P4 World",
+      "title": "ZONE-RENDER",
+      "status": "queued",
+      "agent": "null",
+      "note": "wire instanceManifest (world.js) to render manifest buildings[]/npcs[]/markers + spawn instructor NPC proxies with nameplate+dialogue",
+      "ts": 1782861022104
+    },
+    {
+      "id": "ZONE-EXPORT",
+      "epic": "P4 World",
+      "title": "ZONE-EXPORT",
+      "status": "queued",
+      "agent": "null",
+      "note": "Blender GPU export 8 fixture glb (range/furnace/anvil/bank_booth/altar/ladder/signpost/dock) so zone fixtures render",
+      "ts": 1782861022439
     }
   ]
 }

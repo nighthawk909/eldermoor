@@ -92,8 +92,9 @@ export function initHud(){
       const g=panel.querySelector('.eminv');
       for(let i=0;i<28;i++){ const it=inv[i];
         g.insertAdjacentHTML('beforeend', it?`<div class="s" data-i="${i}"><span class="ct">${it.count>1?it.count:''}</span>${(IT[it.id]||{}).icon||'❓'}</div>`:'<div class="s empty"></div>'); }
-      g.querySelectorAll('.s[data-i]').forEach(el=>el.onclick=()=>{ const it=inv[+el.dataset.i]; const d=IT[it.id]||{};
-        EMHUD.addChat((d.verbs&&d.verbs[0]||'Use')+' '+(d.name||it.id)+'.'); });
+      g.querySelectorAll('.s[data-i]').forEach(el=>el.onclick=()=>{ const i=+el.dataset.i; const it=inv[i]; if(!it) return;
+        if(window.EMINVOPS && EMINVOPS.defaultAction){ EMINVOPS.defaultAction(i); return; }   // tap = real op0 action
+        const d=IT[it.id]||{}; EMHUD.addChat((d.verbs&&d.verbs[0]||'Use')+' '+(d.name||it.id)+'.'); });
     } else if(curTab==='stats'){
       panel.innerHTML='<h4>Skills</h4><div class="emsk"></div><div class="emtot"></div>';
       const g=panel.querySelector('.emsk');
@@ -222,7 +223,7 @@ export function initHud(){
     SK.skills.forEach(s=>skillXp[s.id]=0);
     const start=SK.startLevels||{}; for(const k in start){ skillXp[k]=SK.xpTable[(start[k]||1)-1]||0; }
     ready=true; showTab('inv');
-    EMHUD.addChat('Welcome to <b>Eldermoor</b> <span style="opacity:.6">(v33)</span>.','', true);
+    EMHUD.addChat('Welcome to <b>Eldermoor</b> <span style="opacity:.6">(v34)</span>.','', true);
     EMHUD.addChat('Tap the world to walk. Tap an NPC to talk.','', true);
     EMHUD.setObjective('Speak to Brother Aldric in the chapel');
     // a few starting items so the bag isn\'t empty (placeholder)

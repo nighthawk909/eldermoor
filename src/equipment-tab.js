@@ -134,10 +134,15 @@ export function initEquipTab(){
   }
 
   /* --------------------------------------------------------- grid rendering */
+  // worn[slot] may be a bare itemId (legacy) OR an inventory entry {id,count}
+  // (as equipment.js stores it). Normalise to the itemId string so the slot
+  // renders the real icon/name instead of "[object Object]".
+  function wornId(entry){ return entry && (typeof entry === 'string' ? entry : entry.id) || null; }
+
   function renderGrid(host, state){
     const w = worn();
     const cells = SLOTS.map(def => {
-      const id = w[def.slot];
+      const id = wornId(w[def.slot]);
       if(id){
         const it = itemDef(state, id);
         const icon = (it && it.icon) || '❓';

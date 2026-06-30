@@ -4,7 +4,7 @@
 For the full narrative handoff see `PROJECT_HANDOFF.md`; phase status in `ROADMAP.md`; item-level tests in
 `PARITY_AUDIT.md`.
 
-- **Live version:** v33 · **Link:** https://eldermoor.vercel.app
+- **Live version:** v34 · **Link:** https://eldermoor.vercel.app
 - **Overall:** ~24% (features integrated + boot-verified; **live-playtested separately — see METRICS**).
 - **Client:** modular ES (`src/*.js`, ~37 modules) + `index.modular.html` shell, Three.js r128 (CDN),
   data-driven from `assets/data/*.json`. Deployed on Vercel. `eldermoor_client.html` = frozen v17 rollback.
@@ -25,6 +25,14 @@ complete flow · action SFX coverage (`sfx-actions.js`) · lesson gating (`gatin
 game tick (`tick.js`, shared by combat + skilling).
 
 ## Recently resolved
+- **v34 — Mobile 1A QA round 3 (from in-game QA report):** inventory **tap** now performs the default
+  action (Wield equips, Eat eats, Examine prints) instead of doing nothing; equipping no longer **bugs the
+  equipment slot** (equipment-tab handles the {id,count} worn shape); **dialogue** is now a compact bottom
+  dock in both orientations (no more mid-screen float / oversized box) with a smaller Continue button; the
+  **objective** collapses to an always-visible tappable pill (never lost; tap to recall); **tabs are
+  collapsible** (toggle top-right) and the **landscape** tab bar is fixed on-screen (7-col, 2 rows).
+  Boot-verified 16/16 headless. Still later milestones: equip-on-avatar + eating animation (1B), combat
+  death/respawn/animation (1C), QA live-sync (needs Vercel KV connected).
 - **v33 — Character-creator LIVE PREVIEW (owner-requested):** a 2D SVG paper-doll in the
   creator (`charcreate.js`) updates as you toggle every option (hood/beard, tunic/robe/jerkin/yoke,
   trousers/skirt/breeches, boots/shoes/sandals, sleeved/bare/wrapped arms, gloves/bracers, body type) plus

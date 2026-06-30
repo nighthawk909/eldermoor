@@ -221,6 +221,20 @@ export function initInvOps(){
     const h = hud(); if(h) resolveUseOn(h, idx);
   }, true);
 
+  // Public API: the HUD routes a left-click / tap through the REAL op0 action
+  // (Wield equips, Eat eats, Use arms use-on, Examine prints, ...) so a tap is
+  // never a no-op. Also expose the menu opener.
+  window.EMINVOPS = {
+    defaultAction(idx){
+      const h = hud(); if(!h) return;
+      const ctx = itemAt(h, idx); if(!ctx) return;
+      const verbs = (Array.isArray(ctx.def.verbs) && ctx.def.verbs.length) ? ctx.def.verbs : ['Use'];
+      try { if(window.EMHAPTIC && window.EMHAPTIC.tap) window.EMHAPTIC.tap(); } catch(_){}
+      runOp(verbs[0], idx);
+    },
+    openMenu(idx, x, y){ openMenu(idx, x, y); }
+  };
+
   // Dismiss menu / cancel use on Escape or scroll.
   document.addEventListener('keydown', (e) => {
     if(e.key === 'Escape'){ hideMenu(); clearUse(); }

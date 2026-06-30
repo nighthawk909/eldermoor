@@ -31,7 +31,10 @@ Source of truth for the wider list: `BACKLOG.md` / `ROADMAP.md` / `PARITY_AUDIT.
 - [x] **Live QA sync** (v31, `api/qa.js` + Vercel KV): QA panel auto-POSTs results; dev reads `GET /api/qa`.
       **Setup (Josh):** connect Vercel KV + redeploy (HUMAN_ACTIONS.md).
 - [x] **v32 QA findability**: version on the QA button (HUD hides the old version bar); XP counter de-overlap.
-- [x] **v33 character-creator live preview**: 2D paper-doll in the creator updates on every part/colour toggle.
+- [x] **v33 character-creator live preview**: 2D paper-doll updates on every part/colour toggle.
+- [x] **v34 mobile 1A QA round 3**: inventory tap action, equip-slot display fix, compact dialogue dock,
+      objective recall pill, collapsible tabs, landscape tab-bar fix. (Deferred: equip-on-avatar+eat anim=1B;
+      combat anim/respawn=1C; QA live-sync=connect Vercel KV.)
 
 ## Mobile Sprint 1 — remaining milestones (sequential, each gated by on-device QA)
 - **1B** Inventory + Equipment mobile interactions (tap/long-press use/wield/drop on touch).

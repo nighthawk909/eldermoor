@@ -54,7 +54,7 @@ const CSS = `
 /* ---- touch targets: every interactive HUD control >= 44px tall on touch ---- */
 #emtabs button{ min-height:44px; min-width:40px; font-size:18px; }
 #emchch button{ min-height:34px; font-size:11px; }
-#dlg button{ min-height:44px; }
+#dlg button{ min-height:40px !important; padding:8px 16px !important; font-size:13px !important; }
 #eminv-ctx .eminv-ctx-o{ min-height:42px !important; font-size:14px !important; }
 #menu .mi{ min-height:42px; }
 #em-charcreate .em-cc-btn{ min-height:42px !important; min-width:42px !important; }
@@ -62,9 +62,12 @@ const CSS = `
 #em-charcreate .em-cc-name{ min-height:46px; }
 #emwmap-close{ min-width:44px; min-height:44px; }
 
-/* ---- objective banner: fades out, taps to bring back ---- */
-#emobj{ transition:opacity .4s ease, transform .4s ease; cursor:pointer; top:calc(8px + var(--em-safe-t)); }
-#emobj.em-hidden{ opacity:0; transform:translateX(-50%) translateY(-8px); pointer-events:none; }
+/* ---- objective banner: collapses to a small ALWAYS-VISIBLE tappable pill
+   (so it's never lost and can always be recalled by tapping it) ---- */
+#emobj{ transition:opacity .25s ease; cursor:pointer; top:calc(8px + var(--em-safe-t)); }
+#emobj.em-min{ padding:4px 12px; opacity:.9; }
+#emobj.em-min #emobjtx{ display:none; }
+#emobj.em-min .lab::after{ content:' ▸ tap'; color:#cdbf98; letter-spacing:0; text-transform:none; }
 
 /* ---- chat: collapsible. EMUI injects #emchat-bar as the first child ---- */
 #emchat-bar{ display:flex; align-items:center; gap:6px; padding:4px 8px; cursor:pointer;
@@ -74,14 +77,29 @@ const CSS = `
 #emchat.em-collapsed{ height:auto !important; }
 #emchat.em-collapsed #emlog, #emchat.em-collapsed #emchch{ display:none !important; }
 
-/* ---- dialogue becomes a docked BOTTOM SHEET (overrides the inline #dlg rules) ---- */
-#dlg{ left:0 !important; right:0 !important; transform:none !important; z-index:33 !important;
+/* ---- dialogue: a COMPACT bottom dock (OSRS-like), pinned to the very bottom in
+   both orientations (never floats mid-screen), with smaller text + button ---- */
+#dlg{ left:0 !important; right:0 !important; bottom:0 !important; transform:none !important; z-index:34 !important;
   width:100% !important; max-width:100% !important; border-radius:14px 14px 0 0 !important;
-  overflow:auto; padding-bottom:calc(14px + var(--em-safe-b)) !important;
+  padding:11px 14px calc(11px + var(--em-safe-b)) !important; overflow:auto;
   box-shadow:0 -8px 30px rgba(0,0,0,.5) !important; }
+#dlg .tx{ font-size:13px !important; line-height:1.4 !important; }
+#dlg .who{ font-size:12px !important; }
+#dlg .go{ margin-top:8px !important; }
+body.em-portrait #dlg{ max-height:34vh !important; }
+body.em-landscape #dlg{ max-height:42vh !important; }
 
 /* ---- single active panel: hide the dialogue sheet while a tab panel is open ---- */
 body.em-panel-open #dlg{ display:none !important; }
+
+/* ---- collapsible tab cluster (toggle lives in the top-right stack) ---- */
+#emtabs-toggle{ position:fixed; z-index:34; right:8px; min-height:30px; padding:4px 10px; border-radius:7px;
+  background:#1f1b16; border:2px solid #5a4a2a; color:#e7c64f; font:bold 11px "Trebuchet MS",sans-serif;
+  cursor:pointer; box-shadow:0 2px 8px #0008; }
+body.em-portrait #emtabs-toggle{ top:calc(176px + var(--em-safe-t)); }
+body.em-landscape #emtabs-toggle{ top:calc(190px + var(--em-safe-t)); }
+body.em-tabs-hidden #emtabs{ display:none !important; }
+body.em-tabs-hidden #empanel{ display:none !important; }
 
 /* ---- top HUD cluster: minimap + orbs + world-map button form one right-edge
    stack (they used to overlap each other); the XP counter moves to top-left so
@@ -105,7 +123,6 @@ body.em-portrait #emtabs{ right:6px !important; left:6px !important; width:auto 
   grid-template-columns:repeat(7,1fr) !important; bottom:calc(6px + var(--em-safe-b)) !important; }
 body.em-portrait #empanel{ right:6px !important; left:6px !important; width:auto !important;
   bottom:calc(120px + var(--em-safe-b)) !important; max-height:44vh !important; }
-body.em-portrait #dlg{ bottom:calc(120px + var(--em-safe-b)) !important; max-height:40vh; }
 body.em-portrait #emchat{ width:min(64vw,340px) !important; height:118px;
   bottom:calc(120px + var(--em-safe-b)) !important; }
 body.em-portrait #emmap{ width:92px; height:92px; }
@@ -118,12 +135,11 @@ body.em-portrait.em-dlg-open #emchat{ display:none !important; }
    panel therefore docks on the LEFT and is anchored top AND bottom so it always
    fits the available height (scrolls internally) — never clipped, never under
    the cluster or the tabs. */
-body.em-landscape #emtabs{ width:min(56vw,380px) !important; grid-template-columns:repeat(14,1fr) !important;
+body.em-landscape #emtabs{ width:min(52vw,340px) !important; grid-template-columns:repeat(7,1fr) !important;
   bottom:calc(8px + var(--em-safe-b)) !important; right:8px !important; left:auto !important; }
 body.em-landscape #empanel{ left:8px !important; right:auto !important; width:min(46vw,360px) !important;
-  top:calc(48px + var(--em-safe-t)) !important; bottom:calc(56px + var(--em-safe-b)) !important;
+  top:calc(48px + var(--em-safe-t)) !important; bottom:calc(120px + var(--em-safe-b)) !important;
   max-height:none !important; }
-body.em-landscape #dlg{ bottom:calc(56px + var(--em-safe-b)) !important; max-height:48vh; }
 body.em-landscape #emchat{ left:8px !important; right:auto !important; width:min(40vw,320px) !important;
   height:130px; bottom:calc(8px + var(--em-safe-b)) !important; }
 /* chat yields to a major panel in landscape too (panel + chat share the left) */
@@ -186,18 +202,21 @@ export function initMobileUI(){
     return true;
   }
 
-  /* ---------- objective auto-hide ---------- */
+  /* ---------- objective: expands, then collapses to a tappable pill ---------- */
   let objTimer = null;
   function objHideMs(){ return Number(window.EM_OBJ_MS) > 0 ? Number(window.EM_OBJ_MS) : OBJ_HIDE_MS_DEFAULT; }
   function showObjective(){
     const o = $('emobj'); if (!o) return;
-    o.classList.remove('em-hidden');
+    o.classList.remove('em-min');                      // expand to full text
     if (objTimer) clearTimeout(objTimer);
-    objTimer = setTimeout(() => { const e = $('emobj'); if (e) e.classList.add('em-hidden'); }, objHideMs());
+    objTimer = setTimeout(() => { const e = $('emobj'); if (e) e.classList.add('em-min'); }, objHideMs());  // collapse to pill
   }
   function wireObjective(){
     const o = $('emobj'); if (!o) return false;
-    o.addEventListener('click', () => { o.classList.toggle('em-hidden'); if (!o.classList.contains('em-hidden')) showObjective(); });
+    o.addEventListener('click', () => {
+      if (o.classList.contains('em-min')) showObjective();          // pill tapped -> expand + restart timer
+      else { o.classList.add('em-min'); if (objTimer) clearTimeout(objTimer); }  // tap full -> minimise now
+    });
     // wrap EMHUD.setObjective so a new objective re-reveals + restarts the timer
     if (window.EMHUD && typeof window.EMHUD.setObjective === 'function' && !window.EMHUD.__emObjWrapped){
       const orig = window.EMHUD.setObjective.bind(window.EMHUD);
@@ -205,6 +224,22 @@ export function initMobileUI(){
       window.EMHUD.__emObjWrapped = true;
     }
     showObjective();
+    return true;
+  }
+
+  /* ---------- collapsible tab cluster ---------- */
+  function wireTabsToggle(){
+    const tabs = $('emtabs');
+    if (!tabs || $('emtabs-toggle')) return !!tabs;
+    const t = document.createElement('button');
+    t.id = 'emtabs-toggle'; t.type = 'button';
+    const paint = () => { const hidden = document.body.classList.contains('em-tabs-hidden'); t.innerHTML = hidden ? '▤ Tabs' : '▾ Tabs'; };
+    t.addEventListener('click', () => {
+      const hidden = document.body.classList.toggle('em-tabs-hidden');
+      if (hidden) { const p = $('empanel'); if (p) p.classList.remove('show'); }  // closing tabs also closes the panel
+      paint(); window.EMHAPTIC.tap();
+    });
+    document.body.appendChild(t); paint();
     return true;
   }
 
@@ -247,8 +282,9 @@ export function initMobileUI(){
     const a = wireChat();
     const b = wireObjective();
     const c = wireExclusivity();
+    const d = wireTabsToggle();
     wireHaptics();
-    if ((a && b && c) || ++tries > 40) return;   // wired, or give up after ~6s
+    if ((a && b && c && d) || ++tries > 40) return;   // wired, or give up after ~6s
     setTimeout(wireAll, 150);
   }
   wireAll();

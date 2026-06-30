@@ -1,5 +1,5 @@
 {
-  "updated": 1782858308224,
+  "updated": 1782859304689,
   "version": "v39",
   "note": "Live fleet board. Reflects v36 owner QA + browser screenshots. Character art (studio + in-world avatar/creator) owned by a separate chat. Statuses: queued | building | review | requeue | shipped | done | blocked | failed.",
   "board": [
@@ -187,19 +187,19 @@
       "id": "C5",
       "epic": "HUD",
       "title": "Inventory ops",
-      "status": "requeue",
+      "status": "shipped",
       "agent": null,
-      "note": "owner QA FAIL -> folded into UI-OVERHAUL",
-      "ts": 0
+      "note": "folded into UI-OVERHAUL (orbs repositioned, inventory restyled, right-click ops live); v39 deployed",
+      "ts": 1782859304689
     },
     {
       "id": "C8",
       "epic": "HUD",
       "title": "HUD orbs",
-      "status": "requeue",
+      "status": "shipped",
       "agent": null,
-      "note": "owner QA FAIL (overlap) -> UI-OVERHAUL",
-      "ts": 0
+      "note": "folded into UI-OVERHAUL (orbs repositioned, inventory restyled, right-click ops live); v39 deployed",
+      "ts": 1782859304689
     },
     {
       "id": "C6",

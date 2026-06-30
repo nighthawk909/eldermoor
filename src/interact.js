@@ -65,10 +65,13 @@ export function worldClick(px, py){            // single tap = OSRS default acti
   if(npc){ engage(npc); return; }
   if(obj){ engage(obj); return; }
   if(scenery){ engage(scenery); return; }
-  if(mob){ window.EMCOMBAT && EMCOMBAT.attack(mob); return; }
+  if(mob){ if(window.EMGATE && !EMGATE.allow(mob)){ EMGATE.nudge(mob); return; } window.EMCOMBAT && EMCOMBAT.attack(mob); return; }
   if(ground) walkTo(ground);
 }
-export function engage(t){ move.pending = t; move._lastGoal = {x:t.x, z:t.z}; planPath(t.x, t.z); showMarker(t.x, t.z, '#7fe0ff'); buzz(18); }
+export function engage(t){
+  if(t && window.EMGATE && !EMGATE.allow(t)){ EMGATE.nudge(t); showMarker(t.x, t.z, '#ffe27a'); return; }  // lesson gate: nudge instead of acting
+  move.pending = t; move._lastGoal = {x:t.x, z:t.z}; planPath(t.x, t.z); showMarker(t.x, t.z, '#7fe0ff'); buzz(18);
+}
 export const engageNpc = engage;
 export function walkTo(g){ move.pending = null; planPath(g.x, g.z); showMarker(g.x, g.z, '#ffe27a'); buzz(12); }
 export function examine(e){
@@ -91,7 +94,7 @@ export function openMenu(px, py){
   const { npc, obj, scenery, mob, ground } = pickAt(px, py);
   const t = npc || obj || scenery || mob;
   const items = [];
-  if(mob){ items.push(['Attack', ' '+mob.name, ()=>{ window.EMCOMBAT && EMCOMBAT.attack(mob); }]);
+  if(mob){ items.push(['Attack', ' '+mob.name, ()=>{ if(window.EMGATE && !EMGATE.allow(mob)){ EMGATE.nudge(mob); return; } window.EMCOMBAT && EMCOMBAT.attack(mob); }]);
            items.push(['Examine', ' '+mob.name, ()=>examine(mob)]); }
   if(npc){ items.push(['Talk-to', ' '+npc.name, ()=>engage(npc)]); }
   if(obj){ items.push([obj.verb || 'Use', ' '+obj.name, ()=>engage(obj)]); }

@@ -37,6 +37,7 @@ export function blocked(x, z, skip){   // static + dynamic NPCs (full collision)
    tile is inside its radius, so a plain blocked() check would reject all of them). */
 export function moveBlocked(ox, oz, nx, nz){
   if(staticBlocked(nx, nz)) return true;                 // walls/bounds/props always hard-block
+  if(typeof window !== 'undefined' && window.EMGATE && window.EMGATE.regionBlocked && window.EMGATE.regionBlocked(nx, nz)) return true;  // lesson-locked region
   for(const c of NPCCOLS){
     const rr = c.r + RAD, nd = (nx-c.x)*(nx-c.x) + (nz-c.z)*(nz-c.z);
     if(nd < rr*rr){                                       // new position overlaps this NPC

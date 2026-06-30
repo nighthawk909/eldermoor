@@ -43,6 +43,7 @@ import { initLogoutTab } from './logout-tab.js';
 import { initAppearanceApply } from './appearance-apply.js';
 import { initMakeInterface } from './make-interface.js';
 import { initSfxActions } from './sfx-actions.js';
+import { initGating } from './gating.js';
 
 /* --- shared globals the feature modules read (player pos/rig/move, walk, scene) --- */
 window.EMPLAYERPOS = pos;          // live Vector3 (mutated in place) → {x,z} reads stay current
@@ -63,7 +64,7 @@ initHud();                          // window.EMHUD now exists for the feature m
 [ initTooltip, initOrbs, initXpCounter, initWorldMap, initEmotes, initSave, initAudio,
   initCombat, initSkilling, initEquipment, initEquipTab, initPrayerTab, initMagicTab,
   initQuestsTab, initSettingsTab, initInvOps, initMinimapNav,
-  initLessons, initCharCreate, initMusicTab, initSocial, initSkillGuide, initMinimapRender,
+  initLessons, initGating, initCharCreate, initMusicTab, initSocial, initSkillGuide, initMinimapRender,
   initBank, initLogoutTab, initAppearanceApply, initMakeInterface, initSfxActions
 ].forEach(fn => { try { fn(); } catch(e){ console.warn('[em] init failed:', fn.name, e); } });
 

@@ -1,6 +1,6 @@
 {
-  "version": "v44",
-  "title": "v44 — all zone props modelled (no placeholders)",
+  "version": "v45",
+  "title": "v45 — 3D character creator preview + interaction parity",
   "items": [
     {
       "id": "login",
@@ -121,6 +121,11 @@
       "id": "zones-walkable",
       "title": "Walk the whole island",
       "how": "Walk north from the chapel through all 9 zones (survival, cooks, quest, mine, combat, bank, wizard, dock); each has a building/fixtures and a named instructor you can talk to (correct dialogue)."
+    },
+    {
+      "id": "creator-3d",
+      "title": "3D creator preview",
+      "how": "In the character creator the preview is a rotating 3D model of your real avatar (not a flat paper-doll); it updates live as you change head/torso/arms/legs/feet/colours/body type."
     }
   ]
 }

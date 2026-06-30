@@ -227,6 +227,7 @@ function injectCSS(){
   padding:6px; margin:0 0 10px;
 }
 #${ROOT_ID} .em-cc-preview svg{ width:118px; height:196px; max-height:32vh; display:block; }
+#${ROOT_ID} .em-cc-preview canvas{ width:100%; height:240px; max-height:34vh; display:block; border-radius:6px; }
 `;
   document.head.appendChild(st);
 }
@@ -391,7 +392,48 @@ function paperDollSVG(sel){
   }
   return `<svg viewBox="0 0 120 200" class="pd-svg" xmlns="http://www.w3.org/2000/svg">${s.join('')}</svg>`;
 }
-function drawPreview(host, sel){ if(host) host.innerHTML = paperDollSVG(sel); }
+/* ---- live 3D preview: a small rotating render of the REAL in-world avatar
+   (window.EMAVATAR.buildBody), built from the current selection. Falls back to
+   the 2D SVG paper-doll if THREE / the avatar builder isn't available, so the
+   creator can never break. */
+let _pv = null;
+function ensurePreview3D(host){
+  const T = (typeof window !== 'undefined') && window.THREE;
+  if(!T || !host) return null;
+  if(_pv && _pv.host === host) return _pv;
+  if(_pv){ try { cancelAnimationFrame(_pv.raf); _pv.renderer.dispose(); } catch(e){} _pv = null; }
+  try {
+    const W = host.clientWidth || 240, H = 240;
+    const renderer = new T.WebGLRenderer({ alpha:true, antialias:true });
+    renderer.setPixelRatio(Math.min((typeof devicePixelRatio!=='undefined'?devicePixelRatio:1), 2));
+    renderer.setSize(W, H);
+    const scene = new T.Scene();
+    const camera = new T.PerspectiveCamera(34, W/H, 0.1, 100);
+    camera.position.set(0, 1.15, 3.5); camera.lookAt(0, 0.95, 0);
+    scene.add(new T.HemisphereLight(0xffffff, 0x3a3326, 1.15));
+    const key = new T.DirectionalLight(0xfff0d8, 0.9); key.position.set(2.5, 4, 3); scene.add(key);
+    const root = new T.Group(); scene.add(root);
+    host.innerHTML = ''; host.appendChild(renderer.domElement);
+    _pv = { host, renderer, scene, camera, root, raf:0, T };
+    const tick = () => { _pv.raf = requestAnimationFrame(tick); root.rotation.y += 0.014; renderer.render(scene, camera); };
+    tick();
+    return _pv;
+  } catch(e){ _pv = null; return null; }
+}
+function drawPreview(host, sel){
+  try {
+    const build = (typeof window !== 'undefined') && window.EMAVATAR && window.EMAVATAR.buildBody;
+    if(build){
+      const pv = ensurePreview3D(host);
+      if(pv){
+        while(pv.root.children.length) pv.root.remove(pv.root.children[0]);
+        const r = build(sel);
+        if(r && r.group){ pv.root.add(r.group); return; }
+      }
+    }
+  } catch(e){ /* fall through to the 2D paper-doll */ }
+  if(host) host.innerHTML = paperDollSVG(sel);
+}
 
 /* --------------------------------------------------------- the panel */
 function buildPanel(data, onConfirm){

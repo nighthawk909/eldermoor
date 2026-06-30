@@ -5,9 +5,9 @@
    engage / walkTo / examine commands.
    ===================================================================== */
 import { canvas, scene, camera, col, buzz } from './engine.js';
-import { clampX, clampZ, planPath } from './world.js';
+import { clampX, clampZ, planPath, astar, staticBlocked } from './world.js';
 import { NPCS, OBJECTS } from './npc.js';
-import { move } from './player.js';
+import { move, pos } from './player.js';
 import { talk, sayLines } from './dialogue.js';
 
 /* shared registry of raycast proxies (NPCs, objects, scenery) - pushed to by npc.js
@@ -28,6 +28,31 @@ export function markerStep(dt){   // per-frame fade/scale (called from player.si
   markerT -= dt*1.1; marker.material.opacity = Math.max(0, markerT);
   marker.scale.setScalar(1 + (1-markerT)*0.5);
   if(markerT <= 0) marker.visible = false;
+  if(xMarker.visible) xMarkerStep(dt);   // piggy-back the red-X fade on the same per-frame hook (OW6/OW+5)
+}
+
+/* red "X" can't-reach marker (OW6 / OW+5) - a literal cross (two crossed bars), distinct
+   from the walk/interact ring, that flashes over an unreachable tile/target. Self-contained
+   fade timer driven from markerStep() above so no new per-frame hook is needed elsewhere. */
+const xMarker = new THREE.Group();
+(function buildXMarker(){
+  const barGeo = new THREE.BoxGeometry(0.5, 0.05, 0.09);
+  const mat = new THREE.MeshBasicMaterial({color: col('#ff4040'), transparent:true});
+  const a = new THREE.Mesh(barGeo, mat); a.rotation.y =  Math.PI/4;
+  const b = new THREE.Mesh(barGeo, mat.clone()); b.rotation.y = -Math.PI/4;
+  xMarker.add(a, b);
+})();
+xMarker.rotation.x = 0; xMarker.visible = false; scene.add(xMarker);
+let xMarkerT = 0;
+export function showCantReach(x, z, msg){
+  xMarker.position.set(x, 0.5, z); xMarker.visible = true; xMarkerT = 1; xMarker.scale.setScalar(1);
+  if(window.EMHUD) EMHUD.addChat(msg || "I can't reach that.");
+  buzz(24);
+}
+function xMarkerStep(dt){
+  xMarkerT -= dt*0.9; const op = Math.max(0, xMarkerT);
+  xMarker.children.forEach(c => c.material.opacity = op);
+  if(xMarkerT <= 0) xMarker.visible = false;
 }
 
 /* ------------------------------------------------------------- picking / actions */
@@ -45,20 +70,34 @@ export function pickAt(px, py){
   let scenery = hit.length ? (hit[0].object.userData.scenery || null) : null;
   let mob = hit.length ? (hit[0].object.userData.mob || null) : null;
   if(!npc && !obj && !mob && ground){
-    npc = NPCS.find(n => Math.hypot(n.x-ground.x, n.z-ground.z) < 1.2) || null;            // forgiving NPC tap
-    if(!npc) obj = OBJECTS.find(o => Math.hypot(o.x-ground.x, o.z-ground.z) < 1.0) || null; // forgiving object tap
-    if(!npc && !obj && !scenery){                                                          // forgiving scenery tap (lowest priority)
-      let best = null, bestD = 1.2;
-      for(const t of clickTargets){
-        const s = t.userData && t.userData.scenery;
-        if(!s) continue;
-        const d = Math.hypot(s.x-ground.x, s.z-ground.z);
-        if(d < bestD){ bestD = d; best = s; }
-      }
-      if(best) scenery = best;
+    // forgiving tap-near-target: OSRS picks the NEAREST overlapping interactable, not a
+    // hard type-priority order (OW+4) - so compare every candidate's distance to the tap
+    // and keep the closest one, instead of always preferring NPC > object > scenery.
+    let bestKind = null, bestEnt = null, bestD = Infinity;
+    const consider = (kind, ent, d, cap) => { if(d < cap && d < bestD){ bestD = d; bestKind = kind; bestEnt = ent; } };
+    const nNpc = NPCS.reduce((b,n) => { const d=Math.hypot(n.x-ground.x, n.z-ground.z); return (!b||d<b.d)?{n,d}:b; }, null);
+    if(nNpc) consider('npc', nNpc.n, nNpc.d, 1.2);
+    const nObj = OBJECTS.reduce((b,o) => { const d=Math.hypot(o.x-ground.x, o.z-ground.z); return (!b||d<b.d)?{o,d}:b; }, null);
+    if(nObj) consider('obj', nObj.o, nObj.d, 1.0);
+    for(const t of clickTargets){
+      const s = t.userData && t.userData.scenery;
+      if(!s) continue;
+      const d = Math.hypot(s.x-ground.x, s.z-ground.z);
+      consider('scenery', s, d, 1.2);
     }
+    if(bestKind === 'npc') npc = bestEnt;
+    else if(bestKind === 'obj') obj = bestEnt;
+    else if(bestKind === 'scenery') scenery = bestEnt;
   }
   return { npc, obj, scenery, mob, ground };
+}
+/* reachability check (OW6 / OW+5 / occlusion) - a real A* probe from the player's current
+   position, the same router planPath() will use. Returns false if the target tile sits
+   inside a wall/collider (occluded/unreachable) or no walkable route exists at all, so a
+   walk-tap through geometry fails loudly instead of silently degrading into a stuck path. */
+function isReachable(tx, tz){
+  if(staticBlocked(tx, tz)) return false;          // tile itself is inside a wall/prop footprint
+  return !!astar(pos.x, pos.z, tx, tz, null);       // a walkable route exists from here
 }
 export function worldClick(px, py){            // single tap = OSRS default action
   const { npc, obj, scenery, mob, ground } = pickAt(px, py);
@@ -70,10 +109,14 @@ export function worldClick(px, py){            // single tap = OSRS default acti
 }
 export function engage(t){
   if(t && window.EMGATE && !EMGATE.allow(t)){ EMGATE.nudge(t); showMarker(t.x, t.z, '#ffe27a'); return; }  // lesson gate: nudge instead of acting
+  if(t && !isReachable(t.x, t.z)){ showCantReach(t.x, t.z); return; }   // OW6/OW+5: no route to the target
   move.pending = t; move._lastGoal = {x:t.x, z:t.z}; planPath(t.x, t.z); showMarker(t.x, t.z, '#7fe0ff'); buzz(18);
 }
 export const engageNpc = engage;
-export function walkTo(g){ move.pending = null; planPath(g.x, g.z); showMarker(g.x, g.z, '#ffe27a'); buzz(12); }
+export function walkTo(g){
+  if(!isReachable(g.x, g.z)){ showCantReach(g.x, g.z); return; }        // OW6/OW+5/occlusion: blocked or unreachable tile
+  move.pending = null; planPath(g.x, g.z); showMarker(g.x, g.z, '#ffe27a'); buzz(12);
+}
 export function examine(e){
   const data = (window.EMDATA && window.EMDATA.examine) || null;
   const nameKey = (e.name || '').toLowerCase();
@@ -104,7 +147,11 @@ export function openMenu(px, py){
   if(ground) items.push(['Walk here', '', ()=>walkTo(ground)]);
   items.push(['Cancel', '', ()=>{}]);
   menuEl.innerHTML = (t ? `<div class="hdr">${t.name}</div>` : '') +
-    items.map((it,i)=>`<div class="mi" data-i="${i}"><span class="o">${it[0]}</span>${it[1]}</div>`).join('');
+    items.map((it,i)=>{
+      const isCancel = it[0] === 'Cancel';                 // OW+2: Cancel is always red, always last
+      const style = isCancel ? ' style="color:#ff5b5b"' : '';
+      return `<div class="mi" data-i="${i}"><span class="o"${style}>${it[0]}</span>${it[1]}</div>`;
+    }).join('');
   menuEl.querySelectorAll('.mi').forEach(el => { el.onclick = ev => { ev.stopPropagation(); items[+el.dataset.i][2](); closeMenu(); }; });
   menuEl.style.display = 'block';
   menuEl.style.left = Math.min(px, innerWidth  - menuEl.offsetWidth  - 6) + 'px';

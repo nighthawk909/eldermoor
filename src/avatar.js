@@ -233,7 +233,7 @@ export function initAvatar(){
   addEventListener('em-appearance', () => { try { rebuild(); } catch(e){} }, { passive:true });
   if(typeof setInterval === 'function') setInterval(() => { try { renderWorn(); } catch(e){} }, 400);
 
-  window.EMAVATAR = { rebuild, renderWorn, current(){ return current; } };
+  window.EMAVATAR = { rebuild, renderWorn, buildBody, current(){ return current; } };
   return window.EMAVATAR;
 }
 

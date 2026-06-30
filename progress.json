@@ -1,5 +1,5 @@
 {
-  "updated": 1782861990913,
+  "updated": 1782862335176,
   "version": "v41",
   "note": "Live fleet board. Reflects v36 owner QA + browser screenshots. Character art (studio + in-world avatar/creator) owned by a separate chat. Statuses: queued | building | review | requeue | shipped | done | blocked | failed.",
   "board": [
@@ -380,6 +380,15 @@
       "agent": "builder-quest2",
       "note": "OSRS reward scroll on completion; v43",
       "ts": 1782861990913
+    },
+    {
+      "id": "PROPS-FINISH",
+      "epic": "P4 World",
+      "title": "PROPS-FINISH",
+      "status": "shipped",
+      "agent": "orchestrator",
+      "note": "4 props modelled+exported+wired; zero placeholders; v44 clean-origin boot (scene 523)",
+      "ts": 1782862335176
     }
   ]
 }

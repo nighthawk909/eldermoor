@@ -14,11 +14,24 @@ import { NPCS, npcCtrl } from './npc.js';
 
 /* ------------------------------------------------------------ asset loading */
 let loaded = 0;
-/* world.glb + player.glb + 3 kit pieces (tree/bush/rock) + every NPC glb - overlay clears only when all expected loads resolve */
+/* world.glb + player.glb + 3 kit pieces (tree/bush/rock) + every NPC glb + the
+   content-data registry fetch (quests/emotes/.../lessons) - overlay clears only
+   when ALL expected loads resolve, so scenery/NPCs/content never pop in after
+   the loading screen has already faded. */
 const KIT_PIECE_COUNT = 3;
-const EXPECTED_LOADS = 2 + KIT_PIECE_COUNT + NPCS.filter(n => n.glb).length;
-function maybeReady(){ if(++loaded >= EXPECTED_LOADS){ const l = document.getElementById('load');
-  if(l){ l.style.opacity = 0; setTimeout(()=>l.remove(), 600); } } }
+const EXPECTED_LOADS = 2 + KIT_PIECE_COUNT + NPCS.filter(n => n.glb).length + 1 /* content-data registry */;
+/* Safety net: never let the overlay hang forever if one load silently never
+   settles (every loader.load() error path already calls maybeReady(), and
+   loadContentData()'s fetches never reject - but this guards any path we
+   haven't anticipated, e.g. a future loader that forgets to call maybeReady()). */
+const LOAD_TIMEOUT_MS = 20000;
+let loadTimedOut = false;
+function clearOverlay(){
+  const l = document.getElementById('load');
+  if(l){ l.style.opacity = 0; setTimeout(()=>l.remove(), 600); }
+}
+function maybeReady(){ if(++loaded >= EXPECTED_LOADS && !loadTimedOut) clearOverlay(); }
+setTimeout(() => { if(loaded < EXPECTED_LOADS){ loadTimedOut = true; clearOverlay(); } }, LOAD_TIMEOUT_MS);
 const loader = new THREE.GLTFLoader();
 const WORLD = 'assets/world.glb';
 
@@ -28,7 +41,9 @@ const WORLD = 'assets/world.glb';
    read game content without re-fetching. Each file is optional: a 404 or a
    parse failure for one file yields null for that key and never rejects, so
    one missing file can\'t sink the others. This runs in parallel with - and
-   independently of - the 3D asset loader; it never blocks the load overlay.
+   independently of - the 3D asset loader, but the load overlay now waits on
+   it too (via maybeReady()) so HUD/quest/dialogue content that reads
+   window.EMDATA doesn't pop in right after the loading screen disappears.
    Listeners render on the 'em-data-ready' event. */
 const EM_DATA_FILES = ['quests', 'emotes', 'music', 'settings', 'appearance', 'dialogue', 'combat', 'examine', 'lessons'];
 function loadContentData(){
@@ -40,6 +55,7 @@ function loadContentData(){
     EM_DATA_FILES.forEach((key, i) => { data[key] = results[i]; });
     window.EMDATA = data;
     window.dispatchEvent(new CustomEvent('em-data-ready'));
+    maybeReady();
   });
 }
 

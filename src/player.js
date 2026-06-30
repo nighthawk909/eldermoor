@@ -4,7 +4,7 @@
    arrive / cancelPending) plus the per-frame simStep that drives the
    player, marker fade, NPC update, altar glow and water drift.
    ===================================================================== */
-import { scene, col, TEX } from './engine.js';
+import { scene, col, TEX, decayExp, updateRoofs, isInsideAnyRoof } from './engine.js';
 import {
   clampX, clampZ, lineClear, moveBlocked, planPath, replan
 } from './world.js';
@@ -119,6 +119,9 @@ export function simStep(dt){
   }
 
   updateNpcs(dt);                                  // wandering NPCs
-  if(glow.t > 0){ glow.t -= dt; altarGlow.intensity = Math.max(0, glow.t) * 3.0; }
+  updateRoofs(isInsideAnyRoof(pos));               // P1.6 - hide a roof when the player is under it
+  // P1.7 - altar glow decays asymptotically now (smoother falloff) instead of a hard linear drop
+  if(glow.t > 0.01){ glow.t = decayExp(glow.t, dt); altarGlow.intensity = glow.t * 3.0; }
+  else if(glow.t !== 0){ glow.t = 0; altarGlow.intensity = 0; }
   TEX.water.offset.x += dt*0.012; TEX.water.offset.y += dt*0.008;   // drifting ripple
 }

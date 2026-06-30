@@ -3,201 +3,196 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Eldermoor — Fleet Progress</title>
+<title>Eldermoor — Fleet Board</title>
 <style>
   :root{
     --bg:#14110c; --panel:#221b12; --panel2:#2c2418; --ink:#efe7d4; --muted:#a99c80;
-    --line:#3a2f1f; --gold:#d8b25a; --accent:#3f6f8c;
-    --queued:#6b6150; --building:#d8b25a; --review:#3f8cc2; --requeue:#c98a2a;
-    --done:#4f8a3c; --blocked:#9c3030; --failed:#b03030;
+    --line:#3a2f1f; --gold:#d8b25a;
+    --todo:#6b6150; --building:#d8b25a; --review:#3f8cc2; --shipped:#7a5cc2; --done:#4f8a3c;
+    --blocked:#b03030; --requeue:#c98a2a; --failed:#b03030;
   }
   *{box-sizing:border-box}
-  html,body{margin:0;background:var(--bg);color:var(--ink);
+  html,body{margin:0;background:var(--bg);color:var(--ink);height:100%;
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
-  a{color:var(--gold)}
   header{position:sticky;top:0;z-index:10;background:linear-gradient(180deg,#1c160e,#14110c);
-    border-bottom:1px solid var(--line);padding:14px 16px 12px}
+    border-bottom:1px solid var(--line);padding:12px 16px 10px}
   .titlerow{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
-  h1{font-size:18px;margin:0;letter-spacing:.5px;color:var(--gold)}
+  h1{font-size:17px;margin:0;letter-spacing:.5px;color:var(--gold)}
   .ver{font-size:12px;color:var(--muted)}
   .conn{margin-left:auto;font-size:11px;padding:3px 8px;border-radius:999px;border:1px solid var(--line);
     background:var(--panel);color:var(--muted);white-space:nowrap}
   .conn.live{color:#bfe6a8;border-color:#3c5e2c}
   .conn.local{color:#cdbb88;border-color:#5a4a24}
   .conn.off{color:#e0a0a0;border-color:#5a2424}
-  /* summary bar */
-  .bar{display:flex;height:14px;border-radius:7px;overflow:hidden;margin:12px 0 8px;border:1px solid var(--line);background:#0e0b07}
-  .bar span{display:block;height:100%}
-  .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:11px;color:var(--muted)}
-  .legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:middle}
-  .pct{font-size:12px;color:var(--ink);margin-left:6px}
-  .controls{display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap}
+  .banner{margin-top:9px;font-size:12.5px;color:#f0d9a6;background:#2b2208;border:1px solid #5a4a1c;
+    border-radius:8px;padding:7px 11px;display:none}
+  .banner.show{display:block}
+  .banner b{color:#ffe2a0}
+  .controls{display:flex;gap:8px;margin-top:9px;align-items:center;flex-wrap:wrap}
   button{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;
-    padding:7px 12px;font-size:13px;cursor:pointer;min-height:38px}
+    padding:6px 11px;font-size:12.5px;cursor:pointer;min-height:34px}
+  button.on{border-color:var(--gold);color:var(--gold)}
   button:active{transform:translateY(1px)}
   .upd{font-size:11px;color:var(--muted);margin-left:auto}
-  /* board */
-  main{padding:14px 16px 40px;max-width:980px;margin:0 auto}
-  .epic{margin:18px 0 8px;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);
-    border-bottom:1px dashed var(--line);padding-bottom:5px}
-  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
-  .card{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--queued);
-    border-radius:10px;padding:11px 12px;position:relative}
-  .card .id{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.5px}
-  .card .t{font-size:14px;margin:3px 0 7px;line-height:1.3}
-  .card .meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:11px;color:var(--muted)}
-  .pill{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:3px 8px;
-    border-radius:999px;color:#14110c}
-  .agent{color:var(--ink);background:var(--panel2);border:1px solid var(--line);padding:2px 7px;border-radius:6px}
-  .note{font-size:11px;color:var(--muted);margin-top:7px;font-style:italic}
-  /* status colors */
-  .s-queued{border-left-color:var(--queued)} .p-queued{background:var(--queued);color:#efe7d4}
-  .s-building{border-left-color:var(--building)} .p-building{background:var(--building)}
-  .s-review{border-left-color:var(--review)} .p-review{background:var(--review);color:#fff}
-  .s-requeue{border-left-color:var(--requeue)} .p-requeue{background:var(--requeue)}
-  .s-done{border-left-color:var(--done)} .p-done{background:var(--done);color:#fff}
-  .s-blocked{border-left-color:var(--blocked)} .p-blocked{background:var(--blocked);color:#fff}
-  .s-failed{border-left-color:var(--failed)} .p-failed{background:var(--failed);color:#fff}
-  /* building pulse */
-  .s-building{animation:pulse 1.6s ease-in-out infinite}
+  /* kanban */
+  .board{display:flex;gap:12px;padding:14px 16px 30px;overflow-x:auto;scroll-snap-type:x proximity;
+    align-items:flex-start;min-height:calc(100vh - 120px)}
+  .col{flex:0 0 270px;max-width:270px;scroll-snap-align:start;background:#1a140d;border:1px solid var(--line);
+    border-radius:12px;display:flex;flex-direction:column;max-height:calc(100vh - 150px)}
+  .colhead{padding:10px 12px 8px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#1a140d;
+    border-radius:12px 12px 0 0}
+  .colhead .name{font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;display:flex;
+    align-items:center;gap:8px}
+  .colhead .cnt{margin-left:auto;font-size:12px;color:var(--ink);background:var(--panel2);border:1px solid var(--line);
+    border-radius:999px;padding:1px 9px;min-width:26px;text-align:center}
+  .colhead .sub{font-size:10.5px;color:var(--muted);margin-top:3px}
+  .dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+  .col.bottleneck{box-shadow:0 0 0 2px rgba(216,178,90,.35)}
+  .cards{padding:10px;display:flex;flex-direction:column;gap:9px;overflow-y:auto}
+  .card{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--todo);
+    border-radius:9px;padding:9px 10px}
+  .card .top{display:flex;align-items:center;gap:7px;margin-bottom:4px}
+  .card .id{font-size:10.5px;color:var(--muted);font-weight:700;letter-spacing:.5px}
+  .card .eye{margin-left:auto;font-size:12px}
+  .card .t{font-size:13px;line-height:1.3}
+  .card .foot{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:7px;font-size:10.5px;color:var(--muted)}
+  .epic{font-size:9.5px;color:var(--muted);background:#1f1810;border:1px solid var(--line);border-radius:5px;padding:1px 6px}
+  .agent{color:var(--ink);background:var(--panel2);border:1px solid var(--line);padding:1px 6px;border-radius:5px}
+  .note{font-size:10.5px;color:var(--muted);margin-top:6px;font-style:italic;line-height:1.35}
+  .subpill{font-size:9px;font-weight:700;text-transform:uppercase;padding:1px 6px;border-radius:999px;color:#14110c}
+  .sp-requeue{background:var(--requeue)} .sp-blocked{background:var(--blocked);color:#fff} .sp-failed{background:var(--failed);color:#fff}
+  /* per-column accents */
+  .c-todo{border-top:3px solid var(--todo)} .c-building{border-top:3px solid var(--building)}
+  .c-review{border-top:3px solid var(--review)} .c-shipped{border-top:3px solid var(--shipped)}
+  .c-done{border-top:3px solid var(--done)} .c-blocked{border-top:3px solid var(--blocked)}
+  .card.s-building{border-left-color:var(--building);animation:pulse 1.6s ease-in-out infinite}
+  .card.s-review{border-left-color:var(--review)} .card.s-shipped{border-left-color:var(--shipped)}
+  .card.s-done{border-left-color:var(--done)} .card.s-blocked{border-left-color:var(--blocked)}
+  .card.s-failed{border-left-color:var(--failed)} .card.s-requeue{border-left-color:var(--requeue)}
   @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(216,178,90,0)}50%{box-shadow:0 0 0 3px rgba(216,178,90,.18)}}
-  .empty{color:var(--muted);text-align:center;padding:40px 0;font-size:14px}
+  .empty{color:var(--muted);font-size:11px;padding:10px;text-align:center}
+  .offline{color:var(--muted);text-align:center;padding:50px 16px;font-size:14px;width:100%}
+  .filtered .card:not(.eyeon){display:none}
 </style>
 </head>
 <body>
 <header>
   <div class="titlerow">
-    <h1>⚒ Eldermoor Fleet</h1>
+    <h1>⚒ Eldermoor Fleet Board</h1>
     <span class="ver" id="ver">—</span>
     <span class="conn" id="conn">connecting…</span>
   </div>
-  <div class="bar" id="bar"></div>
-  <div class="legend" id="legend"></div>
+  <div class="banner" id="banner"></div>
   <div class="controls">
+    <button id="eyes">👁 Needs my eyes</button>
     <button id="toggle">⏸ Pause</button>
     <button id="refresh">↻ Refresh</button>
-    <span class="pct" id="pct"></span>
     <span class="upd" id="upd"></span>
   </div>
 </header>
-<main>
-  <div id="board"><div class="empty">Loading board…</div></div>
-</main>
+<div class="board" id="board"><div class="offline">Loading board…</div></div>
 <script>
 (function(){
-  // Absolute prod endpoint so the board loads from anywhere: phone, a local
-  // file (file://), localhost, or the deployed page. KV-backed (live).
-  var ENDPOINT = 'https://eldermoor.vercel.app/api/progress';
-  var LOCAL = './progress.json';    // single-writer fallback (served locally)
-  var POLL_MS = 2000;
-  var STATUSES = ['building','review','requeue','queued','blocked','failed','done'];
-  var LABELS = {queued:'Queued',building:'Building',review:'Review',requeue:'Requeue',done:'Done',blocked:'Blocked',failed:'Failed'};
-  var running = true, timer = null;
+  var ENDPOINT='https://eldermoor.vercel.app/api/progress';
+  var LOCAL='./progress.json';
+  var POLL_MS=2000;
+  // status -> column
+  var COLMAP={ queued:'todo', requeue:'todo', building:'building', review:'review',
+               shipped:'shipped', done:'done', blocked:'blocked', failed:'blocked' };
+  var COLS=[
+    {key:'todo',     name:'To Do',    sub:'queued / needs rework', var:'--todo'},
+    {key:'building', name:'Building',  sub:'an agent owns it now',  var:'--building'},
+    {key:'review',   name:'Review',    sub:'agent QA / verifying',  var:'--review'},
+    {key:'shipped',  name:'Shipped',   sub:'deployed · awaiting your playtest 👁', var:'--shipped'},
+    {key:'done',     name:'Done',      sub:'you confirmed it',      var:'--done'},
+    {key:'blocked',  name:'Blocked',   sub:'stuck / failed',        var:'--blocked', onlyIf:true},
+  ];
+  var NEEDS_EYES={ shipped:1, review:1 };  // states whose final sign-off is yours
+  var running=true, timer=null, eyesOnly=false;
 
-  function fmtAgo(ts){
-    if(!ts) return '';
-    var s = Math.max(0, Math.floor((Date.now()-ts)/1000));
-    if(s<60) return s+'s ago';
-    var m=Math.floor(s/60); if(m<60) return m+'m ago';
-    var h=Math.floor(m/60); if(h<24) return h+'h ago';
-    return Math.floor(h/24)+'d ago';
-  }
-  function setConn(state, text){
-    var el=document.getElementById('conn');
-    el.className='conn '+state; el.textContent=text;
-  }
+  function ago(ts){ if(!ts)return''; var s=Math.max(0,Math.floor((Date.now()-ts)/1000));
+    if(s<60)return s+'s'; var m=Math.floor(s/60); if(m<60)return m+'m'; var h=Math.floor(m/60);
+    if(h<24)return h+'h'; return Math.floor(h/24)+'d'; }
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]);});}
+  function setConn(st,t){var e=document.getElementById('conn');e.className='conn '+st;e.textContent=t;}
 
   async function fetchBoard(){
-    // try the KV endpoint first; fall back to the local file
-    try{
-      var r=await fetch(ENDPOINT+'?_='+Date.now(),{cache:'no-store'});
-      if(r.ok){
-        var j=await r.json();
-        if(j && j.ok && j.data && Array.isArray(j.data.board)){ setConn('live','● live (synced)'); return j.data; }
-        if(j && j.ok && j.empty){ /* KV up but empty -> use local */ }
-      }
+    try{var r=await fetch(ENDPOINT+'?_='+Date.now(),{cache:'no-store'});
+      if(r.ok){var j=await r.json(); if(j&&j.ok&&j.data&&Array.isArray(j.data.board)){setConn('live','● live');return j.data;}}
     }catch(_){}
-    try{
-      var r2=await fetch(LOCAL+'?_='+Date.now(),{cache:'no-store'});
-      if(r2.ok){ var d=await r2.json(); setConn('local','● local file'); return d; }
+    try{var r2=await fetch(LOCAL+'?_='+Date.now(),{cache:'no-store'});
+      if(r2.ok){setConn('local','● local');return await r2.json();}
     }catch(_){}
-    setConn('off','● offline');
-    return null;
+    setConn('off','● offline'); return null;
   }
 
   function render(data){
-    if(!data || !Array.isArray(data.board)){ return; }
+    if(!data||!Array.isArray(data.board))return;
     document.getElementById('ver').textContent=data.version||'';
-    document.getElementById('upd').textContent=data.updated?('updated '+fmtAgo(data.updated)):'';
+    document.getElementById('upd').textContent=data.updated?('updated '+ago(data.updated)+' ago'):'';
 
-    var counts={}; STATUSES.forEach(function(s){counts[s]=0;});
-    data.board.forEach(function(c){ if(counts[c.status]===undefined)counts[c.status]=0; counts[c.status]++; });
+    var buckets={}; COLS.forEach(function(c){buckets[c.key]=[];});
+    data.board.forEach(function(card){
+      var k=COLMAP[card.status]||'todo'; (buckets[k]=buckets[k]||[]).push(card);
+    });
     var total=data.board.length||1;
 
-    // summary bar (done -> building -> review/requeue -> queued -> blocked/failed)
-    var order=['done','building','review','requeue','queued','blocked','failed'];
-    var bar=document.getElementById('bar'); bar.innerHTML='';
-    order.forEach(function(s){
-      if(!counts[s]) return;
-      var span=document.createElement('span');
-      span.style.width=(counts[s]/total*100)+'%';
-      span.style.background='var(--'+s+')';
-      span.title=LABELS[s]+': '+counts[s];
-      bar.appendChild(span);
-    });
-    document.getElementById('pct').textContent=Math.round((counts.done/total)*100)+'% done · '+total+' chunks';
+    // bottleneck = the non-terminal column with the most cards (building/review/shipped)
+    var bottleneck=null,max=0;
+    ['building','review','shipped'].forEach(function(k){ if(buckets[k].length>max){max=buckets[k].length;bottleneck=k;} });
 
-    var legend=document.getElementById('legend'); legend.innerHTML='';
-    order.forEach(function(s){
-      if(counts[s]===undefined) return;
-      var span=document.createElement('span');
-      span.innerHTML='<i style="background:var(--'+s+')"></i>'+LABELS[s]+' '+(counts[s]||0);
-      legend.appendChild(span);
-    });
+    // banner: surface the real gate honestly
+    var ship=buckets.shipped.length, rev=buckets.review.length, done=buckets.done.length, bld=buckets.building.length;
+    var b=document.getElementById('banner');
+    if(ship>0){
+      b.className='banner show';
+      b.innerHTML='<b>'+ship+' shipped &amp; live</b>, awaiting <b>your playtest</b> 👁 — that\'s the only gate to Done. '+
+        bld+' building · '+rev+' in review · '+done+' done.';
+    } else if(bld+rev>0){
+      b.className='banner show';
+      b.innerHTML=bld+' building · '+rev+' in review · '+done+' done.';
+    } else { b.className='banner'; }
 
-    // group by epic
-    var groups={}; var gorder=[];
-    data.board.forEach(function(c){
-      var k=c.epic||'?'; if(!groups[k]){groups[k]=[];gorder.push(k);} groups[k].push(c);
-    });
-    var rank={building:0,review:1,requeue:2,queued:3,blocked:4,failed:5,done:6};
-    var board=document.getElementById('board'); board.innerHTML='';
-    if(!data.board.length){ board.innerHTML='<div class="empty">No chunks on the board yet.</div>'; return; }
-    gorder.forEach(function(g){
-      var h=document.createElement('div'); h.className='epic'; h.textContent=g; board.appendChild(h);
-      var wrap=document.createElement('div'); wrap.className='cards';
-      groups[g].sort(function(a,b){return (rank[a.status]||9)-(rank[b.status]||9);});
-      groups[g].forEach(function(c){
-        var card=document.createElement('div'); card.className='card s-'+c.status;
-        var agent=c.agent?('<span class="agent">'+esc(c.agent)+'</span>'):'';
-        var ago=c.ts?('<span>'+fmtAgo(c.ts)+'</span>'):'';
-        card.innerHTML=
-          '<div class="id">'+esc(c.id)+'</div>'+
-          '<div class="t">'+esc(c.title||'')+'</div>'+
-          '<div class="meta"><span class="pill p-'+c.status+'">'+(LABELS[c.status]||c.status)+'</span>'+agent+ago+'</div>'+
-          (c.note?'<div class="note">'+esc(c.note)+'</div>':'');
-        wrap.appendChild(card);
+    var board=document.getElementById('board'); board.innerHTML=''; board.className='board'+(eyesOnly?' filtered':'');
+    var rank={building:0,review:1,shipped:2,requeue:0,blocked:0,failed:1,queued:2,done:3};
+    COLS.forEach(function(c){
+      var items=buckets[c.key]||[];
+      if(c.onlyIf && !items.length) return;       // hide Blocked column when empty
+      var col=document.createElement('div'); col.className='col c-'+c.key+(bottleneck===c.key?' bottleneck':'');
+      var head='<div class="colhead"><div class="name"><span class="dot" style="background:var('+c.var+')"></span>'+
+        c.name+'<span class="cnt">'+items.length+'</span></div><div class="sub">'+c.sub+'</div></div>';
+      var cards='<div class="cards">';
+      items.sort(function(a,b){return (rank[a.status]||9)-(rank[b.status]||9) || String(a.id).localeCompare(String(b.id));});
+      if(!items.length) cards+='<div class="empty">—</div>';
+      items.forEach(function(card){
+        var eye=NEEDS_EYES[card.status]?'<span class="eye" title="needs your eyes">👁</span>':'';
+        var sub=(card.status==='requeue'||card.status==='blocked'||card.status==='failed')
+          ?'<span class="subpill sp-'+card.status+'">'+card.status+'</span>':'';
+        cards+='<div class="card s-'+card.status+(NEEDS_EYES[card.status]?' eyeon':'')+'">'+
+          '<div class="top"><span class="id">'+esc(card.id)+'</span>'+sub+eye+'</div>'+
+          '<div class="t">'+esc(card.title||'')+'</div>'+
+          (card.note?'<div class="note">'+esc(card.note)+'</div>':'')+
+          '<div class="foot"><span class="epic">'+esc(card.epic||'')+'</span>'+
+            (card.agent?'<span class="agent">'+esc(card.agent)+'</span>':'')+
+            (card.ts?'<span>'+ago(card.ts)+' ago</span>':'')+'</div>'+
+        '</div>';
       });
-      board.appendChild(wrap);
+      cards+='</div>';
+      col.innerHTML=head+cards; board.appendChild(col);
     });
   }
-  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]);});}
 
-  function showOffline(){
-    var b=document.getElementById('board');
-    if(!b.querySelector('.card')){
-      b.innerHTML='<div class="empty">Offline — can\'t reach the board right now.<br>'+
-        'Open <b>https://eldermoor.vercel.app/dashboard.html</b> (retrying every 2s…)</div>';
-    }
-  }
   async function tick(){ var d=await fetchBoard(); if(d) render(d); else showOffline(); }
-  function loop(){ if(timer) clearTimeout(timer); if(running){ tick().then(function(){ timer=setTimeout(loop,POLL_MS); }); } }
+  function showOffline(){ var b=document.getElementById('board');
+    if(!b.querySelector('.card')) b.innerHTML='<div class="offline">Offline — can\'t reach the board.<br>Open <b>https://eldermoor.vercel.app/dashboard.html</b> (retrying…)</div>'; }
+  function loop(){ if(timer)clearTimeout(timer); if(running) tick().then(function(){timer=setTimeout(loop,POLL_MS);}); }
 
   document.getElementById('toggle').addEventListener('click',function(){
-    running=!running; this.textContent=running?'⏸ Pause':'▶ Resume';
-    if(running) loop(); else if(timer) clearTimeout(timer);
-  });
+    running=!running; this.textContent=running?'⏸ Pause':'▶ Resume'; if(running)loop(); else if(timer)clearTimeout(timer);});
   document.getElementById('refresh').addEventListener('click',tick);
+  document.getElementById('eyes').addEventListener('click',function(){
+    eyesOnly=!eyesOnly; this.classList.toggle('on',eyesOnly);
+    document.getElementById('board').classList.toggle('filtered',eyesOnly);});
   loop();
 })();
 </script>

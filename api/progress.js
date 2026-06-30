@@ -42,7 +42,7 @@ async function kvGet(env, key){
   return (j && typeof j.result === 'string') ? j.result : (j ? j.result : null);
 }
 
-const ALLOWED = ['queued', 'building', 'review', 'requeue', 'done', 'blocked', 'failed'];
+const ALLOWED = ['queued', 'building', 'review', 'requeue', 'shipped', 'done', 'blocked', 'failed'];
 
 // immutable merge of a single entry into a board snapshot
 function mergeEntry(snapshot, entry){

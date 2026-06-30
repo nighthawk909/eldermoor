@@ -27,7 +27,7 @@ const fs = require('fs');
 const path = require('path');
 
 const FILE = path.join(__dirname, '..', 'progress.json');
-const ALLOWED = ['queued', 'building', 'review', 'requeue', 'done', 'blocked', 'failed'];
+const ALLOWED = ['queued', 'building', 'review', 'requeue', 'shipped', 'done', 'blocked', 'failed'];
 
 function readBoard(){
   try { return JSON.parse(fs.readFileSync(FILE, 'utf8')); }

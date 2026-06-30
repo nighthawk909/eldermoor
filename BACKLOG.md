@@ -10,7 +10,8 @@ Outstanding work to 100%. Item-level pass/fail tests in `PARITY_AUDIT.md` (~645 
 - [ ] Fixed ~0.6s game tick for actions/combat.
 
 ## P1 — combat & skilling depth
-- [~] Ranged combat (integrated, untested) · [ ] Magic cast (Wind Strike → mob, consume runes, XP).
+- [x] Ranged combat (bow+arrows, projectile, Ranged+HP XP) — integrated v24, playtest pending.
+- [x] Magic cast (combat spell → mob, consume runes, bolt projectile, Magic+HP XP) — integrated v24, playtest pending.
 - [ ] Prayer points pool + activation drain + bury-bones.
 - [ ] Route smithing/cooking through the Make-X interface; per-tick gather rolls + depletion already exist.
 - [ ] Equipment renders on the 3D avatar.
@@ -32,5 +33,5 @@ Outstanding work to 100%. Item-level pass/fail tests in `PARITY_AUDIT.md` (~645 
 - [ ] World-map POI search; collection log / diaries / GE (future scope).
 - [ ] Perf/LOD (InstancedMesh scatter), camera collision, engine-port bridge.
 
-**Counts:** ~38 features integrated, ~52 remaining (see METRICS.md).
+**Counts:** ~40 features integrated, ~50 remaining (see METRICS.md).
 </content>

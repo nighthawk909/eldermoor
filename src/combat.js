@@ -391,7 +391,32 @@ export function initCombat() {
     playerCd: 0,         // ticks until the player can swing again
     mobCd: 0,            // ticks until the mob can retaliate
     dying: false,        // true between HP-0 and respawn (suppresses re-engage)
+    approaching: null,   // mob instance we're currently mid-path toward (CBT-PATH)
   };
+
+  /* CBT-PATH: walk the player to a mob that's out of range, reusing the exact same
+     move.pending + planPath plumbing engage() uses for NPCs/scenery (world.js exposes
+     planPath on window.EMWORLD; window.EMMOVE is the live move-state object main.js
+     already publishes). player.js's arrive() recognises kind:'mob' and calls
+     EMCOMBAT.attack(mob) again once the player is within mob.talkRange, which then
+     finds itself in range and proceeds to swing. Only (re)plans once per engagement
+     (not every tick) to avoid path-recompute churn while closing the distance. */
+  function approachMob(mob, anchor) {
+    const move = MOVE_();
+    const world = WORLD_();
+    if (!move || !world || typeof world.planPath !== 'function') return;  // plumbing not ready yet - retry next tick
+    // already mid-path to this exact mob AND the path is still live (move.pending wasn't
+    // cleared out from under us, e.g. by followPath() giving up after repeated replans) -
+    // skip re-planning. Otherwise (re)issue the path so a stuck/cancelled approach retries
+    // instead of leaving the player standing still forever.
+    if (state.approaching === mob && move.pending === mob) return;
+    state.approaching = mob;
+    if (mob.talkRange == null) mob.talkRange = MELEE_RANGE;
+    if (mob.kind == null) mob.kind = 'mob';
+    move.pending = mob;
+    move._lastGoal = { x: anchor.x, z: anchor.z };
+    world.planPath(anchor.x, anchor.z);
+  }
 
   /* ---- PLAYER HP + DEATH MODEL -----------------------------------------
      Player HP pool = hitpoints level × 10 (OSRS convention). The current/max
@@ -622,11 +647,15 @@ export function initCombat() {
     const usingRanged = isRangedReady();
     const maxRangeSq  = usingRanged ? RANGED_RANGE * RANGED_RANGE : MELEE_RANGE * MELEE_RANGE;
 
-    // range gate: if using melee and still too far, wait for the walk-in system.
-    // ranged lets us stand up to RANGED_RANGE away; if even that is exceeded, wait.
+    // range gate (CBT-PATH): if still too far for the active combat mode, path to the
+    // mob instead of idling - reuses the existing walkTo/planPath plumbing (move.pending
+    // + planPath, same as engage()) so the player walks over and player.js's arrive()
+    // calls EMCOMBAT.attack(mob) again once in range, which then proceeds to swing.
     if (pp && d2 > maxRangeSq) {
-      return; // still approaching - player module walks us in; try again next tick
+      approachMob(mob, a);
+      return; // still approaching - try again next tick once arrive() re-engages
     }
+    state.approaching = null;   // back in range - clear so a future retreat re-triggers pathing
 
     ensureHpBar(mob);
 
@@ -725,10 +754,14 @@ export function initCombat() {
     if (mob.maxHp == null) mob.maxHp = 1;
     if (mob.hp == null) mob.hp = mob.maxHp;
 
+    const wasAlreadyOnTarget = state.target === mob;
     if (state.target && state.target !== mob) clearHpBar();
     state.target = mob;
     state.playerCd = 0; state.mobCd = Number(mob.attackSpeedTicks) || PLAYER_DEFAULTS.attackSpeedTicks;
-    chat('You attack the ' + (mob.name || 'creature') + '.');
+    // CBT-PATH: only announce + show the HP bar once (avoid re-spamming "You attack
+    // the X" every tick while approachMob() keeps re-calling attack() as the player
+    // walks in - arrive() in player.js calls attack(mob) again on path completion).
+    if (!wasAlreadyOnTarget) chat('You attack the ' + (mob.name || 'creature') + '.');
     ensureHpBar(mob);
 
     // drive the player off the shared global game tick (one cadence for all systems).
@@ -743,6 +776,7 @@ export function initCombat() {
     if (state.tickTimer != null) { state.tickTimer(); state.tickTimer = null; }  // unsubscribe from the shared tick
     clearHpBar();
     state.target = null;
+    state.approaching = null;
     state.playerCd = 0; state.mobCd = 0;
   }
 

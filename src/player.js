@@ -38,7 +38,7 @@ export const rig = {};   // named limb pivots → swung for the walk cycle
    is exactly one place that writes rig rotations each frame. */
 export const playerAnim = { attackT: 0, dead: false, deadT: 0 };
 export function playSwingAnim(){ playerAnim.attackT = 1; }   // combat.js calls this on every player swing
-export function playDeathAnim(){ playerAnim.dead = true; playerAnim.deadT = 0; }
+export function playDeathAnim(){ playerAnim.dead = true; playerAnim.deadT = 0; cancelPending(); }   // also halts any in-flight walk/approach
 export function clearDeathAnim(){ playerAnim.dead = false; playerAnim.deadT = 0; player.rotation.z = 0; player.scale.set(1,1,1); }
 /* exposed for combat.js (window-global accessor convention, same as EMPLAYERPOS/EMRIG)
    so death/attack feedback can be driven without a direct ES import. */

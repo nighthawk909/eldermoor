@@ -148,6 +148,150 @@ function loadPrayersData() {
    window.EMPRAYER for other modules to read. */
 const active = new Set();
 
+/* ----------------------------------------------------- OVERHEAD SPRITE
+   Prayers in the 'overhead' group (the protect-from-X wards) and the
+   'protect' group (Retribution/Thornmail-style) show a single canvas-
+   texture icon sprite above the player's head while active, mirroring
+   OSRS overhead prayer icons. Only one overhead can be shown at a time
+   (matches the conflicts-based mutual exclusivity already enforced for
+   the 'overhead' group; 'protect' prayers do not conflict with each
+   other or with wards in this roster, so if more than one qualifying
+   prayer is active simultaneously we just show the most-recently-
+   activated one - see pickOverheadPrayer()).
+   Built the same way as npc.js nameplate()/speechSprite(): canvas ->
+   CanvasTexture -> Sprite, no external asset. Position is refreshed every
+   frame from window.EMPLAYERPOS via a local rAF loop (this module has no
+   access to the shared render loop), and the sprite is removed (scene
+   .remove + texture/material dispose) the instant no qualifying prayer
+   is active, so it never lingers after toggle-off. */
+const OVERHEAD_GROUPS = ['overhead', 'protect'];
+function isOverheadPrayer(p) {
+  return !!p && OVERHEAD_GROUPS.indexOf(p.group) !== -1;
+}
+
+/* Track activation order (most recent last) so we can pick a deterministic
+   "current" overhead when multiple non-conflicting protect-group prayers
+   happen to be active at once. Cleared entries are pruned lazily. */
+const activationOrder = [];
+function noteActivation(id) {
+  const i = activationOrder.indexOf(id);
+  if (i !== -1) activationOrder.splice(i, 1);
+  activationOrder.push(id);
+}
+
+function pickOverheadPrayer() {
+  for (let i = activationOrder.length - 1; i >= 0; i--) {
+    const id = activationOrder[i];
+    if (!active.has(id)) continue;
+    const p = PRAYERS.find((q) => q.id === id);
+    if (isOverheadPrayer(p)) return p;
+  }
+  return null;
+}
+
+let _overheadSprite = null;   /* current THREE.Sprite, or null when hidden */
+let _overheadTex = null;      /* its CanvasTexture, for disposal */
+let _overheadPrayerId = null; /* id the sprite currently represents (avoid redundant rebuilds) */
+let _overheadRafHandle = null;
+
+function overheadScene() {
+  if (typeof window === 'undefined') return null;
+  return window.EMSCENE || (window.EMENGINE && window.EMENGINE.scene) || null;
+}
+
+function overheadPlayerPos() {
+  if (typeof window === 'undefined') return null;
+  return window.EMPLAYERPOS || (window.EMPLAYER && window.EMPLAYER.pos) || null;
+}
+
+const OVERHEAD_Y_OFFSET = 3.35; /* above nameplate height (2.35) and speech bubble (2.95) */
+
+/* Build a small round icon sprite (emoji glyph on a dark glowing disc) for
+   the given prayer. Mirrors npc.js nameplate() canvas-texture technique. */
+function buildOverheadSprite(p) {
+  if (typeof window === 'undefined' || !window.THREE) return null;
+  const THREE = window.THREE;
+  const S = 96;
+  const cv = document.createElement('canvas'); cv.width = S; cv.height = S;
+  const ctx = cv.getContext('2d');
+  const cx = S / 2, cy = S / 2, r = S / 2 - 4;
+  const grad = ctx.createRadialGradient(cx, cy, 2, cx, cy, r);
+  grad.addColorStop(0, 'rgba(40,30,10,.95)');
+  grad.addColorStop(1, 'rgba(20,15,5,.85)');
+  ctx.fillStyle = grad;
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = '#ffd98a';
+  ctx.shadowColor = '#ffd98a';
+  ctx.shadowBlur = 10;
+  ctx.beginPath(); ctx.arc(cx, cy, r - 2, 0, Math.PI * 2); ctx.stroke();
+  ctx.shadowBlur = 0;
+  ctx.font = (S * 0.52) + 'px "Segoe UI Emoji","Trebuchet MS",sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(p.icon || '✨', cx, cy + 2);
+
+  const tex = new THREE.CanvasTexture(cv); tex.minFilter = THREE.LinearFilter;
+  const spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false }));
+  spr.scale.set(0.62, 0.62, 1);
+  spr.renderOrder = 1005;
+  spr.userData._tex = tex;
+  return spr;
+}
+
+function destroyOverheadSprite() {
+  const scene = overheadScene();
+  if (_overheadSprite) {
+    if (scene && typeof scene.remove === 'function') scene.remove(_overheadSprite);
+    if (_overheadTex && _overheadTex.dispose) _overheadTex.dispose();
+    if (_overheadSprite.material && _overheadSprite.material.dispose) _overheadSprite.material.dispose();
+  }
+  _overheadSprite = null;
+  _overheadTex = null;
+  _overheadPrayerId = null;
+}
+
+/* One rAF tick: keep the sprite positioned at the live player position (it
+   moves every frame, same as combat hitsplats use position.set per-frame)
+   and tear itself down once no overhead prayer remains active. */
+function overheadFrame() {
+  _overheadRafHandle = null;
+  const p = pickOverheadPrayer();
+  if (!p) { destroyOverheadSprite(); return; } /* stop the loop - nothing to show */
+
+  if (!_overheadSprite || _overheadPrayerId !== p.id) {
+    destroyOverheadSprite();
+    const spr = buildOverheadSprite(p);
+    const scene = overheadScene();
+    if (spr && scene && typeof scene.add === 'function') {
+      scene.add(spr);
+      _overheadSprite = spr;
+      _overheadTex = spr.userData._tex;
+      _overheadPrayerId = p.id;
+    }
+  }
+
+  if (_overheadSprite) {
+    const pp = overheadPlayerPos();
+    if (pp) {
+      const py = (typeof pp.y === 'number') ? pp.y : 0;
+      _overheadSprite.position.set(pp.x || 0, py + OVERHEAD_Y_OFFSET, pp.z || 0);
+    }
+  }
+
+  if (typeof requestAnimationFrame !== 'undefined') {
+    _overheadRafHandle = requestAnimationFrame(overheadFrame);
+  }
+}
+
+/* Start the follow loop if not already running (idempotent). Called any
+   time the active set changes so a fresh overhead activation is picked up
+   immediately rather than waiting on the next unrelated render. */
+function ensureOverheadLoop() {
+  if (_overheadRafHandle !== null) return;
+  if (typeof requestAnimationFrame === 'undefined') return;
+  _overheadRafHandle = requestAnimationFrame(overheadFrame);
+}
+
 /* Deactivates any currently-active prayer that conflicts with `p`
    (mutually-exclusive groups: protection/overhead prayers, style-boost
    tiers that stack onto the same stat, and the top-tier combo prayers).
@@ -235,6 +379,13 @@ function publishActive() {
   window.EMPRAYER.isActive = (id) => active.has(id);
   window.EMPRAYER.list = () => PRAYERS.map((p) => ({ ...p, active: active.has(p.id) }));
   window.EMPRAYER.buryBones = buryBones;
+
+  /* Single chokepoint for the active set changing (toggle click, conflict
+     drain, points-exhausted drain) - start/refresh the overhead-icon
+     follow loop if a qualifying prayer is on, or let it tear itself down
+     on its next tick if not (overheadFrame() checks pickOverheadPrayer()
+     itself, so it's safe to just ensure the loop is running here). */
+  ensureOverheadLoop();
 }
 
 /* ------------------------------------------------------ HUD STATE READ */
@@ -349,9 +500,11 @@ function renderGrid(host, state) {
     cell.setAttribute('aria-disabled', available ? 'false' : 'true');
 
     cell.innerHTML =
+      (on ? `<span class="empr-check" aria-hidden="true">✓</span>` : '') +
       `<span class="empr-icon">${p.icon}</span>` +
       `<span class="empr-name">${p.name}</span>` +
-      (available ? '' : `<span class="empr-req">Lvl ${p.req}</span>`);
+      (available ? (on ? `<span class="empr-onlabel">ON</span>` : '')
+                 : `<span class="empr-req">Lvl ${p.req}</span>`);
 
     if (available) {
       cell.addEventListener('click', () => {
@@ -362,6 +515,7 @@ function renderGrid(host, state) {
         } else {
           deactivateConflicts(p);
           active.add(p.id);
+          noteActivation(p.id);
           startDrainIfNeeded();
         }
         publishActive();
@@ -392,17 +546,25 @@ function injectStyle() {
   #empanel .empr-ptsbar-fill{height:100%;background:linear-gradient(90deg,#4a9a2a,#8fc25a);
     border-radius:3px;transition:width .3s;}
   #empanel .empr-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
-  #empanel .empr-cell{display:flex;flex-direction:column;align-items:center;
+  #empanel .empr-cell{position:relative;display:flex;flex-direction:column;align-items:center;
     justify-content:center;gap:2px;padding:6px 2px;min-height:54px;cursor:pointer;
-    border:1px solid #3a2f22;border-radius:6px;background:#241c12;color:#e8dcc2;
+    border:2px solid #3a2f22;border-radius:6px;background:#241c12;color:#e8dcc2;
     font:500 10px/1.1 system-ui,sans-serif;text-align:center;
     transition:background .08s,border-color .08s,box-shadow .08s;}
   #empanel .empr-cell:hover{background:#322715;border-color:#6b5836;}
   #empanel .empr-icon{font-size:18px;line-height:1;}
   #empanel .empr-name{opacity:.95;}
-  #empanel .empr-cell-active{background:#3d5a2a;border-color:#8fc25a;
-    box-shadow:0 0 0 1px #8fc25a inset,0 0 6px rgba(143,194,90,.4);}
-  #empanel .empr-cell-active:hover{background:#456631;}
+  /* ACTIVE state must be unmistakable at a glance: bright lime border + glow halo +
+     a distinctly tinted background + a corner checkmark badge + an "ON" label.
+     Inactive cells stay on the neutral dark palette above (no border/bg overlap). */
+  #empanel .empr-cell-active{background:#2c4a1c;border-color:#a6e86a;
+    box-shadow:0 0 0 2px #a6e86a inset,0 0 10px 2px rgba(166,232,106,.65);}
+  #empanel .empr-cell-active:hover{background:#355c22;}
+  #empanel .empr-check{position:absolute;top:-7px;right:-7px;width:16px;height:16px;
+    border-radius:50%;background:#a6e86a;color:#16290a;font:700 11px/16px system-ui,sans-serif;
+    box-shadow:0 0 0 2px #14110a,0 0 6px rgba(166,232,106,.8);}
+  #empanel .empr-onlabel{position:absolute;bottom:3px;right:5px;font:700 8px/1 system-ui,sans-serif;
+    color:#1c3310;background:#a6e86a;border-radius:3px;padding:1px 3px;letter-spacing:.04em;}
   #empanel .empr-cell-locked{cursor:default;opacity:.45;filter:grayscale(1);
     background:#1c1710;border-color:#2c241a;}
   #empanel .empr-cell-locked:hover{background:#1c1710;border-color:#2c241a;}

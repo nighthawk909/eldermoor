@@ -354,12 +354,41 @@ function fireProjectile(THREE, scene, from, to, onArrive) {
 }
 
 /* world-space anchor of a mob instance. Tolerates several shapes:
-   {x,z}, {group:{position}}, {mesh:{position}}, or a THREE.Object3D itself. */
+   {x,z}, {group:{position}}, {mesh:{position}}, {_inst:{position}} (world.js's
+   placeMob() node shape), or a THREE.Object3D itself. */
 function mobAnchor(mob) {
   if (!mob) return { x: 0, y: 1.6, z: 0 };
-  const o = mob.group || mob.mesh || (mob.position ? mob : null);
+  const o = mob.group || mob.mesh || mob._inst || (mob.position ? mob : null);
   if (o && o.position) return { x: o.position.x, y: (o.position.y || 0) + 1.8, z: o.position.z };
   return { x: mob.x || 0, y: 1.8, z: mob.z || 0 };
+}
+
+/* mob's own visible THREE.Object3D, in whichever shape this instance uses
+   (group / mesh / world.js's _inst). Used to show/hide on death + respawn. */
+function mobVisual(mob) {
+  return (mob && (mob.group || mob.mesh || mob._inst)) || null;
+}
+
+/* CBT-FIX: world.js's placeMob() (window.EMMOB.nodes) is the single, persistent,
+   stateful mob instance — it owns hp/dead/maxHp across the mob's lifetime and its
+   real THREE mesh (_inst). interact.js's picker, however, hands attack() a fresh
+   *clone* of that node's data every click (userData.mob is a plain object literal
+   rebuilt off the node at placeMob()-time, not a reference to the node itself) -
+   so without resolving back to the canonical node, every click created a brand-new
+   throwaway mob with full HP and killMob() could never hide/respawn the real rat.
+   Resolve any incoming mob reference to its canonical EMMOB node (matched by id +
+   spawn position, which are stable/unique per placed mob) so HP, death and the
+   visible mesh are all tracked on the one true instance. Passes through unchanged
+   if it's already the canonical node (has _inst) or no registry is available yet. */
+function resolveCanonicalMob(mob) {
+  if (!mob) return mob;
+  if (mob._inst || mob.group || mob.mesh) return mob;   // already a real instance
+  const w = (typeof window !== 'undefined') ? window : {};
+  const nodes = w.EMMOB && Array.isArray(w.EMMOB.nodes) ? w.EMMOB.nodes : null;
+  if (!nodes || !nodes.length) return mob;
+  const found = nodes.find((n) => n.id === mob.id &&
+    Math.abs(n.x - mob.x) < 0.01 && Math.abs(n.z - mob.z) < 0.01);
+  return found || mob;
 }
 
 export function initCombat() {
@@ -621,13 +650,13 @@ export function initCombat() {
     });
     // mark dead + hide its visual if it owns one
     mob.dead = true; mob.hp = 0;
-    const vis = mob.group || mob.mesh;
+    const vis = mobVisual(mob);
     if (vis) vis.visible = false;
     // respawn after respawnMs (restore HP + visibility; honest re-arm of the mob)
     const respawnMs = Number(mob.respawnMs) > 0 ? Number(mob.respawnMs) : 30000;
     setTimeout(() => {
       mob.dead = false; mob.hp = mob.maxHp;
-      const v = mob.group || mob.mesh; if (v) v.visible = true;
+      const v = mobVisual(mob); if (v) v.visible = true;
     }, respawnMs);
 
     stop();
@@ -742,6 +771,7 @@ export function initCombat() {
   /* start (or switch to) attacking a mob instance, starting the tick clock. */
   function attack(mob) {
     if (!mob) return;
+    mob = resolveCanonicalMob(mob);          // CBT-FIX: always fight the persistent EMMOB node, not a picker clone
     if (state.dying) return;                 // can\'t act while dead/respawning
     if (mob.dead) { chat('It is already dead.'); return; }
     const cfg = CFG || resolveCfg() || FALLBACK;

@@ -1,6 +1,6 @@
 {
-  "version": "v42",
-  "title": "v42 — walkable 9-zone island + instructors",
+  "version": "v43",
+  "title": "v43 — real zone props + bank depth + quest reward scroll",
   "items": [
     {
       "id": "login",

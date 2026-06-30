@@ -167,6 +167,15 @@ export const PIECES = {
   tree: { url:'assets/kit/tree.glb', r:0.42, tpl:null },
   bush: { url:'assets/kit/bush.glb', r:0.30, tpl:null },
   rock: { url:'assets/kit/rock.glb', r:0.40, tpl:null },
+  // zone fixtures (Blender-authored, exported v42) — small colliders so you can stand at them
+  range:      { url:'assets/kit/range.glb',      r:0.45, tpl:null },
+  furnace:    { url:'assets/kit/furnace.glb',    r:0.55, tpl:null },
+  anvil:      { url:'assets/kit/anvil.glb',      r:0.45, tpl:null },
+  bank_booth: { url:'assets/kit/bank_booth.glb', r:0.55, tpl:null },
+  altar:      { url:'assets/kit/altar.glb',      r:0.55, tpl:null },
+  ladder:     { url:'assets/kit/ladder.glb',     r:0.30, tpl:null },
+  signpost:   { url:'assets/kit/signpost.glb',   r:0.20, tpl:null },
+  dock:       { url:'assets/kit/dock.glb',       r:0.30, tpl:null },
 };
 export const mulberry32 = a => () => { a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a);
   t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; };
@@ -205,25 +214,32 @@ export function place(type, x, z, rot, s){
 export const FIXTURE_DESC = {
   'fishing-spot': { name:'Fishing spot', verb:'Net',   examine:'Ripples break the surface - fish are here.', color:0x2c6a82, r:0,    h:0.05, opacity:0.55 },
   'fire':         { name:'Fire',         verb:'Cook',  examine:'A crackling fire, hot enough to cook on.',    color:0xd86a2c, r:0.28, h:0.4,  opacity:1 },
-  'furnace':      { name:'Furnace',      verb:'Smelt', examine:'A stone furnace roaring with heat.',          color:0x8c6b40, r:0.5,  h:1.1,  opacity:1 },
-  'anvil':        { name:'Anvil',        verb:'Smith', examine:'A heavy iron anvil, scarred from the hammer.',color:0x4a4f57, r:0.4,  h:0.6,  opacity:1 },
-  'bank-booth':   { name:'Bank booth',   verb:'Bank',  examine:'A sturdy wooden booth - a banker waits inside.', color:0x8c6b40, r:0.35, h:0.9,  opacity:1 },
+  'range':        { name:'Cooking range',verb:'Cook',  examine:'A stone range with an iron grate for cooking.', color:0x8c6b40, r:0.45, h:0.9, opacity:1, pieceId:'range' },
+  'furnace':      { name:'Furnace',      verb:'Smelt', examine:'A stone furnace roaring with heat.',          color:0x8c6b40, r:0.5,  h:1.1,  opacity:1, pieceId:'furnace' },
+  'anvil':        { name:'Anvil',        verb:'Smith', examine:'A heavy iron anvil, scarred from the hammer.',color:0x4a4f57, r:0.4,  h:0.6,  opacity:1, pieceId:'anvil' },
+  'bank-booth':   { name:'Bank booth',   verb:'Bank',  examine:'A sturdy wooden booth - a banker waits inside.', color:0x8c6b40, r:0.35, h:0.9,  opacity:1, pieceId:'bank_booth' },
   'poll-booth':   { name:'Poll booth',   verb:'Vote',  examine:'A small wooden booth for casting your vote.',    color:0x7a5c30, r:0.30, h:0.85, opacity:1 },
 };
 /* live registry of placed fixtures (parallels SCENERY_NODES) */
 export const FIXTURE_NODES = [];
 export function placeFixture(type, x, z){
   const d = FIXTURE_DESC[type]; if(!d) return null;
-  // simple visual mesh
-  const geo = (type === 'fishing-spot')
-    ? new THREE.CircleGeometry(0.6, 12)
-    : new THREE.CylinderGeometry(d.r || 0.3, (d.r || 0.3) * 1.15, d.h, 8);
-  const mat = new THREE.MeshStandardMaterial({ color:d.color,
-    transparent:d.opacity < 1, opacity:d.opacity,
-    emissive:(type === 'fire') ? 0x802000 : 0x000000 });
-  const inst = new THREE.Mesh(geo, mat);
-  if(type === 'fishing-spot'){ inst.rotation.x = -Math.PI/2; inst.position.set(x, 0.02, z); }
-  else { inst.position.set(x, d.h/2, z); }
+  // visual: prefer the Blender-authored kit mesh when available, else the simple primitive
+  let inst;
+  if(d.pieceId && PIECES[d.pieceId] && PIECES[d.pieceId].tpl){
+    inst = PIECES[d.pieceId].tpl.clone(true);
+    inst.position.set(x, 0, z);
+  } else {
+    const geo = (type === 'fishing-spot')
+      ? new THREE.CircleGeometry(0.6, 12)
+      : new THREE.CylinderGeometry(d.r || 0.3, (d.r || 0.3) * 1.15, d.h, 8);
+    const mat = new THREE.MeshStandardMaterial({ color:d.color,
+      transparent:d.opacity < 1, opacity:d.opacity,
+      emissive:(type === 'fire') ? 0x802000 : 0x000000 });
+    inst = new THREE.Mesh(geo, mat);
+    if(type === 'fishing-spot'){ inst.rotation.x = -Math.PI/2; inst.position.set(x, 0.02, z); }
+    else { inst.position.set(x, d.h/2, z); }
+  }
   scene.add(inst);
   // small collider only for solid fixtures (furnace/anvil); spots/fire are non-blocking
   let collider = null;
@@ -259,8 +275,10 @@ function placeMarker(x,z){   // visible placeholder landmark for fixtures withou
   const m=new THREE.Mesh(new THREE.BoxGeometry(0.8,0.9,0.8), new THREE.MeshStandardMaterial({ color:0x7a5c30, flatShading:true }));
   m.position.set(x,0.45,z); scene.add(m);
 }
-const MANIFEST_FIX = { fishing_spot:'fishing-spot', fire_ring:'fire', cooking_range:'fire',
+const MANIFEST_FIX = { fishing_spot:'fishing-spot', fire_ring:'fire', cooking_range:'range',
   furnace:'furnace', anvil:'anvil', bank_booth:'bank-booth', poll_booth:'poll-booth' };
+// marker types that now have a Blender-authored kit mesh -> place the real prop
+const MARKER_PIECE = { ladder_down:'ladder', ladder_up:'ladder', altar:'altar', signpost:'signpost', dock_planks:'dock' };
 export function instanceManifest(data){
   (data.objects || []).forEach(o => place(o.type, o.x, o.z, o.rot||0, o.scale||1));   // explicit placements
   (data.scatter || []).forEach(s => {                                                  // procedural fill
@@ -293,7 +311,8 @@ export function instanceManifest(data){
     if(MANIFEST_FIX[o.type]) placeFixture(MANIFEST_FIX[o.type], o.x, o.z);          // skilling fixtures
     else if(o.type === 'rat_spawn'){ const n=o.count||1; for(let i=0;i<n;i++) placeMob('giant-rat', o.x + i*1.3, o.z, 'Giant Rat'); }
     else if(o.type === 'practice_chicken'){ placeMob('giant-rat', o.x, o.z, 'Chicken'); }
-    else if(!PIECES[o.type]) placeMarker(o.x, o.z);                                 // landmark placeholder for not-yet-modelled props
+    else if(MARKER_PIECE[o.type]) place(MARKER_PIECE[o.type], o.x, o.z, o.rot||0, o.scale||1);   // real Blender-authored prop
+    else if(!PIECES[o.type]) placeMarker(o.x, o.z);                                 // placeholder for still-unmodelled props (gate/target/rune_rack/boat)
   } catch(e){ console.warn('[em] object', e); } });
   (data.npcs || []).forEach(n => { try { if(window.EMNPC && window.EMNPC.add) window.EMNPC.add(n); } catch(e){ console.warn('[em] npc', e); } });
 

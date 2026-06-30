@@ -19,8 +19,11 @@
      * not_started quests show a "Start quest" button; clicking it flips
        state to in_progress and persists to localStorage.
      * window.EMQUEST.complete(id) flips state to complete, increments a
-       persisted QP total, shows a centered reward scroll, plays
-       window.EMAUDIO.levelUp?.(), and fires a chat message.
+       persisted QP total, shows a centered OSRS-style parchment reward
+       scroll (quest name, new QP total, XP/item/coin rewards, Continue
+       button), plays window.EMAUDIO.levelUp?.(), and fires a chat message.
+       The scroll fires once per completion (guarded by the state==='complete'
+       early-return so re-calling complete() on an already-done quest is a no-op).
      * window.EMQUEST = { start(id), complete(id), state(id), questPoints() }
      * If EMDATA.quests is absent yet, renders a "loading..." line and
        re-renders when the 'em-data-ready' event fires.
@@ -167,38 +170,77 @@ export function initQuestsTab(){
     } catch { /* HUD not ready */ }
   }
 
+  /* --------------------------------------------------------- reward parsing */
+  // quests.json rewards are free-text strings (no structured xp/item/coins
+  // shape). Heuristically classify each line so the scroll can show an XP
+  // lamp icon, a coin icon, or a generic item icon - purely presentational,
+  // never changes the underlying data or save format.
+  const RWD_XP_RE   = /([\d,]+)\s*([A-Za-z][A-Za-z ]*?)\s+experience/i;
+  const RWD_COIN_RE = /([\d,]+)\s*coins?\b/i;
+  const RWD_QP_RE   = /quest point/i;
+
+  function classifyReward(text){
+    const s = String(text || '');
+    if(RWD_QP_RE.test(s)) return { kind: 'qp', icon: 'QP', text: s };
+    const xpM = s.match(RWD_XP_RE);
+    if(xpM) return { kind: 'xp', icon: '✨', text: s, amount: xpM[1], skill: xpM[2].trim() };
+    if(RWD_COIN_RE.test(s)) return { kind: 'coins', icon: '¤', text: s };
+    return { kind: 'item', icon: '■', text: s };
+  }
+
   /* --------------------------------------------------------- reward scroll */
-  function showRewardScroll(quest){
+  function showRewardScroll(quest, totalQP){
     const existing = document.getElementById('emq-reward-overlay');
     if(existing) existing.remove();
 
     const qp = Number(quest.questPoints) || 0;
     const rewards = Array.isArray(quest.rewards) ? quest.rewards : [];
+    const classified = rewards.map(classifyReward).filter(r => r.kind !== 'qp');
 
     let rewardsHtml = '';
-    if(rewards.length){
+    if(classified.length){
       rewardsHtml = '<ul class="emq-rwd-list">'
-        + rewards.map(r => '<li>' + esc(r) + '</li>').join('') + '</ul>';
+        + classified.map(r =>
+            '<li class="rk-' + r.kind + '"><span class="rwd-ic">' + r.icon + '</span>'
+            + '<span class="rwd-tx">' + esc(r.text) + '</span></li>'
+          ).join('')
+        + '</ul>';
     }
+
+    const total = Number.isFinite(totalQP) ? totalQP : null;
 
     const overlay = document.createElement('div');
     overlay.id = 'emq-reward-overlay';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
     overlay.innerHTML =
       '<div class="emq-scroll-wrap">'
-      + '<div class="emq-scroll-title">Quest Complete!</div>'
+      + '<div class="emq-scroll-cap emq-scroll-cap-top"></div>'
+      + '<div class="emq-scroll-body">'
+      + '<div class="emq-scroll-title">Congratulations!</div>'
+      + '<div class="emq-scroll-sub">Quest Complete!</div>'
       + '<div class="emq-scroll-name">' + esc(quest.name || quest.id) + '</div>'
-      + (qp ? '<div class="emq-scroll-qp">+' + qp + ' Quest Point' + (qp !== 1 ? 's' : '') + '</div>' : '')
-      + (rewardsHtml ? '<div class="emq-scroll-rwdhead">Rewards:</div>' + rewardsHtml : '')
+      + (qp ? '<div class="emq-scroll-qp">+' + qp + ' Quest Point' + (qp !== 1 ? 's' : '')
+              + (total !== null ? '<span class="emq-scroll-qp-total"> &mdash; Total: ' + total + '</span>' : '')
+              + '</div>'
+            : (total !== null ? '<div class="emq-scroll-qp emq-scroll-qp-notice">Total Quest Points: ' + total + '</div>' : ''))
+      + (rewardsHtml ? '<div class="emq-scroll-rwdhead">You receive:</div>' + rewardsHtml : '')
       + '<button class="emq-scroll-close" type="button">Continue</button>'
+      + '</div>'
+      + '<div class="emq-scroll-cap emq-scroll-cap-bot"></div>'
       + '</div>';
 
     document.body.appendChild(overlay);
 
     const btn = overlay.querySelector('.emq-scroll-close');
-    if(btn) btn.onclick = () => overlay.remove();
+    const dismiss = () => { if(overlay.parentNode) overlay.remove(); };
+    if(btn){ btn.onclick = dismiss; btn.focus(); }
+    overlay.addEventListener('click', (e) => { if(e.target === overlay) dismiss(); });
+    const onKey = (e) => { if(e.key === 'Escape'){ dismiss(); window.removeEventListener('keydown', onKey); } };
+    window.addEventListener('keydown', onKey);
 
-    // Auto-dismiss after 12 s.
-    setTimeout(() => { if(overlay.parentNode) overlay.remove(); }, 12000);
+    // Auto-dismiss after 14 s.
+    setTimeout(dismiss, 14000);
   }
 
   /* --------------------------------------------------------- one-time styles */
@@ -242,24 +284,64 @@ export function initQuestsTab(){
     padding:6px 18px;font-family:"Trebuchet MS",sans-serif;letter-spacing:.04em;}
   .emq-start-btn:hover{background:#3a7a36;border-color:#7acc64;}
 
-  /* ---- reward scroll overlay ---- */
-  #emq-reward-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);
-    display:flex;align-items:center;justify-content:center;z-index:99999;}
-  .emq-scroll-wrap{background:#2a2010;border:3px solid #c8a840;border-radius:10px;
-    padding:28px 36px;min-width:260px;max-width:380px;text-align:center;
-    font-family:"Trebuchet MS",sans-serif;color:#f3e9cf;box-shadow:0 0 40px #c8a84066;}
-  .emq-scroll-title{font-size:18px;font-weight:bold;color:#e7c64f;margin:0 0 6px;letter-spacing:.04em;}
-  .emq-scroll-name{font-size:14px;color:#f3e9cf;margin:0 0 14px;}
-  .emq-scroll-qp{font-size:22px;font-weight:bold;color:#5fc14b;margin:0 0 14px;letter-spacing:.02em;}
-  .emq-scroll-rwdhead{font-size:11px;letter-spacing:.08em;text-transform:uppercase;
-    color:#cdbf98;margin:0 0 5px;}
-  .emq-rwd-list{list-style:none;margin:0 0 14px;padding:0;text-align:left;}
-  .emq-rwd-list li{font-size:12px;color:#d8cba8;padding:2px 0 2px 14px;position:relative;}
-  .emq-rwd-list li:before{content:"*";position:absolute;left:2px;color:#c8a840;}
-  .emq-scroll-close{margin:4px 0 0;background:#3a2e1f;border:1px solid #c8a840;
-    color:#f3e9cf;font-size:12px;cursor:pointer;border-radius:5px;padding:5px 22px;
-    font-family:"Trebuchet MS",sans-serif;}
-  .emq-scroll-close:hover{background:#5a4422;border-color:#e7c64f;}
+  /* ---- reward scroll overlay (OSRS-style quest-complete scroll) ---- */
+  #emq-reward-overlay{position:fixed;inset:0;background:rgba(10,6,2,.78);
+    display:flex;align-items:center;justify-content:center;z-index:99999;
+    padding:16px;box-sizing:border-box;animation:emq-fade-in .18s ease-out;}
+  @keyframes emq-fade-in{from{opacity:0;}to{opacity:1;}}
+  @keyframes emq-scroll-in{from{opacity:0;transform:translateY(10px) scale(.97);}to{opacity:1;transform:none;}}
+  .emq-scroll-wrap{position:relative;width:100%;max-width:400px;max-height:88vh;
+    display:flex;flex-direction:column;
+    font-family:"Trebuchet MS",sans-serif;color:#3a2c18;
+    box-shadow:0 12px 50px rgba(0,0,0,.55), 0 0 0 1px #1d1408;
+    animation:emq-scroll-in .22s ease-out;
+    border-radius:6px;overflow:hidden;}
+  /* dark stone-bracket caps top/bottom, like a scroll rolled between posts */
+  .emq-scroll-cap{flex:0 0 14px;background:
+      linear-gradient(180deg,#5a4a32,#352616 55%,#241808);
+    border:1px solid #1d1408;}
+  .emq-scroll-cap-top{border-radius:6px 6px 0 0;border-bottom:none;}
+  .emq-scroll-cap-bot{border-radius:0 0 6px 6px;border-top:none;}
+  /* parchment body */
+  .emq-scroll-body{
+    background:
+      radial-gradient(ellipse at 30% 0%, rgba(255,250,225,.35), transparent 60%),
+      linear-gradient(180deg,#e9d9ad,#dcc78f 12%,#d8c186 60%,#cdb677 100%);
+    border-left:1px solid #1d1408;border-right:1px solid #1d1408;
+    padding:22px 26px 24px;text-align:center;overflow-y:auto;
+    box-shadow:inset 0 0 28px rgba(90,60,20,.35), inset 0 10px 18px -10px rgba(0,0,0,.3);}
+  .emq-scroll-title{font-size:20px;font-weight:bold;color:#7a1f12;margin:0 0 2px;
+    letter-spacing:.03em;text-shadow:0 1px 0 rgba(255,255,255,.25);}
+  .emq-scroll-sub{font-size:13px;font-weight:bold;color:#4a3318;margin:0 0 12px;
+    text-transform:uppercase;letter-spacing:.12em;}
+  .emq-scroll-name{font-size:15px;font-weight:bold;color:#2a1c0c;margin:0 0 14px;
+    padding-bottom:10px;border-bottom:2px solid rgba(90,60,20,.3);}
+  .emq-scroll-qp{font-size:17px;font-weight:bold;color:#1f6b2c;margin:0 0 14px;letter-spacing:.02em;}
+  .emq-scroll-qp-notice{color:#4a3318;font-size:14px;}
+  .emq-scroll-qp-total{display:block;font-size:12px;font-weight:normal;color:#4a3318;margin-top:2px;}
+  .emq-scroll-rwdhead{font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+    color:#5a4220;margin:0 0 6px;font-weight:bold;}
+  .emq-rwd-list{list-style:none;margin:0 0 16px;padding:0;text-align:left;
+    background:rgba(255,250,230,.35);border:1px solid rgba(90,60,20,.25);border-radius:6px;padding:8px 10px;}
+  .emq-rwd-list li{font-size:12.5px;color:#3a2c18;padding:3px 0 3px 22px;position:relative;line-height:1.35;}
+  .emq-rwd-list li .rwd-ic{position:absolute;left:0;top:2px;width:16px;text-align:center;
+    font-size:12px;color:#8a6a1c;}
+  .emq-rwd-list li.rk-xp .rwd-ic{color:#1f6b2c;}
+  .emq-rwd-list li.rk-coins .rwd-ic{color:#a8860a;font-weight:bold;}
+  .emq-rwd-list li.rk-item .rwd-ic{color:#5a3f28;}
+  .emq-scroll-close{margin:4px auto 0;display:block;background:linear-gradient(180deg,#5a4422,#3a2e1f);
+    border:1px solid #c8a840;color:#f3e9cf;font-size:13px;font-weight:bold;cursor:pointer;
+    border-radius:6px;padding:8px 28px;font-family:"Trebuchet MS",sans-serif;letter-spacing:.04em;
+    box-shadow:0 2px 0 rgba(0,0,0,.3);min-height:38px;}
+  .emq-scroll-close:hover{background:linear-gradient(180deg,#6a5430,#4a3a24);border-color:#e7c64f;}
+  .emq-scroll-close:active{transform:translateY(1px);box-shadow:none;}
+  @media (max-width: 480px){
+    .emq-scroll-wrap{max-width:100%;}
+    .emq-scroll-body{padding:18px 16px 20px;}
+    .emq-scroll-title{font-size:18px;}
+    .emq-scroll-name{font-size:14px;}
+    .emq-scroll-close{width:100%;padding:11px 18px;}
+  }
   `;
   const st = document.createElement('style');
   st.textContent = css;
@@ -444,14 +526,16 @@ export function initQuestsTab(){
         : questListWithOverrides().reduce(function(a, x){
             return a + (x.state === 'complete' && x.id !== id ? (Number(x.questPoints) || 0) : 0);
           }, 0);
-      savePersistedQP(baseQP + qp);
+      const newTotalQP = baseQP + qp;
+      savePersistedQP(newTotalQP);
 
       // Mirror onto live EMDATA.
       const live = questList().find(function(x){ return x && x.id === id; });
       if(live) live.state = 'complete';
 
-      // Show reward scroll.
-      showRewardScroll(q);
+      // Show reward scroll (once per completion - guarded by the early-return
+      // above on state === 'complete').
+      showRewardScroll(q, newTotalQP);
 
       // Play level-up sound.
       try {

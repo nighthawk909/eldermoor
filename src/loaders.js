@@ -18,7 +18,7 @@ let loaded = 0;
    content-data registry fetch (quests/emotes/.../lessons) - overlay clears only
    when ALL expected loads resolve, so scenery/NPCs/content never pop in after
    the loading screen has already faded. */
-const KIT_PIECE_COUNT = 3;
+const KIT_PIECE_COUNT = Object.keys(PIECES).length;   // dynamic: tree/bush/rock + zone fixtures
 const EXPECTED_LOADS = 2 + KIT_PIECE_COUNT + NPCS.filter(n => n.glb).length + 1 /* content-data registry */;
 /* Safety net: never let the overlay hang forever if one load silently never
    settles (every loader.load() error path already calls maybeReady(), and

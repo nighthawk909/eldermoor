@@ -1,0 +1,83 @@
+# ASSET_LICENSES.md — external (downloaded) 3D assets
+
+All third-party assets live under `assets/ext/`. **Every file below is CC0 (public domain)
+or otherwise free for commercial use with no required attribution.** Attribution is logged
+here anyway as a courtesy and for provenance. None of these assets are from RuneScape/Jagex
+or any proprietary source.
+
+---
+
+## 1. KayKit — Adventurers Character Pack 1.0
+
+- **Author:** Kay Lousberg — https://www.kaylousberg.com
+- **Source URL:** https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0
+  (also distributed at https://kaylousberg.itch.io/kaykit-adventurers)
+- **License:** **CC0 1.0 Universal** (Creative Commons Zero, public domain).
+  http://creativecommons.org/publicdomain/zero/1.0/
+- **Attribution required?** **No.** (Crediting "Kay Lousberg, www.kaylousberg.com" is
+  appreciated but optional per the pack LICENSE.txt.)
+- **License file kept:** `assets/ext/KayKit-Adventurers-LICENSE.txt`
+
+### Characters (rigged + animated, self-contained `.glb`)
+Raw download base:
+`https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0/main/addons/kaykit_character_pack_adventures/Characters/gltf/<Name>.glb`
+
+| File | Rigged | Animations | Notes |
+|------|--------|-----------|-------|
+| `assets/ext/characters/Knight.glb`        | yes (1 skin) | 75 | plate-armour humanoid |
+| `assets/ext/characters/Mage.glb`          | yes (1 skin) | 76 | robed caster |
+| `assets/ext/characters/Rogue.glb`         | yes (1 skin) | 75 | leather/hood-down |
+| `assets/ext/characters/Rogue_Hooded.glb`  | yes (1 skin) | 75 | hooded variant |
+| `assets/ext/characters/Barbarian.glb`     | yes (1 skin) | 75 | bare-chest brute |
+
+### Gear / weapons / shields (static single-mesh `.gltf` + sibling `.bin` + shared texture PNG)
+Raw download base:
+`https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0/main/addons/kaykit_character_pack_adventures/Assets/gltf/<file>`
+
+Each `.gltf` references its own `.bin` and one shared atlas texture
+(`knight_texture.png` etc.). All three files for each piece are present in `assets/ext/gear/`.
+
+- `sword_1handed.gltf` (+ .bin)   — one-handed sword
+- `sword_2handed.gltf` (+ .bin)   — greatsword
+- `dagger.gltf` (+ .bin)          — dagger
+- `axe_1handed.gltf` (+ .bin)     — hand axe
+- `axe_2handed.gltf` (+ .bin)     — battleaxe
+- `shield_round.gltf` (+ .bin)    — round shield
+- `shield_square.gltf` (+ .bin)   — kite/square shield
+- `shield_badge.gltf` (+ .bin)    — heater/badge shield
+- `shield_spikes.gltf` (+ .bin)   — spiked shield
+- `staff.gltf` (+ .bin)           — mage staff
+- `wand.gltf` (+ .bin)            — wand
+- `crossbow_1handed.gltf` (+ .bin)— crossbow
+- `quiver.gltf` (+ .bin)          — back quiver
+- `spellbook_closed.gltf` (+ .bin)— spellbook
+- shared atlas textures: `knight_texture.png`, `mage_texture.png`,
+  `rogue_texture.png`, `barbarian_texture.png` (1024×1024 gradient atlas)
+
+> **No separate helmet/cape mesh ships in the free Adventurers tier.** Helm/cloak are baked
+> into the character models (e.g. Knight's helmet, Mage's robe, Rogue_Hooded's hood). If a
+> detachable helmet/cape is required later, KayKit's *Dungeon Remastered* pack (also CC0,
+> https://github.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0) and Quaternius's CC0
+> fantasy packs (https://quaternius.com) have separate accessory meshes.
+
+---
+
+## 2. RobotExpressive (bonus rigged humanoid — fallback / test rig)
+
+- **File:** `assets/ext/characters/RobotExpressive.glb`
+- **Author:** Tomás Laulhé (Quaternius); modified by Don McCurdy.
+- **Source URL:** https://github.com/mrdoob/three.js/blob/dev/examples/models/gltf/RobotExpressive/RobotExpressive.glb
+- **License:** **CC0 1.0** (public domain). https://creativecommons.org/publicdomain/zero/1.0/
+- **Attribution required?** No.
+- **Notes:** Fully rigged, multiple named animations (Walking, Running, Idle, Dance, Death,
+  Jump, Wave, etc.). Stylized robot, not a fantasy human — included only as a guaranteed-good
+  rigged GLTFLoader test/fallback rig, not the production avatar.
+
+---
+
+## Verification
+
+Every `.glb` begins with the ASCII magic `glTF` (`head -c4 <file>` == `glTF`); every gear
+`.gltf` is valid JSON whose `uri` references (`.bin` + texture PNG) resolve to sibling files
+in the same folder; every texture PNG begins with the PNG magic `\x89PNG`. Confirmed at
+download time.

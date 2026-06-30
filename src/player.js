@@ -29,6 +29,19 @@ if(typeof window !== 'undefined') window.EMRUN = run;
 
 export const rig = {};   // named limb pivots → swung for the walk cycle
 
+/* ---- combat animation state (CBT-ANIM) -------------------------------------
+   Lightweight, asset-free feedback driven entirely off the existing rig pivots
+   (or the player group's own scale, if a rig isn't loaded yet): a brief
+   arm-swing "lunge" on attack, and a fall/fade on death. combat.js only ever
+   sets flags here (playerAnim.attackT / .dead) - all the actual per-frame
+   pose math lives in simStep below, alongside the walk-cycle driver, so there
+   is exactly one place that writes rig rotations each frame. */
+export const playerAnim = { attackT: 0, dead: false, deadT: 0 };
+export function playSwingAnim(){ playerAnim.attackT = 1; }   // combat.js calls this on every player swing
+export function playDeathAnim(){ playerAnim.dead = true; playerAnim.deadT = 0; }
+export function clearDeathAnim(){ playerAnim.dead = false; playerAnim.deadT = 0; player.rotation.z = 0; player.scale.set(1,1,1); }
+if(typeof window !== 'undefined') window.EMPLAYERANIM = playerAnim;
+
 /* altar glow - pulses warm when prayed at (glow.t shared with dialogue.prayAtAltar) */
 export const altarGlow = new THREE.PointLight(col('#ffe2a0'), 0, 7, 2);
 altarGlow.position.set(0, 1.3, -4.0); scene.add(altarGlow);
@@ -43,6 +56,9 @@ export function arrive(){           // in range of the pending target → act on
     player.rotation.y = Math.atan2(t.x - pos.x, t.z - pos.z);
     if(t.lines) talk(t);                        // NPC → dialogue
     else if(t.kind === 'altar') prayAtAltar();  // object → its action
+    else if(t.kind === 'mob'){                  // mob → arrived in melee range, begin/resume the attack
+      if(window.EMCOMBAT) EMCOMBAT.attack(t);
+    }
     else if(t.kind === 'scenery'){              // scenery → fixture-aware routing, then skilling engine
       if(t.fixture === 'bank-booth'){
         if(window.EMBANK) EMBANK.open();
@@ -113,6 +129,29 @@ export function simStep(dt){
   if(rig.armL){ rig.armL.rotation.x = -sw*0.6;    rig.armR.rotation.x =  sw*0.6; }
   const bob = move.moving ? Math.abs(Math.sin(walkPhase))*0.05 : 0;
   player.position.set(pos.x, bob, pos.z);
+
+  // CBT-ANIM: brief attack lunge - a fast forward swing of the right arm (and a
+  // small forward weight-shift on the whole group) that decays to 0 over ~0.35s.
+  // Overrides the walk-cycle arm pose for its duration; harmless if no rig loaded.
+  if(playerAnim.attackT > 0){
+    playerAnim.attackT = Math.max(0, playerAnim.attackT - dt*2.85);
+    const k = Math.sin(playerAnim.attackT * Math.PI);   // 0 → 1 → 0 swing envelope
+    if(rig.armR) rig.armR.rotation.x = -1.1 * k;
+    player.position.z += Math.sin(player.rotation.y) * 0.0 ; // (heading-aligned lunge handled via scale below)
+    player.scale.set(1, 1, 1 + k*0.04);                  // tiny forward punch, asset-free
+  } else if(!playerAnim.dead){
+    player.scale.set(1,1,1);
+  }
+
+  // CBT-ANIM: death - topple + sink + fade over ~0.7s (matches combat.js's playerDeath
+  // timing), then clearDeathAnim() (called by combat.js on respawn) resets the pose.
+  if(playerAnim.dead){
+    playerAnim.deadT = Math.min(1, playerAnim.deadT + dt/0.7);
+    const t = playerAnim.deadT;
+    player.rotation.z = -t * (Math.PI/2.1);   // topple onto its side
+    player.position.y = bob - t * 0.55;       // sink into the ground
+    player.scale.set(1 - t*0.25, 1 - t*0.25, 1 - t*0.25);
+  }
 
   if(marker.visible){
     markerStep(dt);    // fade/scale the click marker (state owned by interact.js)

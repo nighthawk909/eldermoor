@@ -29,12 +29,12 @@ function Kick() {
 function Scene({ silhouette }: { silhouette: boolean }) {
   return (
     <>
-      <color attach="background" args={[silhouette ? '#9a9da2' : '#191b1f']} />
-      {/* three-point-ish flat lighting that makes facets read */}
-      <ambientLight intensity={silhouette ? 0.0 : 0.5} />
-      <directionalLight position={[4, 7, 5]} intensity={silhouette ? 0 : 1.6} color="#fff0d8" />
-      <directionalLight position={[-5, 3, 2]} intensity={silhouette ? 0 : 0.5} color="#9fb6d8" />
-      <directionalLight position={[0, 3, -6]} intensity={silhouette ? 0 : 0.5} color="#ffe0b0" />
+      <color attach="background" args={[silhouette ? '#9a9da2' : '#1c1f24']} />
+      {/* three-point-ish flat lighting, bright enough that facets read */}
+      <ambientLight intensity={silhouette ? 0.0 : 0.75} />
+      <directionalLight position={[4, 7, 5]} intensity={silhouette ? 0 : 2.4} color="#fff1da" />
+      <directionalLight position={[-5, 3, 2]} intensity={silhouette ? 0 : 0.8} color="#a6bce0" />
+      <directionalLight position={[0, 4, -6]} intensity={silhouette ? 0 : 0.7} color="#ffe2b4" />
 
       <group position={[0, 0, 0]}>
         <MageCharacter silhouette={silhouette} />
@@ -52,12 +52,14 @@ function Scene({ silhouette }: { silhouette: boolean }) {
 }
 
 export default function App() {
-  const [silhouette, setSilhouette] = useState(false);
+  const [silhouette, setSilhouette] = useState(
+    typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('sil'),
+  );
   return (
     <div style={{ position: 'fixed', inset: 0, background: '#191b1f' }}>
       <Canvas
         frameloop={STILL ? 'demand' : 'always'}
-        camera={{ position: [2.0, 1.5, 4.4], fov: 40 }}
+        camera={{ position: [1.7, 1.35, 3.9], fov: 42 }}
         gl={{ antialias: true, preserveDrawingBuffer: true }}
         onCreated={({ gl }) => {
           gl.outputColorSpace = THREE.SRGBColorSpace;

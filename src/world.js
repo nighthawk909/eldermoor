@@ -133,13 +133,26 @@ export function planPath(tx,tz){            // new player command → fresh path
   move.dest = {x:clampX(tx), z:clampZ(tz)}; move._replan = 0; replan();
 }
 
+/* the world's spawn point (x, z, facing) - captured from the colliders sidecar so
+   death/respawn (CBT death model) can return the player here without hand-coding
+   a duplicate coordinate. Defaults to the player module's built-in fallback spawn
+   until applyColliders() runs. */
+export const SPAWN = { x: pos.x, z: pos.z, ry: player.rotation.y };
+
+/* reset the player to the world spawn point (used by applyColliders on load AND by
+   combat.js on player death/respawn - same honest "teleport home" semantics both times). */
+export function respawnAtSpawn(){
+  pos.set(SPAWN.x, 0, SPAWN.z); player.position.copy(pos);
+  player.rotation.y = SPAWN.ry || 0; move.path = []; move.pending = null; move.moving = false;
+}
+
 /* apply the kit\'s collider/nav sidecar: walls, props, bounds, spawn, then bake the path grid */
 export function applyColliders(data){
   if(data.bound){ const b=data.bound; BOUND.x0=b[0]; BOUND.x1=b[1]; BOUND.z0=b[2]; BOUND.z1=b[3]; }
   (data.rects   || []).forEach(r => RECTS.push({x0:r[0], x1:r[1], z0:r[2], z1:r[3]}));
   (data.circles || []).forEach(c => CIRCLES.push({x:c[0], z:c[1], r:c[2]}));
-  if(data.spawn){ pos.set(data.spawn[0], 0, data.spawn[1]); player.position.copy(pos);
-    player.rotation.y = data.spawn[2] || 0; move.path = []; move.pending = null; }
+  if(data.spawn){ SPAWN.x = data.spawn[0]; SPAWN.z = data.spawn[1]; SPAWN.ry = data.spawn[2] || 0;
+    respawnAtSpawn(); }
   buildGrid();
 }
 

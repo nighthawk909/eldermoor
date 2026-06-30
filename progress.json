@@ -1,5 +1,5 @@
 {
-  "updated": 1782857589147,
+  "updated": 1782857950287,
   "version": "v38",
   "note": "Live fleet board. Reflects v36 owner QA + browser screenshots. Character art (studio + in-world avatar/creator) owned by a separate chat. Statuses: queued | building | review | requeue | shipped | done | blocked | failed.",
   "board": [
@@ -205,28 +205,28 @@
       "id": "C6",
       "epic": "HUD",
       "title": "Skills tab guide + tooltip",
-      "status": "queued",
-      "agent": null,
-      "note": "",
-      "ts": 0
+      "status": "building",
+      "agent": "builder-skillguide",
+      "note": "skill guide panel",
+      "ts": 1782857924906
     },
     {
       "id": "C9",
       "epic": "Camera",
       "title": "Camera arrow/WASD + MMB",
-      "status": "queued",
-      "agent": null,
-      "note": "",
-      "ts": 0
+      "status": "shipped",
+      "agent": "builder-camera",
+      "note": "already implemented (commit 257b288); live in v38",
+      "ts": 1782857950287
     },
     {
       "id": "C11",
       "epic": "Interaction",
       "title": "Scenery forgiving-tap",
-      "status": "queued",
-      "agent": null,
-      "note": "",
-      "ts": 0
+      "status": "review",
+      "agent": "builder-interact",
+      "note": "scenery forgiving-tap fallback already present in pickAt (mirrors NPC/OBJECT proximity logic, radius 1.2, iterates live clickTargets so depleted nodes are excluded); verified no defect, no code change needed; node --check passes",
+      "ts": 1782857937919
     },
     {
       "id": "C12",

@@ -108,29 +108,30 @@ export function MageCharacter({ silhouette = false }: { silhouette?: boolean }) 
         <M color={C.torso} sil={sil} />
       </mesh>
 
-      {/* sloped shoulders */}
+      {/* sloped shoulders (gentle slope, tucked so no facet juts out) */}
       {[-1, 1].map((s) => (
-        <mesh key={s} geometry={g.shoulder} position={[s * 0.26, 1.46, 0]} rotation={[0, 0, s * 0.5]}>
+        <mesh key={s} geometry={g.shoulder} position={[s * 0.24, 1.47, 0]} rotation={[0, 0, s * 0.32]}>
           <M color={C.shoulder} sil={sil} />
         </mesh>
       ))}
 
-      {/* sleeves -> hands */}
-      <group name="leftSleeve" position={[-0.3, 1.5, 0.02]} rotation={[0, 0, 0.12]}>
+      {/* sleeves -> hands (angled out so the arms read; hands lower) */}
+      <group name="leftSleeve" position={[-0.32, 1.5, 0.04]} rotation={[0, 0, 0.22]}>
         <mesh geometry={g.sleeve}><M color={C.sleeve} sil={sil} /></mesh>
-        <mesh name="leftHand" geometry={g.hand} position={[0, -0.62, 0.04]}>
+        <mesh name="leftHand" geometry={g.hand} position={[-0.04, -0.62, 0.05]}>
           <M color={C.skin} sil={sil} />
         </mesh>
       </group>
-      <group name="rightSleeve" position={[0.3, 1.5, 0.02]} rotation={[0, 0, -0.12]}>
+      <group name="rightSleeve" position={[0.32, 1.5, 0.04]} rotation={[0, 0, -0.16]}>
         <mesh geometry={g.sleeve}><M color={C.sleeve} sil={sil} /></mesh>
-        <mesh name="rightHand" geometry={g.hand} position={[0.04, -0.62, 0.08]}>
+        <mesh name="rightHand" geometry={g.hand} position={[0.1, -0.64, 0.16]}>
           <M color={C.skin} sil={sil} />
         </mesh>
       </group>
 
-      {/* dark recessed face, set back inside the hood opening */}
-      <mesh name="face" geometry={g.torso} scale={[0.62, 0.85, 0.5]} position={[0, 1.6, 0.04]}>
+      {/* dark recessed face — smaller + lower so it reads as a shadowed face,
+          not a window; set back into the hood. */}
+      <mesh name="face" geometry={g.torso} scale={[0.5, 0.5, 0.42]} position={[0, 1.5, 0.05]}>
         <M color={C.face} sil={sil} />
       </mesh>
 
@@ -142,8 +143,8 @@ export function MageCharacter({ silhouette = false }: { silhouette?: boolean }) 
         <M color={C.hood} sil={sil} />
       </mesh>
 
-      {/* staff in the right hand, crystal on top */}
-      <group name="staff" ref={staff} position={[0.38, 0, 0.1]} rotation={[0, 0, -0.04]}>
+      {/* staff in the right hand, crystal on top (out + forward so the shaft reads) */}
+      <group name="staff" ref={staff} position={[0.46, 0, 0.26]} rotation={[0, 0, -0.05]}>
         <mesh geometry={g.staff}><M color={C.staff} sil={sil} /></mesh>
         <mesh name="crystal" geometry={g.crystal} position={[0, 2.08, 0]}>
           {sil

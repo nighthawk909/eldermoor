@@ -21,6 +21,16 @@
  *
  * Usage (wired from main.js): `import { initSkillGuide } from './skill-guide.js';
  * initSkillGuide();`
+ *
+ * Public API (window.EMSKILLGUIDE, set once initSkillGuide() has run):
+ *   EMSKILLGUIDE.open(skillId)    - open the guide popup for a skill id
+ *                                   (e.g. 'attack', 'mining'); matches skills.json ids.
+ *   EMSKILLGUIDE.tooltip(skillId) - returns { html, xp, level, nextXp, remaining, maxed }
+ *                                   for a skill id, or null if unavailable. Does not
+ *                                   render anything itself - callers (e.g. a future
+ *                                   Skills-tab hover) decide how/where to show it.
+ *   EMSKILLGUIDE.close()          - close the guide popup.
+ *   EMSKILLGUIDE.isOpen()         - whether the guide popup is currently open.
  */
 
 const STYLE_ID = 'em-skillguide-style';
@@ -273,6 +283,19 @@ function skillForCell(cell) {
   return null;
 }
 
+// Resolve the skill descriptor by id (matches skills.json `s.id`, e.g. 'attack').
+// Case-insensitive; accepts the display name too as a convenience fallback.
+function skillById(skillId) {
+  const h = hud();
+  if (!h || typeof h.getSkills !== 'function' || !skillId) return null;
+  const sk = h.getSkills();
+  if (!sk || !Array.isArray(sk.skills)) return null;
+  const key = String(skillId).toLowerCase();
+  return sk.skills.find(s => (s.id || '').toLowerCase() === key)
+    || sk.skills.find(s => (s.name || '').toLowerCase() === key)
+    || null;
+}
+
 // Compute { xp, level, nextXp, remaining, maxed } for a skill id.
 function progressFor(skillId) {
   const h = hud();
@@ -312,9 +335,10 @@ function fmt(n) {
 
 /* --- SK2: hover tooltip -------------------------------------------------- */
 
-// Build tooltip HTML for a skill cell. Returns '' if data unavailable.
-function tipHtml(cell) {
-  const skill = skillForCell(cell);
+// Build tooltip HTML for an already-resolved skill descriptor. Returns '' if
+// data unavailable. Shared core for both the hover tooltip (by cell) and the
+// public EMSKILLGUIDE.tooltip(skillId) API.
+function tipHtmlForSkill(skill) {
   if (!skill) return '';
   const p = progressFor(skill.id);
   if (!p) return '';
@@ -327,6 +351,33 @@ function tipHtml(cell) {
     + `<div class="em-sg-tip-sub">Current XP: ${fmt(p.xp)}</div>`
     + `<div class="em-sg-tip-sub">Next level: ${fmt(p.nextXp)} xp</div>`
     + `<div class="em-sg-tip-sub">Remaining: ${fmt(p.remaining)} xp</div>`;
+}
+
+// Build tooltip HTML for a skill cell. Returns '' if data unavailable.
+function tipHtml(cell) {
+  return tipHtmlForSkill(skillForCell(cell));
+}
+
+// Public: full tooltip data + rendered HTML for a skill id. Returns null if
+// EMHUD / the skill / xp data is unavailable. Does not render or position
+// anything - that is left to the caller (the HUD's hover handling, or
+// whatever future Skills-tab UI wants to display it).
+function tooltipFor(skillId) {
+  const skill = skillById(skillId);
+  if (!skill) return null;
+  const p = progressFor(skill.id);
+  if (!p) return null;
+  return {
+    html: tipHtmlForSkill(skill),
+    skillId: skill.id,
+    name: skill.name,
+    icon: skill.icon || '',
+    xp: p.xp,
+    level: p.level,
+    nextXp: p.nextXp,
+    remaining: p.remaining,
+    maxed: p.maxed
+  };
 }
 
 // Self-styled fallback tooltip element (used only when EMTIP is absent).
@@ -383,8 +434,9 @@ function closePopup() {
   popupOpen = false;
 }
 
-function openPopup(cell) {
-  const skill = skillForCell(cell);
+// Open the guide popup for an already-resolved skill descriptor. Shared core
+// for both the cell-click handler (SK1) and the public EMSKILLGUIDE.open(skillId).
+function openPopupForSkill(skill) {
   if (!skill) return;
   const p = progressFor(skill.id);
   const level = p ? p.level : 1;

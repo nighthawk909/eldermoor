@@ -40,7 +40,14 @@ export const playerAnim = { attackT: 0, dead: false, deadT: 0 };
 export function playSwingAnim(){ playerAnim.attackT = 1; }   // combat.js calls this on every player swing
 export function playDeathAnim(){ playerAnim.dead = true; playerAnim.deadT = 0; }
 export function clearDeathAnim(){ playerAnim.dead = false; playerAnim.deadT = 0; player.rotation.z = 0; player.scale.set(1,1,1); }
-if(typeof window !== 'undefined') window.EMPLAYERANIM = playerAnim;
+/* exposed for combat.js (window-global accessor convention, same as EMPLAYERPOS/EMRIG)
+   so death/attack feedback can be driven without a direct ES import. */
+if(typeof window !== 'undefined'){
+  window.EMPLAYERANIM = playerAnim;
+  window.playSwingAnim = playSwingAnim;
+  window.playDeathAnim = playDeathAnim;
+  window.clearDeathAnim = clearDeathAnim;
+}
 
 /* altar glow - pulses warm when prayed at (glow.t shared with dialogue.prayAtAltar) */
 export const altarGlow = new THREE.PointLight(col('#ffe2a0'), 0, 7, 2);
@@ -137,7 +144,6 @@ export function simStep(dt){
     playerAnim.attackT = Math.max(0, playerAnim.attackT - dt*2.85);
     const k = Math.sin(playerAnim.attackT * Math.PI);   // 0 → 1 → 0 swing envelope
     if(rig.armR) rig.armR.rotation.x = -1.1 * k;
-    player.position.z += Math.sin(player.rotation.y) * 0.0 ; // (heading-aligned lunge handled via scale below)
     player.scale.set(1, 1, 1 + k*0.04);                  // tiny forward punch, asset-free
   } else if(!playerAnim.dead){
     player.scale.set(1,1,1);

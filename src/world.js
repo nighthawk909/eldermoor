@@ -384,9 +384,14 @@ export function tickRespawns(dt){
     if(node._respawn <= 0) _restore(node);
   }
 }
-/* expose the depletion model on window for the main loop + gather actions */
+/* expose the depletion model on window for the main loop + gather actions, plus
+   planPath/respawnAtSpawn (CBT path-to-mob + death/respawn) so combat.js can drive
+   the existing movement plumbing without a direct ES import (matches combat.js's
+   established "read window.EM* lazily" convention - see its THREE_/HUD/DATA/EQUIP
+   accessors - so it keeps working regardless of module load order). */
 if(typeof window !== 'undefined'){
   window.EMWORLD = Object.assign(window.EMWORLD || {}, {
-    deplete, isDepleted, tickRespawns, gatherNode, nodes: SCENERY_NODES });
+    deplete, isDepleted, tickRespawns, gatherNode, nodes: SCENERY_NODES,
+    planPath, respawnAtSpawn, spawn: SPAWN });
   window.EMMOB = { place: placeMob, nodes: MOB_NODES };
 }

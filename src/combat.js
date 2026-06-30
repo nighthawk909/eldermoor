@@ -25,6 +25,14 @@ function THREE_()  { return (typeof window !== 'undefined') ? window.THREE   : u
 function HUD()     { return (typeof window !== 'undefined') ? window.EMHUD   : undefined; }
 function DATA()    { return (typeof window !== 'undefined') ? window.EMDATA  : undefined; }
 function EQUIP()   { return (typeof window !== 'undefined') ? window.EMEQUIP : undefined; }
+function MOVE_()   { return (typeof window !== 'undefined') ? window.EMMOVE  : undefined; }
+function WORLD_()  { return (typeof window !== 'undefined') ? window.EMWORLD : undefined; }
+
+/* CBT-ANIM: trigger the lightweight, asset-free swing/death poses that player.js
+   drives every frame off the existing rig pivots (see player.js's playerAnim). */
+function playSwing()   { if (typeof window !== 'undefined' && window.playSwingAnim)  window.playSwingAnim(); }
+function playDeath()   { if (typeof window !== 'undefined' && window.playDeathAnim)  window.playDeathAnim(); }
+function clearDeath()  { if (typeof window !== 'undefined' && window.clearDeathAnim) window.clearDeathAnim(); }
 
 /* ---- defaults (used only to fill gaps in a partial/missing config) ------- */
 const FALLBACK_STYLE_DEFS = {
@@ -481,17 +489,23 @@ export function initCombat() {
     } catch (e) { /* ignore */ }
   }
 
-  /* player death: message, fade, stop combat, restore full HP at spawn.
-     Position reset is external (window.EMPLAYERPOS owner); we only honestly
-     restore the HP pool and disengage so combat is genuinely two-sided. */
+  /* player death: message, fade + fall animation, stop combat, then after a brief
+     beat respawn at the world spawn point with HP fully restored (CBT death model).
+     Position reset uses world.js's respawnAtSpawn() (exposed on window.EMWORLD) so
+     this stays the single honest "teleport home" path shared with initial load. */
   function playerDeath() {
     state.dying = true;
     chat('Oh dear, you are dead!');
     deathFade();
+    playDeath();
     stop();
     setTimeout(() => {
+      const w = WORLD_();
+      if (w && typeof w.respawnAtSpawn === 'function') w.respawnAtSpawn();
       restorePlayerHp();
+      clearDeath();
       state.dying = false;
+      chat('You have respawned.');
     }, 700);
   }
 
@@ -619,6 +633,7 @@ export function initCombat() {
     // ---- player swing (CBT accuracy + damage roll) ----
     if (state.playerCd <= 0) {
       const cfg  = CFG || FALLBACK;
+      playSwing();   // CBT-ANIM: lunge on every swing, hit or miss (ranged + melee alike)
 
       if (usingRanged) {
         // ---- RANGED PATH ----

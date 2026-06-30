@@ -38,10 +38,31 @@ export function initAudio(){
 
   const clamp01 = v => Math.max(0, Math.min(1, Number(v)||0));
 
+  // Real control ids the settings tab persists (assets/data/settings.json,
+  // group "audio") - maps each mixer bus to its volume(0-100)/mute control.
+  const SETTINGS_IDS = {
+    master: { vol:'masterVolume', mute:'masterMute' },
+    music:  { vol:'musicVolume',  mute:'musicMute'  },
+    sfx:    { vol:'sfxVolume',    mute:'sfxMute'     },
+  };
+
   // Pull any user-configured volumes/mutes from the global settings object.
+  // Primary path: window.EMSETTINGS.get(id) (the real persisted store built
+  // by settings-tab.js, values 0-100). Legacy/alternate shape
+  // { volume:{bus}, mute:{bus} } (0-1) is also honoured if present, so this
+  // stays compatible with any other EMSETTINGS producer.
   function readSettings(){
     const s = (typeof window !== 'undefined' && window.EMSETTINGS) || null;
     if(!s) return;
+    if(typeof s.get === 'function'){
+      for(const bus of ['master','music','sfx']){
+        const ids = SETTINGS_IDS[bus];
+        const v = s.get(ids.vol);
+        if(v != null && isFinite(Number(v))) vol[bus] = clamp01(Number(v) / 100);
+        const m = s.get(ids.mute);
+        if(m != null) muted[bus] = !!m;
+      }
+    }
     if(s.volume){
       for(const bus of ['master','music','sfx']){
         if(s.volume[bus] != null) vol[bus] = clamp01(s.volume[bus]);
@@ -189,31 +210,102 @@ export function initAudio(){
     cave:    [82.41, 110.00, 123.47],           // E, dark + close
   };
 
+  // ---- real per-zone/per-track resolution (assets/data/music.json) -----
+  // music.json maps track -> zone via { tracks:[{id,name,unlockArea,locked,
+  // loop}] }. playZone() accepts either a zone id (legacy ZONE_CHORDS key,
+  // e.g. "chapel") OR a track id (e.g. "candlelit-vows", as used by the
+  // jukebox tab) and resolves it to a real track + chord. No sample files
+  // exist yet, so each resolved track still renders through the procedural
+  // pad synth below - but the track identity now genuinely drives which
+  // voicing plays, instead of every track collapsing to "default".
+  function musicTracks(){
+    const d = (typeof window !== 'undefined') && window.EMDATA;
+    const m = d && d.music;
+    return (m && Array.isArray(m.tracks)) ? m.tracks : [];
+  }
+
+  function trackById(id){
+    return musicTracks().find(t => t && t.id === id) || null;
+  }
+
+  // First unlocked track whose unlockArea matches a given zone id.
+  function trackForZone(zoneId){
+    if(!zoneId) return null;
+    return musicTracks().find(t => t && t.unlockArea === zoneId) || null;
+  }
+
+  // Deterministic string hash -> a small detune/transpose so every distinct
+  // track id gets its own stable, recognizable voicing (no two tracks that
+  // share a base chord sound identical) without needing real audio assets.
+  function hashStr(s){
+    let h = 0;
+    for(let i = 0; i < s.length; i++){ h = (h * 31 + s.charCodeAt(i)) | 0; }
+    return Math.abs(h);
+  }
+
+  // Resolve any id (track id or legacy zone id) to { chordKey, chord,
+  // transpose, loop, trackId, zoneId, label }. Locked tracks never auto-play
+  // their own voicing - they fall back to their zone's base chord (still
+  // genuinely zone-specific, just without the per-track transpose flourish).
+  function resolveMusic(id){
+    if(!id) return { chordKey:'default', chord:ZONE_CHORDS.default, transpose:1, loop:true, trackId:null, zoneId:null };
+
+    // 1) id is a known zone key in ZONE_CHORDS -> prefer its unlocked track.
+    if(ZONE_CHORDS[id]){
+      const t = trackForZone(id);
+      if(t && !t.locked){
+        return { chordKey:id, chord:ZONE_CHORDS[id], transpose: 1 + (hashStr(t.id) % 7) / 100,
+                 loop: t.loop !== false, trackId:t.id, zoneId:id, label:t.name };
+      }
+      return { chordKey:id, chord:ZONE_CHORDS[id], transpose:1, loop:true, trackId:null, zoneId:id };
+    }
+
+    // 2) id is a track id from music.json -> use its own (unlocked) area
+    //    chord as a base, with a per-track transpose so it reads distinct.
+    const t = trackById(id);
+    if(t && !t.locked){
+      const base = ZONE_CHORDS[t.unlockArea] || ZONE_CHORDS.default;
+      return { chordKey: t.unlockArea || 'default', chord: base,
+                transpose: 1 + (hashStr(t.id) % 7) / 100,
+                loop: t.loop !== false, trackId:t.id, zoneId:t.unlockArea || null, label:t.name };
+    }
+
+    // 3) nothing resolves (unknown id, or a locked track) -> default pad.
+    return { chordKey:'default', chord:ZONE_CHORDS.default, transpose:1, loop:true, trackId:null, zoneId:null };
+  }
+
   function stopZone(){
     if(!zone) return;
     const z = zone; zone = null;
     if(!ctx){ return; }
     const t = ctx.currentTime;
-    // gentle fade then stop so swaps don\'t pop
+    // gentle fade then stop so swaps crossfade rather than pop
     z.gain.gain.cancelScheduledValues(t);
     z.gain.gain.setTargetAtTime(0.0001, t, 0.4);
     z.oscs.forEach(o => { try { o.stop(t + 2.0); } catch(_){} });
     z.lfos.forEach(o => { try { o.stop(t + 2.0); } catch(_){} });
   }
 
-  // Start (or swap to) the looping ambient pad for a zone. Very subtle.
+  // Start (or crossfade to) the looping ambient pad for a zone/track id.
+  // Very subtle by design; loops indefinitely (LFO-driven sustain) until
+  // swapped or stopped, mirroring a real looping music track.
   function playZone(id){
     if(!ready()) return;
-    const key = (id && ZONE_CHORDS[id]) ? id : 'default';
-    if(zone && zone.id === key) return;    // already playing this zone
-    stopZone();
+    const resolved = resolveMusic(id);
+    const playKey = resolved.trackId || resolved.chordKey;
+    if(zone && zone.playKey === playKey) return;   // already playing this id
 
-    const chord = ZONE_CHORDS[key];
+    const wasPlaying = !!zone;
+    stopZone();   // old pad fades out over ~2.4s (crossfade tail)
+
+    const chord = resolved.chord.map(f => f * resolved.transpose);
     const t0 = ctx.currentTime;
 
     const padGain = ctx.createGain();
     padGain.gain.setValueAtTime(0.0001, t0);
-    padGain.gain.exponentialRampToValueAtTime(0.12, t0 + 3.0); // slow swell
+    // When swapping from an already-playing pad, swell in faster so the two
+    // overlap audibly (a real crossfade); from silence, swell in slowly.
+    padGain.gain.exponentialRampToValueAtTime(0.12, t0 + (wasPlaying ? 1.2 : 3.0));
     padGain.connect(music);
 
     const oscs = [], lfos = [];

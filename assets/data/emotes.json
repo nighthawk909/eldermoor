@@ -1,0 +1,181 @@
+{
+  "version": 1,
+  "emotes": [
+    {
+      "id": "yes",
+      "name": "Yes",
+      "icon": "👍",
+      "locked": false,
+      "unlock": null,
+      "anim": "yes"
+    },
+    {
+      "id": "no",
+      "name": "No",
+      "icon": "👎",
+      "locked": false,
+      "unlock": null,
+      "anim": "no"
+    },
+    {
+      "id": "bow",
+      "name": "Bow",
+      "icon": "🙇",
+      "locked": false,
+      "unlock": null,
+      "anim": "bow"
+    },
+    {
+      "id": "angry",
+      "name": "Angry",
+      "icon": "😠",
+      "locked": false,
+      "unlock": null,
+      "anim": "angry"
+    },
+    {
+      "id": "think",
+      "name": "Think",
+      "icon": "🤔",
+      "locked": false,
+      "unlock": null,
+      "anim": "think"
+    },
+    {
+      "id": "wave",
+      "name": "Wave",
+      "icon": "👋",
+      "locked": false,
+      "unlock": null,
+      "anim": "wave"
+    },
+    {
+      "id": "shrug",
+      "name": "Shrug",
+      "icon": "🤷",
+      "locked": false,
+      "unlock": null,
+      "anim": "shrug"
+    },
+    {
+      "id": "cheer",
+      "name": "Cheer",
+      "icon": "🙌",
+      "locked": false,
+      "unlock": null,
+      "anim": "cheer"
+    },
+    {
+      "id": "beckon",
+      "name": "Beckon",
+      "icon": "🫷",
+      "locked": false,
+      "unlock": null,
+      "anim": "beckon"
+    },
+    {
+      "id": "laugh",
+      "name": "Laugh",
+      "icon": "😂",
+      "locked": false,
+      "unlock": null,
+      "anim": "laugh"
+    },
+    {
+      "id": "jump-for-joy",
+      "name": "Jump for Joy",
+      "icon": "🤸",
+      "locked": false,
+      "unlock": null,
+      "anim": "jump_for_joy"
+    },
+    {
+      "id": "yawn",
+      "name": "Yawn",
+      "icon": "🥱",
+      "locked": false,
+      "unlock": null,
+      "anim": "yawn"
+    },
+    {
+      "id": "dance",
+      "name": "Dance",
+      "icon": "💃",
+      "locked": false,
+      "unlock": null,
+      "anim": "dance"
+    },
+    {
+      "id": "jig",
+      "name": "Jig",
+      "icon": "🕺",
+      "locked": false,
+      "unlock": null,
+      "anim": "jig"
+    },
+    {
+      "id": "spin",
+      "name": "Spin",
+      "icon": "🌀",
+      "locked": false,
+      "unlock": null,
+      "anim": "spin"
+    },
+    {
+      "id": "clap",
+      "name": "Clap",
+      "icon": "👏",
+      "locked": false,
+      "unlock": null,
+      "anim": "clap"
+    },
+    {
+      "id": "salute",
+      "name": "Salute",
+      "icon": "🫡",
+      "locked": false,
+      "unlock": null,
+      "anim": "salute"
+    },
+    {
+      "id": "panic",
+      "name": "Panic",
+      "icon": "😱",
+      "locked": false,
+      "unlock": null,
+      "anim": "panic"
+    },
+    {
+      "id": "cry",
+      "name": "Cry",
+      "icon": "😢",
+      "locked": false,
+      "unlock": null,
+      "anim": "cry"
+    },
+    {
+      "id": "warden-flourish",
+      "name": "Warden's Flourish",
+      "icon": "🗡️",
+      "locked": true,
+      "unlock": "Earn a Warden's Mantle by reaching mastery in any single skill.",
+      "anim": "warden_flourish"
+    },
+    {
+      "id": "lanternlight-bow",
+      "name": "Lanternlight Bow",
+      "icon": "🏮",
+      "locked": true,
+      "unlock": "Awarded during the Festival of Lanterns — a seasonal Eldermoor event.",
+      "anim": "lanternlight_bow"
+    },
+    {
+      "id": "ancestors-vigil",
+      "name": "Ancestor's Vigil",
+      "icon": "🕯️",
+      "locked": true,
+      "unlock": "Complete the Hollow Chapel questline to learn the old rite.",
+      "anim": "ancestors_vigil"
+    }
+  ]
+}

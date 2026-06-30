@@ -1,150 +1,109 @@
-# Eldermoor — Character Asset Renderer
+# Eldermoor
 
-Original, RuneScape-era stylized game assets. This repo builds the **Adventurer**
-character as real Blender geometry and renders it with Cycles (GPU). The model is
-authored in Python so it stays identical run-to-run and is easy to extend.
+An original game in the visual register of early-2000s RuneScape (RS Classic / RS2 era):
+low-poly, faceted, stylized. The bar is **parity-or-better within that register** — currently
+focused on building **Tutorial Island** to OSRS parity.
 
-> Note on IP: every asset here is original. We match the *style and quality* of the
-> early-RuneScape low-poly register — we do **not** copy Jagex's models, map, items,
-> names, or UI.
+> **IP:** every asset is original. We match the *style and production quality* of the era — we do
+> **not** copy Jagex's models, map, items, names, or UI. (See `CLAUDE.md` §2.)
 
 ---
 
-## What's in here
+## The shape of the project
 
-| File | Purpose |
-|------|---------|
-| `build_eldermoor.py` | The asset generator + renderer. Builds the hero, lights, camera; renders a still. |
-| `CLAUDE.md` | Durable project context + Operating Law (read first every session). |
-| `MANIFEST.md` | The work in small verified chunks (EPICs / chunks, status tracked). |
-| `SKILL.md` | The asset-build skill: the per-chunk PLAN→BUILD→RENDER→INSPECT→CRITIQUE loop. |
-| `HANDOFF.md` | Current session state + changelog. |
-| `README.md` | This file. |
-| `eldermoor.html` | Interactive Three.js web prototype (look + interaction reference). |
-| `.github/workflows/render-smoke.yml` | CI: installs Blender 4.2 LTS, runs a fast CPU smoke render on every push. |
-| `.gitignore` | Keeps render/backup cruft out of git. |
+- **The game is a web client** — `eldermoor_client.html` (Three.js). It loads 3D assets authored
+  in **Blender** and exported to **glTF**. This is the source of truth for "what you see."
+- **Blender is the asset forge** — Python scripts generate geometry and export `.glb` files the
+  client loads. The pipeline is:
 
-> Referenced but not yet present: **`MODELING_SPEC.md`** (CLAUDE.md/MANIFEST point to it for the measurable Definition of Done). Add it before relying on its acceptance checklist.
+  ```
+  build_kit.py  →  assets/*.glb  →  eldermoor_client.html  →  browser
+   (Blender forge)  (glTF export)     (Three.js client)        (the game)
+  ```
+
+- **Cycles (GPU) renders** are kept only for high-fidelity look-judgment stills, not the game.
+
+Read these before working: **`CLAUDE.md`** (operating law + decisions + doc map), **`HANDOFF.md`**
+(current state + the locked next-step order), **`ROADMAP.md`** (the master phased checklist — done vs
+outstanding), **`PARITY_AUDIT.md`** (the granular ~250-item per-feature test sheet), and
+**`docs/00_INDEX.md`** (the full MMORPG Bible index).
+
+---
+
+## ▶️ Run the game (current state: the Chapel)
+
+```bash
+# 1. generate the tiling textures (zero dependencies)
+python make_textures.py
+
+# 2. export an asset from the Blender forge to glTF
+blender --background --python build_kit.py -- --scene chapel --export assets/chapel.glb
+
+# 3. serve the repo root and open the client
+python -m http.server 8099
+#    -> http://localhost:8099/eldermoor_client.html
+```
+
+You should see a stone chapel — brick walls, plank floor, altar, banners, pipe organ, and a monk
+NPC — that you can orbit (drag) and zoom (scroll). *(Next milestone: walk a player through it.)*
+
+`build_kit.py` scenes: `--scene corner | chapel | character`. Add `--export path.glb` to emit glTF
+for the client, or omit it to render a Cycles still (`--out file.png --samples N --res W H`).
+
+---
+
+## Offline Cycles stills (look-judgment only)
+
+```bash
+# environment scene beauty still
+blender --background --python build_kit.py -- --scene chapel --samples 96 --res 1200 820 --out chapel.png
+# the Adventurer hero (separate character track)
+blender --background --python build_eldermoor.py -- --preview      # fast
+blender --background --python build_eldermoor.py                   # full quality
+```
+
+**Confirm GPU:** scripts print `[kit]/[eldermoor] render device: GPU (OPTIX/CUDA/HIP/...)`. If it
+says `CPU`, enable the card in Blender > Preferences > System > Cycles Render Devices, then rerun.
 
 ---
 
 ## Prerequisites
 
-- **Blender 4.2 LTS or newer** (`blender --version` should report ≥ 4.2).
-- A **GPU** is the whole point: NVIDIA (OptiX/CUDA), AMD (HIP), Apple (Metal), or Intel (oneAPI).
-- `blender` on your PATH, **or** the full path to the executable.
-
-If Blender isn't installed:
-- **Windows:** `winget install BlenderFoundation.Blender` (exe usually lands in
-  `C:\Program Files\Blender Foundation\Blender 4.x\blender.exe`).
-- **Linux:** grab the official 4.2 LTS tarball from blender.org and extract it
-  (the distro `apt` build is often too old). Symlink it onto PATH if you like.
+- **Python 3** (for `make_textures.py` and the static server — stdlib only).
+- **Blender 4.2 LTS+** on PATH or via full path (e.g.
+  `"C:\Program Files\Blender Foundation\Blender 4.3\blender.exe"`). A **GPU** is the point
+  (NVIDIA OptiX/CUDA, AMD HIP, Apple Metal, Intel oneAPI). Install on Windows:
+  `winget install BlenderFoundation.Blender`.
 
 ---
 
-## ▶️ Paste this to Claude Code
+## Repo layout
 
-```
-Read README.md in this repo, then:
-
-1. Confirm build_eldermoor.py is present. If not, stop and tell me.
-2. Verify Blender 4.2+ is runnable (`blender --version`). If it isn't on PATH,
-   find the executable and use its full path for all commands below.
-3. Run the fast preview:
-      blender --background --python build_eldermoor.py -- --preview
-   In the log, find the line "[eldermoor] render device:" and tell me whether it
-   says GPU or CPU. If CPU: open Blender > Preferences > System > Cycles Render
-   Devices, enable my GPU, save preferences, and rerun.
-4. Once it's using the GPU, run the full-quality render:
-      blender --background --python build_eldermoor.py -- --samples 384 --res 1800 2250 --out eldermoor_hero.png
-5. Open eldermoor_hero.png so I can see it. Report the render time and the GPU
-   device name from the log.
-```
-
----
-
-## Manual run (if you'd rather drive it yourself)
-
-```bash
-# fast preview (48 samples, 720x900)
-blender --background --python build_eldermoor.py -- --preview
-
-# full quality (defaults: 1800x2250, 384 samples, OpenImageDenoise, GPU auto-detect)
-blender --background --python build_eldermoor.py
-
-# override anything
-blender --background --python build_eldermoor.py -- \
-  --samples 512 --res 2400 3000 --out hero_final.png --device GPU
-```
-
-Flags (everything after the `--`):
-
-| Flag | Default | Meaning |
-|------|---------|---------|
-| `--preview` | off | Fast mode: 48 samples, 720×900 |
-| `--samples N` | 384 | Cycles samples |
-| `--res W H` | 1800 2250 | Output resolution |
-| `--out PATH` | `eldermoor_hero.png` | Output file |
-| `--device GPU\|CPU\|AUTO` | AUTO | Force device; AUTO uses GPU if found |
-
----
-
-## Verify it actually used the GPU
-
-The script prints its own device line, e.g.:
-
-```
-[eldermoor] render device: GPU (OPTIX)
-```
-
-If you see `GPU (...)` you're rendering on the card. If you see `CPU (CPU)`, the
-GPU wasn't enabled in Blender's preferences — fix that and rerun (see Troubleshooting).
-
----
-
-## Troubleshooting
-
-- **Fell back to CPU.** Blender > Preferences > System > *Cycles Render Devices* →
-  pick CUDA/OptiX (NVIDIA) or HIP (AMD), tick your GPU, save preferences. Rerun.
-  The script enables detected GPU devices, but Blender must have the backend selected once.
-- **`blender: command not found`.** Use the full path to the executable, e.g.
-  `"C:\Program Files\Blender Foundation\Blender 4.2\blender.exe" --background ...`
-- **Nothing saved / weird path.** Pass an absolute `--out`, e.g. `--out C:\Users\you\hero.png`.
-- **Black or blown-out image.** Color management defaults to AgX (Punchy). Adjust the
-  light energies in `build_stage()` if your view transform differs.
-
----
-
-## Quality defaults
-
-Production, not preview: **1800×2250, 384 samples, OpenImageDenoise, AgX Punchy**,
-three-point lighting, depth of field. On a modern GPU this is seconds to ~a minute.
+| Path | Purpose |
+|------|---------|
+| `eldermoor_client.html` | **The game** — Three.js client, loads glTF assets |
+| `build_kit.py` | Environment/world forge: scenes + Cycles render + `--export` glTF |
+| `build_eldermoor.py` | Character forge: the Adventurer hero + Cycles still |
+| `make_textures.py` | Zero-dep seamless tiling textures → `textures/` |
+| `assets/` | Exported glTF (`.glb`) the client loads (e.g. `chapel.glb`) |
+| `textures/` | `brick.png`, `plank.png` (tiling) |
+| `docs/` | The MMORPG Bible (`00_INDEX.md` = master TOC) + parity specs |
+| `CLAUDE.md` | Operating law + project context (read first) |
+| `HANDOFF.md` | Current state, changelog, next-step order |
+| `ROADMAP.md` | **The master phased checklist** (P0–P10 + lessons L0–L17) — done vs outstanding |
+| `PARITY_AUDIT.md` | Granular per-feature test sheet (~250 itemised gaps, each a pass/fail test) |
+| `ASSET_MANIFEST.md` | The one 3D-asset tracker (incl. the character-model sub-track, §9) |
+| `ART_SPEC.md` · `MODELING_SPEC.md` · `SKILL.md` | Visual + modeling standards / the build-loop skill |
+| `tutorial_island.html` · `eldermoor.html` | Retired/reference prototypes (not the client) |
 
 ---
 
 ## Repo & CI
 
-This project is already versioned: **https://github.com/nighthawk909/eldermoor** (private).
-Normal workflow is just commit + push:
+Versioned at **https://github.com/nighthawk909/eldermoor** (private). Every push triggers the
+**`render-smoke`** GitHub Actions check (installs Blender 4.2 LTS, runs a fast smoke render to
+confirm the scene still builds). Watch with `gh run list` / `gh run watch`.
 
 ```bash
-git add -A
-git commit -m "<type>: <what changed>"
-git push
+git add -A && git commit -m "<type>: <what changed>" && git push
 ```
-
-Every push triggers the **`render-smoke`** GitHub Actions check, which installs Blender
-4.2 LTS and runs a fast CPU smoke render to confirm the scene still builds. Watch runs
-with `gh run list` / `gh run watch`.
-
----
-
-## Extending (next)
-
-The build is a factory — `build_head()` plus the `cube / cyl / cone / ico` helpers.
-Reusing those, the next additions are:
-
-- `build_merchant()` and `build_brute()` → render a **cast lineup** in one frame.
-- A **turntable**: render N frames orbiting the character for a full-angle review.
-- A **texture pass**: paint a skin/eye map onto the head — the single biggest jump
-  toward true OSRS finish (right now the face is pure geometry).

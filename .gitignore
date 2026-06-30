@@ -13,3 +13,6 @@ Thumbs.db
 .DS_Store
 
 # NOTE: rendered hero/preview PNGs ARE committed on purpose (visual lineage).
+
+.vercel
+.env*.local

@@ -1,0 +1,10 @@
+# Ship only the static game (index.html + assets/ + textures/). Exclude tooling/docs/junk.
+*.py
+/*.md
+*.zip
+/*.png
+docs/
+.claude/
+.git/
+eldermoor.html
+tutorial_island.html

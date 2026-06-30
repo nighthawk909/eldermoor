@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "tickMs": 600,
+  "xpPerDamage": 4,
+  "hpXpPerDamage": 1.33,
+  "hitsplat": {
+    "hit": "#c83232",
+    "zero": "#3a64c8",
+    "max": "#36c8c8"
+  },
+  "styles": [
+    {
+      "id": "accurate",
+      "name": "Accurate",
+      "trains": ["attack"],
+      "xpMode": "attack"
+    },
+    {
+      "id": "aggressive",
+      "name": "Aggressive",
+      "trains": ["strength"],
+      "xpMode": "strength"
+    },
+    {
+      "id": "defensive",
+      "name": "Defensive",
+      "trains": ["defence"],
+      "xpMode": "defence"
+    },
+    {
+      "id": "controlled",
+      "name": "Controlled",
+      "trains": ["attack", "strength", "defence"],
+      "xpMode": "shared"
+    }
+  ],
+  "mobs": [
+    {
+      "id": "giant-rat",
+      "name": "Giant Rat",
+      "combatLevel": 1,
+      "maxHp": 5,
+      "maxHit": 1,
+      "attack": 1,
+      "defence": 1,
+      "attackSpeedTicks": 4,
+      "aggressive": false,
+      "respawnMs": 30000,
+      "drops": [
+        { "item": "bones", "qty": 1, "chance": 1.0 }
+      ]
+    },
+    {
+      "id": "practice-chicken",
+      "name": "Practice Chicken",
+      "combatLevel": 1,
+      "maxHp": 3,
+      "maxHit": 0,
+      "attack": 1,
+      "defence": 1,
+      "attackSpeedTicks": 4,
+      "aggressive": false,
+      "respawnMs": 20000,
+      "drops": []
+    }
+  ]
+}

@@ -1,0 +1,175 @@
+/* =====================================================================
+   ELDERMOOR - npc module. Owns the NPCS / OBJECTS rosters, the click proxies +
+   nameplates + body colliders, the altar glow proxy registration, and the
+   wander simulation (npcCtrl / pickWander / updateNpcs). Dialogue data
+   (lines / examine / verbs) hangs off the roster entries here.
+   ===================================================================== */
+import { TAU, scene } from './engine.js';
+import { clampX, clampZ, blocked, NPCCOLS } from './world.js';
+import { clickTargets } from './interact.js';
+import { pos } from './player.js';
+import { chat } from './dialogue.js';
+
+/* ------------------------------------------------------------------ NPCs
+   Data-driven roster. `monk` is baked into chapel.glb (proxy-only); the rest each
+   load their own glTF from the asset factory and are placed here. Add an entry =
+   a new villager in the world (proxy, nameplate, collider, dialogue - all automatic). */
+export function nameplate(text, hex, y){
+  const cv = document.createElement('canvas'); cv.width=256; cv.height=64;
+  const x = cv.getContext('2d');
+  x.font='bold 30px Trebuchet MS'; x.textAlign='center'; x.textBaseline='middle';
+  x.lineWidth=6; x.strokeStyle='rgba(0,0,0,.9)'; x.strokeText(text,128,32);
+  x.fillStyle=hex; x.fillText(text,128,32);
+  const t=new THREE.CanvasTexture(cv); t.minFilter=THREE.LinearFilter;
+  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthTest:true}));
+  s.scale.set(2.0,0.5,1); s.position.y=y; s.renderOrder=999; return s;
+}
+/* overhead speech bubble - same canvas-sprite tech as nameplate but sits a bit higher,
+   word-wrapped on a rounded dark panel, auto-removed after ~3s, replaced if re-called. */
+function speechSprite(text){
+  const W = 320, lineH = 30, pad = 14, maxTextW = W - pad*2;
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = 256;
+  const x = cv.getContext('2d');
+  x.font = '24px Trebuchet MS';
+  // word-wrap into lines that fit maxTextW
+  const words = String(text).split(/\s+/); const lines = []; let cur = '';
+  for(const w of words){
+    const test = cur ? cur+' '+w : w;
+    if(x.measureText(test).width > maxTextW && cur){ lines.push(cur); cur = w; }
+    else cur = test;
+  }
+  if(cur) lines.push(cur);
+  const boxH = lines.length*lineH + pad*2;
+  const boxW = Math.min(W, Math.max(60, ...lines.map(l=>x.measureText(l).width)) + pad*2);
+  const bx = (W-boxW)/2, by = 0;
+  // rounded panel
+  const r = 12;
+  x.fillStyle = 'rgba(20,16,12,.86)'; x.strokeStyle = 'rgba(216,178,90,.9)'; x.lineWidth = 2;
+  x.beginPath();
+  x.moveTo(bx+r, by); x.lineTo(bx+boxW-r, by); x.quadraticCurveTo(bx+boxW, by, bx+boxW, by+r);
+  x.lineTo(bx+boxW, by+boxH-r); x.quadraticCurveTo(bx+boxW, by+boxH, bx+boxW-r, by+boxH);
+  x.lineTo(bx+r, by+boxH); x.quadraticCurveTo(bx, by+boxH, bx, by+boxH-r);
+  x.lineTo(bx, by+r); x.quadraticCurveTo(bx, by, bx+r, by); x.closePath();
+  x.fill(); x.stroke();
+  // text
+  x.fillStyle = '#f5ead2'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  lines.forEach((l,i)=> x.fillText(l, W/2, by+pad+lineH*i+lineH/2));
+  const t = new THREE.CanvasTexture(cv); t.minFilter = THREE.LinearFilter;
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthTest:true}));
+  // scale so on-screen size tracks the drawn box; keep aspect from canvas
+  s.scale.set(W/120, 256/120, 1);
+  s.renderOrder = 1000;
+  s.userData._tex = t;
+  return s;
+}
+const BUBBLE_Y = 2.95;   // a bit above the nameplate (2.35)
+/* Show a short-lived speech bubble above an NPC\'s head. Re-calling replaces the prior one.
+   The bubble follows wanderers via updateNpcs (n._bubble). */
+export function npcSay(npc, text){
+  if(!npc) return;
+  clearBubble(npc);
+  const s = speechSprite(text);
+  const bx = (npc.x ?? 0), bz = (npc.z ?? 0);
+  s.position.set(bx, BUBBLE_Y, bz);
+  scene.add(s);
+  npc._bubble = s;
+  npc._bubbleTimer = setTimeout(()=>{ clearBubble(npc); }, 3000);
+}
+function clearBubble(npc){
+  if(npc._bubbleTimer){ clearTimeout(npc._bubbleTimer); npc._bubbleTimer = null; }
+  if(npc._bubble){
+    scene.remove(npc._bubble);
+    const t = npc._bubble.userData && npc._bubble.userData._tex;
+    if(t && t.dispose) t.dispose();
+    if(npc._bubble.material && npc._bubble.material.dispose) npc._bubble.material.dispose();
+    npc._bubble = null;
+  }
+}
+/* let dialogue.js trigger bubbles without importing the module directly */
+if(typeof window !== 'undefined') window.EMNPC = { say: npcSay };
+
+export const NPCS = [
+  { id:'monk', name:'Brother Aldric', x:1.4, z:-2.9, talkRange:1.25,   // baked beside the altar (stationary)
+    examine:"A devout brother who tends the Chapel of Eldermoor.",
+    lines:[
+      "Peace be upon you, traveller.",
+      "You stand in the Chapel of Eldermoor. We keep the altar lit and bury the bones of the fallen for the Prayer it grants.",
+      "Rest here as long as you need. The road beyond these walls is a hard one." ] },
+  { id:'sister', glb:'assets/npcs/sister.glb', name:'Sister Wenna', x:-1.4, z:-0.6, rotY:0.7, talkRange:1.2, wander:1.0,
+    examine:"A quiet sister of the chapel order.",
+    lines:[ "Light keep you, traveller.",
+            "I tend the candles and the quiet. Few faces pass through these doors." ] },
+  { id:'pilgrim1', glb:'assets/npcs/pilgrim1.glb', name:'Pilgrim Joss', x:1.4, z:0.6, rotY:-0.7, talkRange:1.2, wander:1.1,
+    examine:"A road-worn pilgrim resting his feet.",
+    lines:[ "Long road behind me, longer ahead.",
+            "I stop at every chapel I can. A moment\'s peace is worth the miles." ] },
+  { id:'pilgrim2', glb:'assets/npcs/pilgrim2.glb', name:'Old Maven', x:0, z:3.4, rotY:Math.PI, talkRange:1.2, wander:0.9,
+    examine:"An elder who has seen many winters.",
+    lines:[ "Eh? Come to pray, have you?",
+            "In my day we walked to the mainland. No boats, no fuss. Bah." ] },
+];
+/* interactable world objects (non-NPC) - tap/long-press like NPCs */
+export const OBJECTS = [
+  { id:'altar', name:'Altar', kind:'altar', verb:'Pray-at', x:0, z:-4.2, talkRange:1.5,
+    examine:"A worn stone altar. The faithful kneel here to pray." },
+];
+
+/* build the NPC/object click proxies, nameplates and body colliders (side-effectful:
+   run once from main.js so wiring stays centralized). */
+export function initProxies(){
+  NPCS.forEach(n => {
+    const proxy = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 2.1, 8), new THREE.MeshBasicMaterial({visible:false}));
+    proxy.position.set(n.x, 1.05, n.z); proxy.userData.npc = n; scene.add(proxy); clickTargets.push(proxy);
+    const plate = nameplate(n.name, '#ffd98a', 2.35); plate.position.set(n.x, 2.35, n.z); scene.add(plate);
+    const col = { x:n.x, z:n.z, r:0.42 }; NPCCOLS.push(col);     // dynamic body collider
+    n._proxy = proxy; n._plate = plate; n._col = col;            // refs so wander can move them
+  });
+  OBJECTS.forEach(o => {
+    const proxy = new THREE.Mesh(new THREE.BoxGeometry(2.6, 1.5, 1.4), new THREE.MeshBasicMaterial({visible:false}));
+    proxy.position.set(o.x, 0.75, o.z); proxy.userData.obj = o; scene.add(proxy); clickTargets.push(proxy);
+  });
+}
+
+/* ----------------------------------------------------------- wandering NPCs */
+export const npcCtrl = [];
+export const NPC_SPEED = 1.1;
+
+export function pickWander(c){
+  for(let i=0;i<8;i++){
+    const a = Math.random()*TAU, r = 0.3 + Math.random()*c.n.wander;
+    const tx = clampX(c.home.x + Math.cos(a)*r), tz = clampZ(c.home.z + Math.sin(a)*r);
+    if(!blocked(tx, tz, c.col)){ c.tx=tx; c.tz=tz; return; }
+  }
+  c.tx = c.home.x; c.tz = c.home.z;
+}
+export function updateNpcs(dt){
+  // keep NPCs fully clear of the player\'s body radius (RAD 0.32 + NPC body 0.42 + margin) so
+  // they can never wander into the player and glue them in place.
+  const nearPlayer = (x,z) => (x-pos.x)*(x-pos.x)+(z-pos.z)*(z-pos.z) < 0.92*0.92;
+  for(const c of npcCtrl){
+    if(c.n === chat.npc){ c.moving = false; c.rotY = Math.atan2(pos.x-c.px, pos.z-c.pz); }  // frozen, facing you, while talking
+    else if(c.waitT > 0){ c.waitT -= dt; c.moving = false; if(c.waitT <= 0) pickWander(c); }  // pick a new spot when the pause ends
+    else {
+      const dx=c.tx-c.px, dz=c.tz-c.pz, d=Math.hypot(dx,dz);
+      if(d < 0.12){ c.moving=false; c.waitT = 2 + Math.random()*4; }   // arrived → pause (next target chosen when pause ends)
+      else {
+        c.moving = true;
+        const step = Math.min(d, NPC_SPEED*dt), ux=dx/d, uz=dz/d;
+        const nx = clampX(c.px+ux*step), nz = clampZ(c.pz+uz*step);
+        if(!blocked(nx, c.pz, c.col) && !nearPlayer(nx, c.pz)) c.px = nx;
+        if(!blocked(c.px, nz, c.col) && !nearPlayer(c.px, nz)) c.pz = nz;
+        c.rotY = Math.atan2(ux, uz); c.phase += dt*8;
+      }
+    }
+    const bob = c.moving ? Math.abs(Math.sin(c.phase))*0.05 : 0;
+    c.group.position.set(c.px, bob, c.pz); c.group.rotation.y = c.rotY;
+    c.col.x = c.px; c.col.z = c.pz;                       // collider follows
+    c.n.x = c.px; c.n.z = c.pz;                           // live position (proximity gate / tap target)
+    c.n._proxy.position.set(c.px, 1.05, c.pz);            // clickable proxy follows
+    c.n._plate.position.set(c.px, 2.35, c.pz);            // nameplate follows
+    if(c.n._bubble) c.n._bubble.position.set(c.px, BUBBLE_Y, c.pz);  // speech bubble follows
+    const sw = c.moving ? Math.sin(c.phase)*0.5 : 0;
+    if(c.rig.legL){ c.rig.legL.rotation.x =  sw;     c.rig.legR.rotation.x = -sw; }
+    if(c.rig.armL){ c.rig.armL.rotation.x = -sw*0.5; c.rig.armR.rotation.x =  sw*0.5; }
+  }
+}

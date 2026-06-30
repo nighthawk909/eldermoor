@@ -1,0 +1,690 @@
+{
+  "warden-halric": {
+    "name": "Warden Halric",
+    "start": "greet",
+    "nodes": {
+      "greet": {
+        "id": "greet",
+        "speaker": "npc",
+        "text": "Well met, traveller. I am Warden Halric, keeper of this isle. Every soul bound for Eldermoor passes my gate first. Shall I teach you the ways of moving and seeing in this world?",
+        "options": [
+          { "label": "Yes, teach me the basics.", "goto": "controls" },
+          { "label": "I already know my way around.", "goto": "impatient" },
+          { "label": "Where exactly am I?", "goto": "where" }
+        ]
+      },
+      "where": {
+        "id": "where",
+        "speaker": "npc",
+        "text": "The Wardens' Isle — a quiet shore where the green learn their craft before the mainland. Lose nothing here, and you'll lose less out there.",
+        "next": "controls"
+      },
+      "impatient": {
+        "id": "impatient",
+        "speaker": "npc",
+        "text": "Confidence is well and good, but humour an old warden. Even the seasoned forget a tab or two. It takes but a moment.",
+        "next": "controls"
+      },
+      "controls": {
+        "id": "controls",
+        "speaker": "npc",
+        "text": "To walk, point where you wish to go and your feet will carry you. To look about, drag the view and the world turns around you.",
+        "next": "camera"
+      },
+      "camera": {
+        "id": "camera",
+        "speaker": "player",
+        "text": "And how do I manage my belongings and abilities?",
+        "next": "tabs"
+      },
+      "tabs": {
+        "id": "tabs",
+        "speaker": "npc",
+        "text": "Along the side are your tabs — pack, skills, gear, prayers and spells, settings. Tap each to open its panel. One opens as another closes.",
+        "next": "settings"
+      },
+      "settings": {
+        "id": "settings",
+        "speaker": "npc",
+        "text": "The settings panel tunes sound, brightness, and comfort to your liking. Adjust it whenever the journey wears on you.",
+        "next": "handoff"
+      },
+      "handoff": {
+        "id": "handoff",
+        "speaker": "npc",
+        "text": "Good. The door behind me is open. Beyond it, find Forester Maeve in the clearing — she'll teach you to live off the land. Off you go.",
+        "action": "complete:L1"
+      }
+    }
+  },
+  "forester-maeve": {
+    "name": "Forester Maeve",
+    "start": "greet",
+    "nodes": {
+      "greet": {
+        "id": "greet",
+        "speaker": "npc",
+        "text": "Ah, one of Halric's new charges. I'm Maeve — I keep folk fed and warm. Before the wilds chew you up, you'll learn to cut wood, kindle fire, net fish, and cook. Ready to begin?",
+        "options": [
+          { "label": "Let's start with woodcutting.", "goto": "wood-intro" },
+          { "label": "Why do I need all this?", "goto": "why" }
+        ]
+      },
+      "why": {
+        "id": "why",
+        "speaker": "npc",
+        "text": "A hungry, cold adventurer is a dead one. These four skills are the difference between the road and the crows. Now — woodcutting first.",
+        "next": "wood-intro"
+      },
+      "wood-intro": {
+        "id": "wood-intro",
+        "speaker": "npc",
+        "text": "Here, take this axe. Keep it in your pack — the satchel tab, where all you carry is laid out in little squares.",
+        "give": "bronze-axe",
+        "next": "wood-do"
+      },
+      "wood-do": {
+        "id": "wood-do",
+        "speaker": "npc",
+        "text": "Now walk to that tree and put the axe to it. A few good swings yields logs. Come back when your pack holds some.",
+        "action": "complete:L2"
+      },
+      "fire-intro": {
+        "id": "fire-intro",
+        "speaker": "npc",
+        "text": "Logs in hand — well done. Now we make warmth. Take this tinderbox.",
+        "give": "tinderbox",
+        "options": [
+          { "label": "How do I light a fire?", "goto": "fire-how" }
+        ]
+      },
+      "fire-how": {
+        "id": "fire-how",
+        "speaker": "npc",
+        "text": "Use the tinderbox upon your logs and a fire catches on the ground before you. Try it — a steady flame is a friend on cold nights.",
+        "action": "complete:L3"
+      },
+      "fish-intro": {
+        "id": "fish-intro",
+        "speaker": "npc",
+        "text": "A fine blaze. Now to fill our bellies. Here's a fishing net — small holes, good for shrimp.",
+        "give": "small-fishing-net",
+        "options": [
+          { "label": "Where do I fish?", "goto": "fish-how" }
+        ]
+      },
+      "fish-how": {
+        "id": "fish-how",
+        "speaker": "npc",
+        "text": "Step to the pond's edge where the water shimmers, and cast your net. With patience you'll haul up raw shrimp. Catch a few.",
+        "action": "complete:L4"
+      },
+      "cook-intro": {
+        "id": "cook-intro",
+        "speaker": "npc",
+        "text": "Raw shrimp won't sit well — best cook them. Use a shrimp on your fire and let the heat do the work.",
+        "next": "cook-burnt"
+      },
+      "cook-burnt": {
+        "id": "cook-burnt",
+        "speaker": "npc",
+        "text": "Mind you, leave it too long and you'll get a blackened, ruined one. It happens to the best of us — toss the burnt one and cook another. Try it now.",
+        "next": "cook-done"
+      },
+      "cook-done": {
+        "id": "cook-done",
+        "speaker": "npc",
+        "text": "There — a proper meal. You can live off the land now. Head through the gate to the cottage and speak to Cook Tobin; he'll show you finer fare. Safe travels.",
+        "action": "complete:L5"
+      }
+    }
+  },
+  "cook-tobin": {
+    "name": "Cook Tobin",
+    "start": "greet",
+    "nodes": {
+      "greet": {
+        "id": "greet",
+        "speaker": "npc",
+        "text": "Come in, come in — mind the flour. I'm Tobin, and this is my kitchen. Maeve teaches you to char a shrimp; I'll teach you bread fit for a lord. Interested?",
+        "options": [
+          { "label": "Show me how to make bread.", "goto": "dough" },
+          { "label": "Bread? Is that really a skill?", "goto": "skeptic" }
+        ]
+      },
+      "skeptic": {
+        "id": "skeptic",
+        "speaker": "npc",
+        "text": "Scoff if you like, but a baker never starves and never wants for friends. Cooking is cooking, shrimp or fine loaf. Now, to the dough.",
+        "next": "dough"
+      },
+      "dough": {
+        "id": "dough",
+        "speaker": "npc",
+        "text": "Take this pot of flour and a bucket of water. Combine them and knead — that gives a ball of bread dough.",
+        "give": "pot-of-flour",
+        "next": "dough-water"
+      },
+      "dough-water": {
+        "id": "dough-water",
+        "speaker": "npc",
+        "text": "And here's the water to wet it. A baker's hands are never quite dry.",
+        "give": "bucket-of-water",
+        "next": "dough-do"
+      },
+      "dough-do": {
+        "id": "dough-do",
+        "speaker": "npc",
+        "text": "Use the water on the flour to make your dough. Then set it on the range yonder to bake into a warm loaf. Go on, make some dough.",
+        "next": "done"
+      },
+      "done": {
+        "id": "done",
+        "speaker": "npc",
+        "text": "Lovely work — you've a baker's hands. When ready, find Loremaster Edda next door; she keeps the tales and tasks of this world. Off with you.",
+        "action": "complete:L6"
+      }
+    }
+  },
+  "loremaster-edda": {
+    "name": "Loremaster Edda",
+    "start": "greet",
+    "nodes": {
+      "greet": {
+        "id": "greet",
+        "speaker": "npc",
+        "text": "A new face among the old books. I am Edda, keeper of Eldermoor's lore and its many unfinished tales. Every great deed begins as a quest — would you understand how they work?",
+        "options": [
+          { "label": "Tell me about quests.", "goto": "quests" },
+          { "label": "What's in all these books?", "goto": "books" }
+        ]
+      },
+      "books": {
+        "id": "books",
+        "speaker": "npc",
+        "text": "Histories, prophecies, and the troubles of folk who'd pay dearly for a brave soul's help. Those troubles become your quests. Let me explain.",
+        "next": "quests"
+      },
+      "quests": {
+        "id": "quests",
+        "speaker": "npc",
+        "text": "Here, take this journal. Open the Quest tab and you'll see every tale you might take up — some unbegun, some underway, some finished and crowned with reward.",
+        "give": "quest-journal",
+        "next": "journal"
+      },
+      "journal": {
+        "id": "journal",
+        "speaker": "player",
+        "text": "So the journal tracks my progress through each story?",
+        "next": "journal-yes"
+      },
+      "journal-yes": {
+        "id": "journal-yes",
+        "speaker": "npc",
+        "text": "Just so. It remembers where you stand and what comes next, so no thread is ever lost. Consult it often and you'll never wander aimless.",
+        "next": "done"
+      },
+      "done": {
+        "id": "done",
+        "speaker": "npc",
+        "text": "That's the heart of it. Descend the ladder behind me to the mine, where Pickmaster Doran waits. There's iron in your future, I think. Go well.",
+        "action": "complete:L7"
+      }
+    }
+  },
+  "pickmaster-doran": {
+    "name": "Pickmaster Doran",
+    "start": "greet",
+    "nodes": {
+      "greet": {
+        "id": "greet",
+        "speaker": "npc",
+        "text": "Mind your head — low ceilings down here. I'm Doran, and these rocks are my trade. Stone to ore, ore to bar, bar to blade. Want the whole chain?",
+        "options": [
+          { "label": "Teach me to mine.", "goto": "mine-intro" },
+          { "label": "It's awfully dark down here.", "goto": "dark" }
+        ]
+      },
+      "dark": {
+        "id": "dark",
+        "speaker": "npc",
+        "text": "You'll grow used to the dark — there's gold in it, after all. Take this pick and let's see what these veins are hiding.",
+        "next": "mine-intro"
+      },
+      "mine-intro": {
+        "id": "mine-intro",
+        "speaker": "npc",
+        "text": "Here's a pickaxe. See the rocks with pale streaks? That's tin, and that's copper. Swing at them and the ore comes loose.",
+        "give": "bronze-pickaxe",
+        "next": "mine-do"
+      },
+      "mine-do": {
+        "id": "mine-do",
+        "speaker": "npc",
+        "text": "Mine yourself a lump of tin ore and a lump of copper ore. You'll need both for what comes next.",
+        "action": "complete:L8"
+      },
+      "smelt-intro": {
+        "id": "smelt-intro",
+        "speaker": "npc",
+        "text": "Tin and copper — good. Alone they're soft and useless. But together, in the furnace, they make bronze.",
+        "options": [
+          { "label": "How does smelting work?", "goto": "smelt-how" }
+        ]
+      },
+      "smelt-how": {
+        "id": "smelt-how",
+        "speaker": "npc",
+        "text": "Take your two ores to that furnace and smelt them. The fire weds them into a single bronze bar. Try it now.",
+        "action": "complete:L9"
+      },
+      "smith-intro": {
+        "id": "smith-intro",
+        "speaker": "npc",
+        "text": "A solid bronze bar. Now we shape it. Take this hammer to the anvil and we'll forge a real tool.",
+        "give": "hammer",
+        "options": [
+          { "label": "What can I make?", "goto": "smith-how" }
+        ]
+      },
+      "smith-how": {
+        "id": "smith-how",
+        "speaker": "npc",
+        "text": "We'll start simple — a bronze dagger. Use the bar on the anvil and hammer it into shape. Keep the dagger; you'll want it soon.",
+        "next": "done"
+      },
+      "done": {
+        "id": "done",
+        "speaker": "npc",
+        "text": "A blade from bare rock — that's a smith's pride. Climb the ladder out and find Sergeant Vael in the yard. He'll teach you to swing what you've forged. Good mining.",
+        "action": "complete:L10"
+      }
+    }
+  },
+  "sergeant-vael": {
+    "name": "Sergeant Vael",
+    "start": "greet",
+    "nodes": {
+      "greet": {
+        "id": "greet",
+        "speaker": "npc",
+        "text": "Stand up straight, recruit. Sergeant Vael, and this is where soft hands learn to fight. You've a dagger — let's make you use it. Ready for combat?",
+        "options": [
+          { "label": "Teach me to fight.", "goto": "equip-intro" },
+          { "label": "Do I have to fight?", "goto": "reluctant" }
+        ]
+      },
+      "reluctant": {
+        "id": "reluctant",
+        "speaker": "npc",
+        "text": "Out there, things fight you whether you like it or no. Better you learn here, against penned rats, than out there against worse. Now — to your gear.",
+        "next": "equip-intro"
+      },
+      "equip-intro": {
+        "id": "equip-intro",
+        "speaker": "npc",
+        "text": "Open your Equipment tab. A blade in your pack is useless — you must wield it. Here's some leather too; put it on to harden your hide.",
+        "give": "leather-body",
+        "next": "equip-gloves"
+      },
+      "equip-gloves": {
+        "id": "equip-gloves",
+        "speaker": "npc",
+        "text": "And gloves — keep a grip on weapon and tool alike. Small things, but they save a life.",
+        "give": "leather-gloves",
+        "next": "equip-do"
+      },
+      "equip-do": {
+        "id": "equip-do",
+        "speaker": "npc",
+        "text": "Wield your bronze dagger and wear the leather. Watch your fighter on the field change as you do.",
+        "next": "melee-do"
+      },
+      "melee-do": {
+        "id": "melee-do",
+        "speaker": "npc",
+        "text": "Now into the pen. Attack a rat and cut it down. You'll earn skill in Attack, Strength, Defence, and the toughness to keep standing. Have at it.",
+        "action": "complete:L11"
+      },
+      "ranged-intro": {
+        "id": "ranged-intro",
+        "speaker": "npc",
+        "text": "Good work up close. But a wise fighter strikes before the enemy reaches him. Take this shortbow.",
+        "give": "shortbow",
+        "next": "ranged-ammo"
+      },
+      "ranged-ammo": {
+        "id": "ranged-ammo",
+        "speaker": "npc",
+        "text": "And a quiver of arrows to feed it. Each shot spends one, so mind your supply.",
+        "give": "bronze-arrows",
+        "options": [
+          { "label": "How do I shoot?", "goto": "ranged-how" }
+        ]
+      },
+      "ranged-how": {
+        "id": "ranged-how",
+        "speaker": "npc",
+        "text": "Wield the bow with the arrows, then attack a rat from across the pen. Loose a few and drop a rat at range.",
+        "next": "styles"
+      },
+      "styles": {
+        "id": "styles",
+        "speaker": "npc",
+        "text": "Last thing — your Combat tab lets you choose how you fight: accurate, aggressive, defensive, or controlled. Pick what suits the foe. You're soldier enough now.",
+        "next": "done"
+      },
+      "done": {
+        "id": "done",
+        "speaker": "npc",
+        "text": "Dismissed, recruit — and well done. Through that door is Teller Wynn at the bank. She'll show you where to stow your loot. Move out.",
+        "action": "complete:L12"
+      }
+    }
+  },
+  "teller-wynn": {
+    "name": "Teller Wynn",
+    "start": "greet",
+    "nodes": {
+      "greet": {
+        "id": "greet",
+        "speaker": "npc",
+        "text": "Welcome to the vault, dear. I'm Wynn, and I mind every coin and trinket folk leave in my care. Your pack only holds so much — shall I show you how to bank the rest?",
+        "options": [
+          { "label": "Yes, show me the bank.", "goto": "bank-open" },
+          { "label": "Is my property safe here?", "goto": "safe" }
+        ]
+      },
+      "safe": {
+        "id": "safe",
+        "speaker": "npc",
+        "text": "Safe as the stone it's locked behind, and it follows you to every bank in Eldermoor. Nothing here is ever lost, even should you fall. Now, let's open it.",
+        "next": "bank-open"
+      },
+      "bank-open": {
+        "id": "bank-open",
+        "speaker": "npc",
+        "text": "Step up to the booth and the bank opens. Your stored goods sit in the grid, quite apart from the pack on your back.",
+        "next": "bank-use"
+      },
+      "bank-use": {
+        "id": "bank-use",
+        "speaker": "npc",
+        "text": "To deposit, place an item in from your pack; to withdraw, draw it back out. Try storing something and taking it back, for the feel of it.",
+        "next": "done"
+      },
+      "done": {
+        "id": "done",
+        "speaker": "npc",
+        "text": "There — never travel overburdened again. Next, see Steward Brann just through there; he handles your account and the matters of the realm. Good day.",
+        "action": "complete:L13"
+      }
+    }
+  },
+  "steward-brann": {
+    "name": "Steward Brann",
+    "start": "greet",
+    "nodes": {
+      "greet": {
+        "id": "greet",
+        "speaker": "npc",
+        "text": "Greetings. I am Brann, steward of these affairs. Duller than swords and dragons, but no less important — your account's safety and your voice in the realm. A moment?",
+        "options": [
+          { "label": "Tell me about my account.", "goto": "account" },
+          { "label": "My voice in the realm?", "goto": "poll-intro" }
+        ]
+      },
+      "account": {
+        "id": "account",
+        "speaker": "npc",
+        "text": "Take this card — it holds the keys to your wellbeing here. Choose a strong word of passage, trust it to no stranger, and report any trickster who asks for it.",
+        "give": "security-card",
+        "next": "poll-intro"
+      },
+      "poll-intro": {
+        "id": "poll-intro",
+        "speaker": "npc",
+        "text": "And here's a poll card. See the booth there? When the wardens weigh a change to the realm, every citizen casts a vote. Your word shapes the world — use it.",
+        "give": "poll-card",
+        "next": "poll-confirm"
+      },
+      "poll-confirm": {
+        "id": "poll-confirm",
+        "speaker": "player",
+        "text": "So the people decide how Eldermoor grows?",
+        "next": "poll-yes"
+      },
+      "poll-yes": {
+        "id": "poll-yes",
+        "speaker": "npc",
+        "text": "Within reason, and with the wardens' blessing — yes. It keeps the realm honest. Visit the booth whenever a question is put to vote.",
+        "next": "done"
+      },
+      "done": {
+        "id": "done",
+        "speaker": "npc",
+        "text": "That concludes my business. Step into the chapel beyond and speak with Brother Aldric; he tends matters of the spirit. Go in peace.",
+        "action": "complete:L14"
+      }
+    }
+  },
+  "monk": {
+    "name": "Brother Aldric",
+    "start": "greet",
+    "nodes": {
+      "greet": {
+        "id": "greet",
+        "speaker": "npc",
+        "text": "Peace be upon you, traveller. I am Brother Aldric, and this humble chapel is a place of rest and reverence. Would you learn the comfort of prayer before you face the world?",
+        "options": [
+          { "label": "Teach me about prayer.", "goto": "prayer" },
+          { "label": "What good is prayer to a fighter?", "goto": "doubt" }
+        ]
+      },
+      "doubt": {
+        "id": "doubt",
+        "speaker": "npc",
+        "text": "More than you'd think. A whispered prayer can steady a sword arm or turn aside a blow. Faith is armour the eye cannot see. Let me show you.",
+        "next": "prayer"
+      },
+      "prayer": {
+        "id": "prayer",
+        "speaker": "npc",
+        "text": "Open your Prayer tab. Each prayer draws on your devotion, replenished at altars such as this. As you grow, more prayers reveal themselves.",
+        "next": "bones-intro"
+      },
+      "bones-intro": {
+        "id": "bones-intro",
+        "speaker": "npc",
+        "text": "Devotion is earned by honouring the fallen. Take these bones, and bury them with respect — the act lends strength to your spirit.",
+        "give": "bones",
+        "next": "bones-do"
+      },
+      "bones-do": {
+        "id": "bones-do",
+        "speaker": "npc",
+        "text": "Use the bones to bury them here in the chapel. Feel your Prayer skill rise. Go on, lay them to rest.",
+        "next": "social"
+      },
+      "social": {
+        "id": "social",
+        "speaker": "npc",
+        "text": "One more gift — fellowship. Your Friends and Ignore tabs keep good company close and ill company at bay. No adventurer should walk wholly alone.",
+        "next": "done"
+      },
+      "done": {
+        "id": "done",
+        "speaker": "npc",
+        "text": "Go now with a settled spirit. Beyond the chapel you'll find Magus Sorrel, who wields the arcane arts. Tell her Aldric sent you. Blessings on your road.",
+        "action": "complete:L15"
+      }
+    }
+  },
+  "magus-sorrel": {
+    "name": "Magus Sorrel",
+    "start": "greet",
+    "nodes": {
+      "greet": {
+        "id": "greet",
+        "speaker": "npc",
+        "text": "Ah — the air shifts when a new pupil arrives. I am Sorrel, and magic is my craft. Steel has its place, but a well-spoken spell ends a fight before it begins. Shall I teach you?",
+        "options": [
+          { "label": "Yes, teach me magic.", "goto": "magic-tab" },
+          { "label": "I'm no wizard.", "goto": "anyone" }
+        ]
+      },
+      "anyone": {
+        "id": "anyone",
+        "speaker": "npc",
+        "text": "Nonsense. The spark lives in every soul brave enough to fan it. Hold these runes and you'll feel it yourself. Now, attend.",
+        "next": "magic-tab"
+      },
+      "magic-tab": {
+        "id": "magic-tab",
+        "speaker": "npc",
+        "text": "Open your Magic tab — there lies your spellbook. Each spell asks for runes, the bottled essence of the elements. Without the right runes, a spell stays grey and silent.",
+        "give": "air-rune",
+        "next": "runes-give"
+      },
+      "runes-give": {
+        "id": "runes-give",
+        "speaker": "npc",
+        "text": "Air runes, and now mind runes — enough to cast your first spell: Wind Strike. Mind them, for runes are spent with every casting.",
+        "give": "mind-rune",
+        "next": "cast-do"
+      },
+      "cast-do": {
+        "id": "cast-do",
+        "speaker": "npc",
+        "text": "Now choose Wind Strike from your spellbook and aim it at the practice chicken across the room. Speak the word and loose the wind. Try it.",
+        "next": "done"
+      },
+      "done": {
+        "id": "done",
+        "speaker": "npc",
+        "text": "Marvellous — the spark takes! You've the makings of a mage. Your lessons are done, pupil. Return to Warden Halric at the dock; he'll see you off to the mainland. Fair winds.",
+        "action": "complete:L16"
+      }
+    }
+  },
+  "warden-halric-dock": {
+    "name": "Warden Halric",
+    "start": "greet",
+    "nodes": {
+      "greet": {
+        "id": "greet",
+        "speaker": "npc",
+        "text": "Look at you now — chopper, fisher, smith, fighter, and mage. You came to me untested and you leave me ready. There's a boat at the dock bound for the mainland. Will you take it?",
+        "options": [
+          { "label": "Yes, I'm ready to leave.", "goto": "cape" },
+          { "label": "Not yet — anything else I should know?", "goto": "advice" }
+        ]
+      },
+      "advice": {
+        "id": "advice",
+        "speaker": "npc",
+        "text": "Only this: trust your training, guard your friends, and never stop learning. Eldermoor is wide and full of wonders. When you're ready, the boat waits.",
+        "options": [
+          { "label": "I'm ready now.", "goto": "cape" }
+        ]
+      },
+      "cape": {
+        "id": "cape",
+        "speaker": "npc",
+        "text": "Then take this cape — let it mark you as one who learned the island's lessons. Wear it with pride.",
+        "give": "tutorial-cape",
+        "next": "depart"
+      },
+      "depart": {
+        "id": "depart",
+        "speaker": "npc",
+        "text": "Now climb aboard, and may the road rise to meet you. Welcome to Eldermoor — your story truly begins now.",
+        "action": "complete:L17"
+      }
+    }
+  },
+  "sister": {
+    "name": "Sister Wenna",
+    "start": "greet",
+    "nodes": {
+      "greet": {
+        "id": "greet",
+        "speaker": "npc",
+        "text": "Bless you, child. I tend the candles for Brother Aldric. If you've not yet learned the prayers, do speak with him — no shame in a quiet moment of faith before the road.",
+        "options": [
+          { "label": "Thank you, Sister.", "goto": "bye" },
+          { "label": "How long have you tended this chapel?", "goto": "years" }
+        ]
+      },
+      "years": {
+        "id": "years",
+        "speaker": "npc",
+        "text": "Longer than I'd care to count, dear. I've watched a hundred green adventurers pass through and sail away as heroes. You'll be one of them soon enough.",
+        "next": "bye"
+      },
+      "bye": {
+        "id": "bye",
+        "speaker": "npc",
+        "text": "Go gently. The light keeps for whoever needs it."
+      }
+    }
+  },
+  "pilgrim1": {
+    "name": "Pilgrim Joss",
+    "start": "greet",
+    "nodes": {
+      "greet": {
+        "id": "greet",
+        "speaker": "npc",
+        "text": "Hoy there! Just resting my feet before the crossing. I've done the rounds of this isle twice over — the instructors are a patient lot. Listen to every one, that's my advice.",
+        "options": [
+          { "label": "Why are you doing it twice?", "goto": "twice" },
+          { "label": "Good advice. Farewell.", "goto": "bye" }
+        ]
+      },
+      "twice": {
+        "id": "twice",
+        "speaker": "npc",
+        "text": "Forgot half of it the first time, didn't I! No harm — the wardens never tire of teaching. Better to leave this shore certain than reach the mainland guessing.",
+        "next": "bye"
+      },
+      "bye": {
+        "id": "bye",
+        "speaker": "npc",
+        "text": "Safe crossing to you, friend. Maybe we'll share a road one day."
+      }
+    }
+  },
+  "pilgrim2": {
+    "name": "Old Maven",
+    "start": "greet",
+    "nodes": {
+      "greet": {
+        "id": "greet",
+        "speaker": "npc",
+        "text": "Heh. Another young sprout off to make a fortune. I've seen a thousand of you come and go from this very bench. Want an old woman's wisdom, or are you in too much of a hurry?",
+        "options": [
+          { "label": "I'll hear your wisdom.", "goto": "wisdom" },
+          { "label": "In a hurry, sorry!", "goto": "hurry" }
+        ]
+      },
+      "wisdom": {
+        "id": "wisdom",
+        "speaker": "npc",
+        "text": "Then hear this: the isle gives you tools, but it's the trying that makes you. Chop the tree, miss the fish, burn the shrimp — every blunder here is a lesson the mainland charges dearly for. Fail freely while you can.",
+        "next": "bye"
+      },
+      "hurry": {
+        "id": "hurry",
+        "speaker": "npc",
+        "text": "Ha! They always are. Off you go then — the world won't wait, and neither will I.",
+        "next": "bye"
+      },
+      "bye": {
+        "id": "bye",
+        "speaker": "npc",
+        "text": "Go on now. And mind you don't forget old Maven when you're a famous hero."
+      }
+    }
+  }
+}

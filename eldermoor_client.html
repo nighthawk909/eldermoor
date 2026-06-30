@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Eldermoor — Client</title>
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;height:100%;overflow:hidden;background:#0c1014;
+    font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;color:#f3e9cf;}
+  #c{display:block;width:100%;height:100%;touch-action:none;
+    user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;}
+  .ui{position:fixed;pointer-events:none;}
+  #hud{top:10px;left:50%;transform:translateX(-50%);text-align:center;max-width:92vw;
+    background:rgba(20,24,30,.72);border:1px solid #c8a24a;border-radius:10px;
+    padding:7px 16px;font-size:13px;text-shadow:0 1px 3px #000;}
+  #hud b{color:#e7c64f;}
+  #help{bottom:10px;left:10px;background:rgba(20,24,30,.7);border:1px solid #6b5a32;
+    border-radius:8px;padding:6px 11px;font-size:12px;color:#cdbf98;text-shadow:0 1px 2px #000;line-height:1.5;}
+  #help b{color:#e7c64f;}
+  /* dialogue box (OSRS-style) */
+  #dlg{position:fixed;z-index:15;left:50%;bottom:calc(80px + env(safe-area-inset-bottom));
+    transform:translateX(-50%);width:min(92%,460px);
+    background:rgba(18,22,28,.96);border:1px solid #c8a24a;border-radius:12px;padding:14px 16px;
+    pointer-events:auto;display:none;box-shadow:0 10px 40px rgba(0,0,0,.5);}
+  #dlg .who{color:#e7c64f;font-weight:bold;margin-bottom:5px;font-size:13px;}
+  #dlg .tx{font-size:14px;line-height:1.5;}
+  #dlg .go{margin-top:10px;text-align:right;}
+  #dlg button{pointer-events:auto;background:#3a6f8c;color:#fff;border:none;border-radius:8px;
+    padding:8px 16px;font-size:13px;cursor:pointer;}
+  /* right-click / long-press context menu (OSRS-style options) */
+  #menu{position:fixed;display:none;z-index:10;background:rgba(18,22,28,.98);border:1px solid #c8a24a;
+    border-radius:8px;padding:4px;min-width:150px;box-shadow:0 8px 30px rgba(0,0,0,.6);pointer-events:auto;}
+  #menu .hdr{padding:5px 12px 6px;font-size:11px;letter-spacing:.06em;color:#9fb0c0;
+    border-bottom:1px solid #3a424c;margin-bottom:3px;}
+  #menu .mi{padding:9px 12px;font-size:14px;color:#f3e9cf;border-radius:6px;cursor:pointer;white-space:nowrap;}
+  #menu .mi:hover,#menu .mi:active{background:#3a6f8c;}
+  #menu .mi .o{color:#e7c64f;}
+  #load{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+    font-size:15px;color:#cdbf98;background:#0c1014;transition:opacity .5s;z-index:5;}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="ui" id="hud">Eldermoor — <b>Chapel Grounds</b> <span style="opacity:.6">v17</span> · <b>tap</b> to walk/talk · <b>long-press</b> for options · drag to look</div>
+<div class="ui" id="help"><b>Controls</b><br>Tap — walk / talk to the monk<br>Long-press (or right-click) — Talk-to / Examine / Walk here<br>Drag — orbit · pinch / scroll — zoom</div>
+<div id="dlg"><div class="who" id="dlgwho"></div><div class="tx" id="dlgtx"></div><div class="go"><button id="dlgbtn">Continue</button></div></div>
+<div id="menu"></div>
+<div id="load">Entering the Chapel…</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script>
+/* =====================================================================
+   ELDERMOOR — playable web client. Loads Blender-authored glTF (chapel +
+   player). Mobile-first: custom follow camera (1-finger orbit, 2-finger
+   pinch, tap-to-act), tap-to-walk with wall+prop collision, tappable NPC
+   with dialogue, haptics, and a click marker. The base lessons hang off.
+   ===================================================================== */
+const TAU = Math.PI*2;
+const col = h => new THREE.Color(h).convertSRGBToLinear();
+const buzz = ms => { try{ navigator.vibrate && navigator.vibrate(ms); }catch(e){} };
+
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(50, innerWidth/innerHeight, 0.1, 400);
+
+/* sky-gradient backdrop (matches the Cycles flat world fill) */
+(function(){
+  const g = new THREE.SphereGeometry(120, 24, 16), top = col('#5e93c9'), bot = col('#e7ddc4'), c = [];
+  const v = new THREE.Vector3(), p = g.attributes.position;
+  for(let i=0;i<p.count;i++){v.fromBufferAttribute(p,i).normalize();const t=Math.max(0,v.y);
+    c.push(bot.r+(top.r-bot.r)*t, bot.g+(top.g-bot.g)*t, bot.b+(top.b-bot.b)*t);}
+  g.setAttribute('color', new THREE.Float32BufferAttribute(c,3));
+  scene.add(new THREE.Mesh(g, new THREE.MeshBasicMaterial({vertexColors:true, side:THREE.BackSide, toneMapped:false})));
+})();
+
+/* three-point-ish flat light (warm key + cool fill + ambient) per art bible */
+scene.add(new THREE.HemisphereLight(col('#cfe0ff'), col('#5a4a32'), 0.9));
+scene.add(new THREE.AmbientLight(0xffffff, 0.25));
+const sun = new THREE.DirectionalLight(col('#fff1d6'), 2.4);
+sun.position.set(10, 18, 8); sun.castShadow = true;
+sun.shadow.mapSize.set(2048,2048);
+sun.shadow.camera.near = 1; sun.shadow.camera.far = 80;
+sun.shadow.camera.left=-20; sun.shadow.camera.right=20; sun.shadow.camera.top=20; sun.shadow.camera.bottom=-20;
+sun.shadow.bias = -0.0004; scene.add(sun);
+
+/* tiling textures (world-space repeat: cube-projected UVs, 1 UV unit = 1 world unit) */
+const texLoader = new THREE.TextureLoader();
+function tiling(url, worldSize){
+  const t = texLoader.load(url);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(1/worldSize, 1/worldSize);
+  t.encoding = THREE.sRGBEncoding; t.anisotropy = 4;
+  return t;
+}
+const TEX = {
+  stone: tiling('textures/brick.png', 2.0), plank: tiling('textures/plank.png', 2.0),
+  grass: tiling('textures/grass.png', 4.0), dirt:  tiling('textures/dirt.png', 3.0),
+  sand:  tiling('textures/sand.png', 4.0),  water: tiling('textures/water.png', 5.0),
+};
+function dressMaterials(root, flat=true){
+  root.traverse(o => {
+    if(!o.isMesh) return;
+    o.castShadow = true; o.receiveShadow = true;
+    const mats = Array.isArray(o.material) ? o.material : [o.material];
+    mats.forEach(m => {
+      if(flat) m.flatShading = true;
+      m.metalness = Math.min(m.metalness||0, 0.2);
+      const n = (m.name||'').toLowerCase();
+      if(n.includes('terrain')){ m.vertexColors = true; m.color.setHex(0xffffff); m.map = null; m.emissiveMap = null; m.side = THREE.FrontSide; m.needsUpdate = true; return; }
+      let tex = null;
+      if(n.includes('stone'))      tex = TEX.stone;
+      else if(n.includes('plank')) tex = TEX.plank;
+      else if(n.includes('grass')) tex = TEX.grass;
+      else if(n.includes('dirt'))  tex = TEX.dirt;
+      else if(n.includes('sand'))  tex = TEX.sand;
+      else if(n.includes('water')) tex = TEX.water;
+      if(tex){ m.map = tex; m.color.setHex(0xffffff); }
+      if(n.includes('water')){ m.transparent = true; m.opacity = 0.85; m.depthWrite = false; m.metalness = 0.0; m.roughness = 0.3; }
+      m.needsUpdate = true;
+    });
+  });
+}
+
+/* ----------------------------------------------------------- world bounds + colliders
+   Loaded from the kit's <world>.colliders.json (see applyColliders): the building walls,
+   prop footprints, walkable bounds and spawn all come from the asset pipeline — no hand-coded
+   collision per building. RECTS/CIRCLES/BOUND start empty and are filled on load. */
+const RAD = 0.32;
+const BOUND = { x0:-7, x1:7, z0:-5, z1:14 };   // overwritten from JSON
+const clampX = x => Math.max(BOUND.x0, Math.min(BOUND.x1, x));
+const clampZ = z => Math.max(BOUND.z0, Math.min(BOUND.z1, z));
+const RECTS = [];               // static rectangular colliders (walls, prop footprints)
+const CIRCLES = [];             // static round obstacles (candles, tree trunks, ...)
+const NPCCOLS = [];             // DYNAMIC NPC body colliders (collision only — they move/wander)
+const inBound = (x,z) => x>BOUND.x0 && x<BOUND.x1 && z>BOUND.z0 && z<BOUND.z1;
+function staticBlocked(x, z){   // out-of-bounds + walls + props (what the path grid is baked from)
+  if(!inBound(x, z)) return true;
+  for(const c of RECTS)   if(x > c.x0-RAD && x < c.x1+RAD && z > c.z0-RAD && z < c.z1+RAD) return true;
+  for(const c of CIRCLES){ const dx=x-c.x, dz=z-c.z, rr=c.r+RAD; if(dx*dx+dz*dz < rr*rr) return true; }
+  return false;
+}
+function blocked(x, z, skip){   // static + dynamic NPCs (full collision)
+  if(staticBlocked(x, z)) return true;
+  for(const c of NPCCOLS){ if(c===skip) continue; const dx=x-c.x, dz=z-c.z, rr=c.r+RAD; if(dx*dx+dz*dz < rr*rr) return true; }
+  return false;
+}
+/* like blocked(), but if you're already OVERLAPPING an NPC body it still lets you step
+   AWAY from it — prevents getting permanently glued to a wandering NPC (every adjacent
+   tile is inside its radius, so a plain blocked() check would reject all of them). */
+function moveBlocked(ox, oz, nx, nz){
+  if(staticBlocked(nx, nz)) return true;                 // walls/bounds/props always hard-block
+  for(const c of NPCCOLS){
+    const rr = c.r + RAD, nd = (nx-c.x)*(nx-c.x) + (nz-c.z)*(nz-c.z);
+    if(nd < rr*rr){                                       // new position overlaps this NPC
+      const od = (ox-c.x)*(ox-c.x) + (oz-c.z)*(oz-c.z);
+      if(nd <= od) return true;                           // block ONLY if not increasing distance
+    }
+  }
+  return false;
+}
+
+/* -------------------------------------------------- A* pathfinding (static grid)
+   The player routes around walls/pews/props instead of jamming into them. Grid is
+   baked once from staticBlocked (obstacles inflated by RAD give body clearance). */
+const G = { x0:-7.6, z0:-5.6, cell:0.45, cols:1, rows:1 };
+const cellCenter = (ci,cj) => ({ x:G.x0+(ci+0.5)*G.cell, z:G.z0+(cj+0.5)*G.cell });
+const cellOf = (x,z) => ({ ci:Math.floor((x-G.x0)/G.cell), cj:Math.floor((z-G.z0)/G.cell) });
+const inb = (ci,cj) => ci>=0 && cj>=0 && ci<G.cols && cj<G.rows;
+let WALK = [];
+function buildGrid(){                       // (re)bake from BOUND + static colliders
+  G.x0 = BOUND.x0 - 0.5; G.z0 = BOUND.z0 - 0.5;
+  G.cols = Math.ceil((BOUND.x1-BOUND.x0+1)/G.cell);
+  G.rows = Math.ceil((BOUND.z1-BOUND.z0+1)/G.cell);
+  WALK = [];
+  for(let ci=0; ci<G.cols; ci++){ WALK[ci]=[]; for(let cj=0; cj<G.rows; cj++){
+    const c = cellCenter(ci,cj); WALK[ci][cj] = !staticBlocked(c.x, c.z); } }
+}
+function cellWalkable(ci,cj, ignoreCol){   // static grid + dynamic NPC bodies (except the one we're walking to)
+  if(!WALK[ci][cj]) return false;
+  const c = cellCenter(ci,cj);
+  for(const col of NPCCOLS){ if(col===ignoreCol) continue;
+    const dx=c.x-col.x, dz=c.z-col.z, rr=col.r+RAD; if(dx*dx+dz*dz < rr*rr) return false; }
+  return true;
+}
+function nearestWalkable(t, ignoreCol){
+  for(let rad=1; rad<10; rad++) for(let dx=-rad; dx<=rad; dx++) for(let dz=-rad; dz<=rad; dz++){
+    const ci=t.ci+dx, cj=t.cj+dz; if(inb(ci,cj) && cellWalkable(ci,cj,ignoreCol)) return {ci,cj}; }
+  return null;
+}
+function lineClear(ax,az,bx,bz){          // segment vs static obstacles (for LOS + chat gate)
+  const d=Math.hypot(bx-ax,bz-az), steps=Math.max(1,Math.ceil(d/0.2));
+  for(let i=1;i<steps;i++){ const t=i/steps; if(staticBlocked(ax+(bx-ax)*t, az+(bz-az)*t)) return false; }
+  return true;
+}
+function astar(sx,sz, tx,tz, ignoreCol){
+  const W = (ci,cj) => cellWalkable(ci,cj, ignoreCol);
+  let s=cellOf(sx,sz), t=cellOf(tx,tz);
+  if(!inb(s.ci,s.cj)) return null;
+  if(!inb(t.ci,t.cj) || !W(t.ci,t.cj)){ const nw=nearestWalkable(t,ignoreCol); if(!nw) return null; t=nw; }
+  if(!W(s.ci,s.cj)){ const nw=nearestWalkable(s,ignoreCol); if(nw) s=nw; }
+  const key=(ci,cj)=>ci*1000+cj, open=new Map(), came=new Map(), gsc=new Map();
+  const h=(ci,cj)=>Math.hypot(ci-t.ci, cj-t.cj);
+  gsc.set(key(s.ci,s.cj),0); open.set(key(s.ci,s.cj),{ci:s.ci,cj:s.cj,f:h(s.ci,s.cj)});
+  const dirs=[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
+  let guard=0;
+  while(open.size && guard++<6000){
+    let bk=null,bf=Infinity; for(const [k,v] of open){ if(v.f<bf){bf=v.f; bk=k;} }
+    const cur=open.get(bk); open.delete(bk);
+    if(cur.ci===t.ci && cur.cj===t.cj){
+      const path=[]; let k=bk;
+      while(k!==undefined){ path.unshift(cellCenter(Math.floor(k/1000), k%1000)); k=came.get(k); }
+      return path;
+    }
+    const cg=gsc.get(bk);
+    for(const [dx,dz] of dirs){
+      const ni=cur.ci+dx, nj=cur.cj+dz; if(!inb(ni,nj)||!W(ni,nj)) continue;
+      if(dx&&dz && (!W(cur.ci+dx,cur.cj) || !W(cur.ci,cur.cj+dz))) continue;  // no corner cutting
+      const nk=key(ni,nj), ng=cg+((dx&&dz)?1.414:1);
+      if(!gsc.has(nk) || ng<gsc.get(nk)){ gsc.set(nk,ng); came.set(nk,bk); open.set(nk,{ci:ni,cj:nj,f:ng+h(ni,nj)}); }
+    }
+  }
+  return null;
+}
+function segClear(ax,az,bx,bz, ignoreCol){  // segment vs static + NPC bodies (for path smoothing)
+  const d=Math.hypot(bx-ax,bz-az), steps=Math.max(1,Math.ceil(d/0.22));
+  for(let i=1;i<steps;i++){ const t=i/steps; if(blocked(ax+(bx-ax)*t, az+(bz-az)*t, ignoreCol)) return false; }
+  return true;
+}
+function smooth(path, ignoreCol){          // string-pull: drop waypoints with a clear line between
+  if(!path || path.length<3) return path;
+  const out=[path[0]]; let i=0;
+  while(i<path.length-1){ let j=path.length-1;
+    while(j>i+1 && !segClear(path[i].x,path[i].z, path[j].x,path[j].z, ignoreCol)) j--;
+    out.push(path[j]); i=j; }
+  return out;
+}
+function replan(){
+  const ignore = move.pending && move.pending._col;   // can still reach the NPC we're walking to
+  const raw = astar(pos.x,pos.z, move.dest.x, move.dest.z, ignore);
+  move.path = (raw && raw.length) ? smooth(raw, ignore) : [{x:move.dest.x, z:move.dest.z}];
+  move.wp = 0;
+}
+function planPath(tx,tz){            // new player command → fresh path + reset replan budget
+  move.dest = {x:clampX(tx), z:clampZ(tz)}; move._replan = 0; replan();
+}
+
+/* --------------------------------------------------------------- the player */
+const player = new THREE.Group();
+const pos = new THREE.Vector3(0, 0, 8.5);      // default; real spawn comes from the colliders JSON
+player.position.copy(pos);
+player.rotation.y = Math.PI;
+scene.add(player);
+
+/* apply the kit's collider/nav sidecar: walls, props, bounds, spawn, then bake the path grid */
+function applyColliders(data){
+  if(data.bound){ const b=data.bound; BOUND.x0=b[0]; BOUND.x1=b[1]; BOUND.z0=b[2]; BOUND.z1=b[3]; }
+  (data.rects   || []).forEach(r => RECTS.push({x0:r[0], x1:r[1], z0:r[2], z1:r[3]}));
+  (data.circles || []).forEach(c => CIRCLES.push({x:c[0], z:c[1], r:c[2]}));
+  if(data.spawn){ pos.set(data.spawn[0], 0, data.spawn[1]); player.position.copy(pos);
+    player.rotation.y = data.spawn[2] || 0; move.path = []; move.pending = null; }
+  buildGrid();
+}
+const move = { pending: null, moving: false, path: [], wp: 0, _lastGoal: null };
+const SPEED = 3.2;
+
+/* ------------------------------------------------------------------ NPCs
+   Data-driven roster. `monk` is baked into chapel.glb (proxy-only); the rest each
+   load their own glTF from the asset factory and are placed here. Add an entry =
+   a new villager in the world (proxy, nameplate, collider, dialogue — all automatic). */
+function nameplate(text, hex, y){
+  const cv = document.createElement('canvas'); cv.width=256; cv.height=64;
+  const x = cv.getContext('2d');
+  x.font='bold 30px Trebuchet MS'; x.textAlign='center'; x.textBaseline='middle';
+  x.lineWidth=6; x.strokeStyle='rgba(0,0,0,.9)'; x.strokeText(text,128,32);
+  x.fillStyle=hex; x.fillText(text,128,32);
+  const t=new THREE.CanvasTexture(cv); t.minFilter=THREE.LinearFilter;
+  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthTest:true}));
+  s.scale.set(2.0,0.5,1); s.position.y=y; s.renderOrder=999; return s;
+}
+const NPCS = [
+  { id:'monk', name:'Brother Aldric', x:1.4, z:-2.9, talkRange:1.25,   // baked beside the altar (stationary)
+    examine:"A devout brother who tends the Chapel of Eldermoor.",
+    lines:[
+      "Peace be upon you, traveller.",
+      "You stand in the Chapel of Eldermoor. We keep the altar lit and bury the bones of the fallen for the Prayer it grants.",
+      "Rest here as long as you need. The road beyond these walls is a hard one." ] },
+  { id:'sister', glb:'assets/npcs/sister.glb', name:'Sister Wenna', x:-1.4, z:-0.6, rotY:0.7, talkRange:1.2, wander:1.0,
+    examine:"A quiet sister of the chapel order.",
+    lines:[ "Light keep you, traveller.",
+            "I tend the candles and the quiet. Few faces pass through these doors." ] },
+  { id:'pilgrim1', glb:'assets/npcs/pilgrim1.glb', name:'Pilgrim Joss', x:1.4, z:0.6, rotY:-0.7, talkRange:1.2, wander:1.1,
+    examine:"A road-worn pilgrim resting his feet.",
+    lines:[ "Long road behind me, longer ahead.",
+            "I stop at every chapel I can. A moment's peace is worth the miles." ] },
+  { id:'pilgrim2', glb:'assets/npcs/pilgrim2.glb', name:'Old Maven', x:0, z:3.4, rotY:Math.PI, talkRange:1.2, wander:0.9,
+    examine:"An elder who has seen many winters.",
+    lines:[ "Eh? Come to pray, have you?",
+            "In my day we walked to the mainland. No boats, no fuss. Bah." ] },
+];
+/* interactable world objects (non-NPC) — tap/long-press like NPCs */
+const OBJECTS = [
+  { id:'altar', name:'Altar', kind:'altar', verb:'Pray-at', x:0, z:-4.2, talkRange:1.5,
+    examine:"A worn stone altar. The faithful kneel here to pray." },
+];
+const clickTargets = [];
+NPCS.forEach(n => {
+  const proxy = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 2.1, 8), new THREE.MeshBasicMaterial({visible:false}));
+  proxy.position.set(n.x, 1.05, n.z); proxy.userData.npc = n; scene.add(proxy); clickTargets.push(proxy);
+  const plate = nameplate(n.name, '#ffd98a', 2.35); plate.position.set(n.x, 2.35, n.z); scene.add(plate);
+  const col = { x:n.x, z:n.z, r:0.42 }; NPCCOLS.push(col);     // dynamic body collider
+  n._proxy = proxy; n._plate = plate; n._col = col;            // refs so wander can move them
+});
+OBJECTS.forEach(o => {
+  const proxy = new THREE.Mesh(new THREE.BoxGeometry(2.6, 1.5, 1.4), new THREE.MeshBasicMaterial({visible:false}));
+  proxy.position.set(o.x, 0.75, o.z); proxy.userData.obj = o; scene.add(proxy); clickTargets.push(proxy);
+});
+/* altar glow — pulses warm when prayed at */
+const altarGlow = new THREE.PointLight(col('#ffe2a0'), 0, 7, 2);
+altarGlow.position.set(0, 1.3, -4.0); scene.add(altarGlow);
+let glowT = 0;
+
+/* click marker — fading ring where you tapped (yellow=walk, cyan=interact) */
+const marker = new THREE.Mesh(
+  new THREE.RingGeometry(0.16, 0.34, 24),
+  new THREE.MeshBasicMaterial({color: col('#ffe27a'), transparent:true, side:THREE.DoubleSide}));
+marker.rotation.x = -Math.PI/2; marker.visible = false; scene.add(marker);
+let markerT = 0;
+function showMarker(x, z, hex){
+  marker.material.color.copy(col(hex));
+  marker.position.set(x, 0.04, z); marker.visible = true; markerT = 1; marker.scale.setScalar(1);
+}
+
+/* dialogue */
+const dlgEl = document.getElementById('dlg');
+let dlgQ = [], dlgNpc = null, chatNpc = null;   // chatNpc = NPC currently in conversation (freezes their wander)
+function sayLines(name, lines){ dlgNpc = {name}; dlgQ = lines.slice(); buzz(20); nextDlg(); }
+function talk(npc){ chatNpc = npc; sayLines(npc.name, npc.lines); }
+function prayAtAltar(){ glowT = 1.6; buzz(30);
+  if(window.EMHUD){ EMHUD.addXp('Prayer', 7); EMHUD.addChat('You pray at the altar.','', true); }
+  sayLines('Altar', ['You kneel before the altar and offer a quiet prayer.',
+                     'A gentle warmth settles over you. The Light grants you Prayer.']); }
+function nextDlg(){
+  if(!dlgQ.length){ dlgEl.style.display='none'; dlgNpc=null; chatNpc=null; return; }
+  document.getElementById('dlgwho').textContent = dlgNpc.name;
+  document.getElementById('dlgtx').textContent  = dlgQ.shift();
+  dlgEl.style.display='block'; buzz(12);
+}
+document.getElementById('dlgbtn').onclick = nextDlg;
+
+/* ------------------------------------------------------------ asset loading */
+let loaded = 0;
+/* world.glb + player.glb + 3 kit pieces (tree/bush/rock) + every NPC glb — overlay clears only when all expected loads resolve */
+const KIT_PIECE_COUNT = 3;
+const EXPECTED_LOADS = 2 + KIT_PIECE_COUNT + NPCS.filter(n => n.glb).length;
+function maybeReady(){ if(++loaded >= EXPECTED_LOADS){ const l = document.getElementById('load');
+  if(l){ l.style.opacity = 0; setTimeout(()=>l.remove(), 600); } } }
+const loader = new THREE.GLTFLoader();
+const WORLD = 'assets/world.glb';
+fetch(WORLD.replace('.glb', '.colliders.json'))                 // nav/collision sidecar
+  .then(r => r.json()).then(applyColliders)
+  .catch(err => console.warn('colliders json failed:', err));
+loader.load(WORLD, g => { dressMaterials(g.scene); scene.add(g.scene); maybeReady(); },
+  undefined, err => { document.getElementById('load').textContent = 'Failed to load world.glb — ' + err; });
+
+/* kit-piece library + manifest instancing: one glb per piece, cloned at every placement the
+   world manifest lists. This is how the island scales by DATA — drop instances, not geometry. */
+const PIECES = {
+  tree: { url:'assets/kit/tree.glb', r:0.42, tpl:null },
+  bush: { url:'assets/kit/bush.glb', r:0.30, tpl:null },
+  rock: { url:'assets/kit/rock.glb', r:0.40, tpl:null },
+};
+const mulberry32 = a => () => { a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; };
+/* scenery descriptors by piece type — interactable like NPCs/altar (proxy + clickTargets) */
+const SCENERY_DESC = {
+  tree: { name:'Tree', verb:'Chop down', examine:'A sturdy tree, ripe for the Survival Expert’s axe.' },
+  bush: { name:'Bush', verb:'Search',    examine:'A leafy bush.' },
+  rock: { name:'Rock', verb:'Mine',      examine:'A rocky outcrop streaked with ore.' },
+};
+function place(type, x, z, rot, s){
+  const p = PIECES[type]; if(!p || !p.tpl) return;
+  const inst = p.tpl.clone(true); inst.position.set(x, 0, z); inst.rotation.y = rot; inst.scale.setScalar(s);
+  scene.add(inst); CIRCLES.push({ x, z, r:p.r*s });
+  const desc = SCENERY_DESC[type];
+  if(desc){                                                  // invisible click proxy (same pattern as NPC/altar)
+    const rad = Math.max(0.4, p.r*s);
+    const proxy = new THREE.Mesh(new THREE.CylinderGeometry(rad, rad, 2.0, 8), new THREE.MeshBasicMaterial({visible:false}));
+    proxy.position.set(x, 1.0, z);
+    proxy.userData.scenery = Object.assign({}, desc, { x, z, talkRange:1.6, kind:'scenery' });
+    scene.add(proxy); clickTargets.push(proxy);
+  }
+}
+function instanceManifest(data){
+  (data.objects || []).forEach(o => place(o.type, o.x, o.z, o.rot||0, o.scale||1));   // explicit placements
+  (data.scatter || []).forEach(s => {                                                  // procedural fill
+    if(!PIECES[s.type] || !PIECES[s.type].tpl) return;
+    const rnd = mulberry32(s.seed||1), ex = s.exclude, sp = s.spacing||1.4;
+    let placed=0, tries=0, cap=(s.count||20)*10;
+    while(placed < (s.count||20) && tries < cap){
+      tries++;
+      const x = s.x0 + (s.x1-s.x0)*rnd(), z = s.z0 + (s.z1-s.z0)*rnd();
+      if(staticBlocked(x,z)) continue;                                                 // skip walls/props/path-not, OOB
+      if(ex && x>ex[0] && x<ex[1] && z>ex[2] && z<ex[3]) continue;                      // keep the path clear
+      let ok=true; for(const c of CIRCLES){ if((c.x-x)*(c.x-x)+(c.z-z)*(c.z-z) < sp*sp){ ok=false; break; } }
+      if(!ok) continue;                                                                // min spacing
+      place(s.type, x, z, rnd()*Math.PI*2, (s.sMin||0.8) + ((s.sMax||1.2)-(s.sMin||0.8))*rnd());
+      placed++;
+    }
+  });
+  buildGrid();                                       // rebake the path grid with all the new colliders
+}
+(function loadPiecesThenManifest(){
+  const keys = Object.keys(PIECES); let n = keys.length;
+  keys.forEach(k => loader.load(PIECES[k].url, g => { dressMaterials(g.scene); PIECES[k].tpl = g.scene; maybeReady();
+    if(--n === 0) fetch(WORLD.replace('.glb','.manifest.json')).then(r=>r.json()).then(instanceManifest).catch(()=>{}); },
+    undefined, err => { console.warn('kit piece load failed:', k, err); maybeReady();
+      if(--n === 0) fetch(WORLD.replace('.glb','.manifest.json')).then(r=>r.json()).then(instanceManifest).catch(()=>{}); }));
+})();
+const rig = {};   // named limb pivots → swung for the walk cycle
+loader.load('assets/player.glb', g => {
+  dressMaterials(g.scene, false); player.add(g.scene);
+  ['legL','legR','armL','armR'].forEach(n => { const o = g.scene.getObjectByName(n); if(o) rig[n] = o; });
+  maybeReady();
+}, undefined, err => { document.getElementById('load').textContent = 'Failed to load player.glb — ' + err; });
+
+/* place every NPC that has its own glTF (data-driven) + wire up wandering */
+const npcCtrl = [];
+const NPC_SPEED = 1.1;
+NPCS.filter(n => n.glb).forEach(n => {
+  loader.load(n.glb, g => {
+    dressMaterials(g.scene, false);
+    g.scene.position.set(n.x, 0, n.z);
+    g.scene.rotation.y = (n.rotY || 0);
+    scene.add(g.scene);
+    const rg = {}; ['legL','legR','armL','armR'].forEach(k => { const o = g.scene.getObjectByName(k); if(o) rg[k]=o; });
+    if(n.wander) npcCtrl.push({ n, group:g.scene, rig:rg, col:n._col,
+      home:{x:n.x, z:n.z}, px:n.x, pz:n.z, tx:n.x, tz:n.z,
+      rotY:n.rotY||0, moving:false, phase:0, waitT:1+Math.random()*3 });
+    maybeReady();
+  }, undefined, err => { console.warn('NPC load failed:', n.id, err); maybeReady(); });
+});
+function pickWander(c){
+  for(let i=0;i<8;i++){
+    const a = Math.random()*TAU, r = 0.3 + Math.random()*c.n.wander;
+    const tx = clampX(c.home.x + Math.cos(a)*r), tz = clampZ(c.home.z + Math.sin(a)*r);
+    if(!blocked(tx, tz, c.col)){ c.tx=tx; c.tz=tz; return; }
+  }
+  c.tx = c.home.x; c.tz = c.home.z;
+}
+function updateNpcs(dt){
+  // keep NPCs fully clear of the player's body radius (RAD 0.32 + NPC body 0.42 + margin) so
+  // they can never wander into the player and glue them in place.
+  const nearPlayer = (x,z) => (x-pos.x)*(x-pos.x)+(z-pos.z)*(z-pos.z) < 0.92*0.92;
+  for(const c of npcCtrl){
+    if(c.n === chatNpc){ c.moving = false; c.rotY = Math.atan2(pos.x-c.px, pos.z-c.pz); }  // frozen, facing you, while talking
+    else if(c.waitT > 0){ c.waitT -= dt; c.moving = false; if(c.waitT <= 0) pickWander(c); }  // pick a new spot when the pause ends
+    else {
+      const dx=c.tx-c.px, dz=c.tz-c.pz, d=Math.hypot(dx,dz);
+      if(d < 0.12){ c.moving=false; c.waitT = 2 + Math.random()*4; }   // arrived → pause (next target chosen when pause ends)
+      else {
+        c.moving = true;
+        const step = Math.min(d, NPC_SPEED*dt), ux=dx/d, uz=dz/d;
+        const nx = clampX(c.px+ux*step), nz = clampZ(c.pz+uz*step);
+        if(!blocked(nx, c.pz, c.col) && !nearPlayer(nx, c.pz)) c.px = nx;
+        if(!blocked(c.px, nz, c.col) && !nearPlayer(c.px, nz)) c.pz = nz;
+        c.rotY = Math.atan2(ux, uz); c.phase += dt*8;
+      }
+    }
+    const bob = c.moving ? Math.abs(Math.sin(c.phase))*0.05 : 0;
+    c.group.position.set(c.px, bob, c.pz); c.group.rotation.y = c.rotY;
+    c.col.x = c.px; c.col.z = c.pz;                       // collider follows
+    c.n.x = c.px; c.n.z = c.pz;                           // live position (proximity gate / tap target)
+    c.n._proxy.position.set(c.px, 1.05, c.pz);            // clickable proxy follows
+    c.n._plate.position.set(c.px, 2.35, c.pz);            // nameplate follows
+    const sw = c.moving ? Math.sin(c.phase)*0.5 : 0;
+    if(c.rig.legL){ c.rig.legL.rotation.x =  sw;     c.rig.legR.rotation.x = -sw; }
+    if(c.rig.armL){ c.rig.armL.rotation.x = -sw*0.5; c.rig.armR.rotation.x =  sw*0.5; }
+  }
+}
+
+/* ============================================================= CAMERA + INPUT
+   Custom spherical follow camera — proven mobile model: 1-finger drag orbits,
+   2-finger pinch zooms, a tap (no drag) is a world click. */
+const sph = { r:11, th:0, phi:0.62 };          // th=0 → camera south of player, looking north
+const camT = new THREE.Vector3(pos.x, 1.1, pos.z);
+const clampR = () => sph.r = Math.max(5, Math.min(22, sph.r));
+function updCam(){
+  camT.lerp(new THREE.Vector3(pos.x, 1.1, pos.z), 0.15);
+  camera.position.set(
+    camT.x + sph.r*Math.sin(sph.phi)*Math.sin(sph.th),
+    camT.y + sph.r*Math.cos(sph.phi),
+    camT.z + sph.r*Math.sin(sph.phi)*Math.cos(sph.th));
+  camera.lookAt(camT);
+}
+const ptr = new Map(); let down=null, dragged=false, pinch=null, holdTimer=null, consumed=false;
+const pinchDist = () => { const v=[...ptr.values()]; return Math.hypot(v[0].x-v[1].x, v[0].y-v[1].y); };
+const clearHold = () => { if(holdTimer){ clearTimeout(holdTimer); holdTimer=null; } };
+canvas.addEventListener('pointerdown', e => {
+  try{ canvas.setPointerCapture(e.pointerId); }catch(_){}
+  ptr.set(e.pointerId, {x:e.clientX, y:e.clientY});
+  const menuWasOpen = menuEl.style.display==='block'; closeMenu();
+  if(ptr.size===1){
+    down={x:e.clientX, y:e.clientY}; dragged=false; consumed=menuWasOpen;
+    clearHold();
+    holdTimer = setTimeout(()=>{ if(!dragged && ptr.size===1){ openMenu(down.x, down.y); consumed=true; } }, 450);
+  }
+  if(ptr.size===2){ pinch = pinchDist(); clearHold(); }
+});
+canvas.addEventListener('pointermove', e => {
+  if(!ptr.has(e.pointerId)) return;
+  const pv = ptr.get(e.pointerId);
+  const dx = e.clientX-pv.x, dy = e.clientY-pv.y;
+  ptr.set(e.pointerId, {x:e.clientX, y:e.clientY});
+  if(ptr.size===2){ const d=pinchDist(); if(pinch && d>0.001){ sph.r *= pinch/d; clampR(); } pinch=d; clearHold(); return; }
+  if(down && Math.hypot(e.clientX-down.x, e.clientY-down.y) > 7){ dragged = true; clearHold(); }
+  sph.th -= dx*0.005;
+  sph.phi = Math.max(0.30, Math.min(1.15, sph.phi - dy*0.005));
+});
+canvas.addEventListener('pointerup', e => {
+  clearHold();
+  const two = ptr.size===2; ptr.delete(e.pointerId);
+  if(ptr.size < 2) pinch = null;
+  if(!two && !dragged && !consumed && down) worldClick(down.x, down.y);   // single tap = default action
+  if(ptr.size===0){ down = null; consumed=false; }
+});
+canvas.addEventListener('wheel', e => { sph.r *= 1 + e.deltaY*0.0012; clampR(); e.preventDefault(); }, {passive:false});
+canvas.addEventListener('contextmenu', e => { e.preventDefault(); clearHold(); openMenu(e.clientX, e.clientY); consumed=true; });
+
+/* ------------------------------------------------------------- picking / actions */
+const ray = new THREE.Raycaster();
+const groundPlane = new THREE.Plane(new THREE.Vector3(0,1,0), 0);
+function pickAt(px, py){
+  const r = canvas.getBoundingClientRect();
+  const ndc = new THREE.Vector2(((px-r.left)/r.width)*2-1, -((py-r.top)/r.height)*2+1);
+  ray.setFromCamera(ndc, camera);
+  const hit = ray.intersectObjects(clickTargets, false);
+  const g = new THREE.Vector3();
+  const ground = ray.ray.intersectPlane(groundPlane, g) ? {x:clampX(g.x), z:clampZ(g.z)} : null;
+  let npc = hit.length ? hit[0].object.userData.npc : null;
+  let obj = hit.length ? hit[0].object.userData.obj : null;
+  let scenery = hit.length ? (hit[0].object.userData.scenery || null) : null;
+  if(!npc && !obj && ground){
+    npc = NPCS.find(n => Math.hypot(n.x-ground.x, n.z-ground.z) < 1.2) || null;            // forgiving NPC tap
+    if(!npc) obj = OBJECTS.find(o => Math.hypot(o.x-ground.x, o.z-ground.z) < 1.0) || null; // forgiving object tap
+  }
+  return { npc, obj, scenery, ground };
+}
+function worldClick(px, py){            // single tap = OSRS default action
+  const { npc, obj, scenery, ground } = pickAt(px, py);
+  if(npc){ engage(npc); return; }
+  if(obj){ engage(obj); return; }
+  if(scenery){ engage(scenery); return; }
+  if(ground) walkTo(ground);
+}
+function engage(t){ move.pending = t; move._lastGoal = {x:t.x, z:t.z}; planPath(t.x, t.z); showMarker(t.x, t.z, '#7fe0ff'); buzz(18); }
+const engageNpc = engage;
+function walkTo(g){ move.pending = null; planPath(g.x, g.z); showMarker(g.x, g.z, '#ffe27a'); buzz(12); }
+function examine(e){
+  if(window.EMHUD){ EMHUD.addChat(e.examine || ('It is a '+(e.name||'thing').toLowerCase()+'.')); }
+  else { sayLines('Examine', [e.examine || ('It is '+e.name+'.')]); }
+}
+
+/* ----------------------------------------------- context menu (long-press / right-click) */
+const menuEl = document.getElementById('menu');
+function closeMenu(){ menuEl.style.display = 'none'; }
+function openMenu(px, py){
+  const { npc, obj, scenery, ground } = pickAt(px, py);
+  const t = npc || obj || scenery;
+  const items = [];
+  if(npc){ items.push(['Talk-to', ' '+npc.name, ()=>engage(npc)]); }
+  if(obj){ items.push([obj.verb || 'Use', ' '+obj.name, ()=>engage(obj)]); }
+  if(scenery){ items.push([scenery.verb, ' '+scenery.name, ()=>engage(scenery)]);
+               items.push(['Examine', ' '+scenery.name, ()=>examine(scenery)]); }
+  if(t && !scenery){ items.push(['Examine', ' '+t.name, ()=>examine(t)]); }
+  if(ground) items.push(['Walk here', '', ()=>walkTo(ground)]);
+  items.push(['Cancel', '', ()=>{}]);
+  menuEl.innerHTML = (t ? `<div class="hdr">${t.name}</div>` : '') +
+    items.map((it,i)=>`<div class="mi" data-i="${i}"><span class="o">${it[0]}</span>${it[1]}</div>`).join('');
+  menuEl.querySelectorAll('.mi').forEach(el => { el.onclick = ev => { ev.stopPropagation(); items[+el.dataset.i][2](); closeMenu(); }; });
+  menuEl.style.display = 'block';
+  menuEl.style.left = Math.min(px, innerWidth  - menuEl.offsetWidth  - 6) + 'px';
+  menuEl.style.top  = Math.min(py, innerHeight - menuEl.offsetHeight - 6) + 'px';
+  buzz(20);
+}
+
+/* ==================================================================== LOOP */
+let last = performance.now(), walkPhase = 0, stuckT = 0;
+function arrive(){           // in range of the pending target → act on it
+  move.moving = false; move.path = []; stuckT = 0;
+  if(move.pending){
+    const t = move.pending; move.pending = null;
+    player.rotation.y = Math.atan2(t.x - pos.x, t.z - pos.z);
+    if(t.lines) talk(t);                        // NPC → dialogue
+    else if(t.kind === 'altar') prayAtAltar();  // object → its action
+    else if(t.kind === 'scenery'){              // scenery → honest placeholder until skills land
+      if(window.EMHUD) EMHUD.addChat('You '+ (t.verb||'use').toLowerCase() +' the '+t.name.toLowerCase()+', but you haven’t learned that skill yet.');
+    }
+  }
+}
+function cancelPending(){ move.pending = null; move.path = []; move.moving = false; stuckT = 0; }
+function followPath(dt){
+  let wp = move.path[move.wp];
+  if(!wp){ move.moving = false; return; }
+  let dx = wp.x-pos.x, dz = wp.z-pos.z, d = Math.hypot(dx,dz);
+  while(d < 0.18 && move.wp < move.path.length-1){ wp = move.path[++move.wp]; dx = wp.x-pos.x; dz = wp.z-pos.z; d = Math.hypot(dx,dz); }
+  if(d < 0.12 && move.wp >= move.path.length-1){      // reached the end of the path
+    move.moving = false; move.path = [];
+    if(move.pending){ const t = move.pending;
+      if(Math.hypot(t.x-pos.x, t.z-pos.z) <= t.talkRange) arrive(); else cancelPending(); }  // proximity gate
+    return;
+  }
+  move.moving = true;
+  const ux = dx/d, uz = dz/d, step = Math.min(d, SPEED*dt), ox = pos.x, oz = pos.z;
+  const nx = clampX(pos.x+ux*step), nz = clampZ(pos.z+uz*step);
+  if(!moveBlocked(pos.x, pos.z, nx, pos.z)) pos.x = nx;   // axis-separated slide; can escape an overlapping NPC
+  if(!moveBlocked(pos.x, pos.z, pos.x, nz)) pos.z = nz;
+  player.rotation.y = Math.atan2(ux, uz); walkPhase += dt*9;
+  if(Math.hypot(pos.x-ox, pos.z-oz) < step*0.25){     // blocked (usually a wandering NPC in the way)
+    stuckT += dt;
+    if(stuckT > 0.5){ stuckT = 0;
+      if((move._replan = (move._replan||0) + 1) <= 4){ replan(); }      // reroute from here (don't derail the path)
+      else {                                                            // really can't get there — give up cleanly
+        if(move.pending && Math.hypot(move.pending.x-pos.x, move.pending.z-pos.z) <= move.pending.talkRange) arrive();
+        else cancelPending();
+        move.path = []; move.moving = false;
+      }
+    }
+  } else stuckT = 0;
+}
+function loop(now){
+  requestAnimationFrame(loop);
+  const dt = Math.min((now-last)/1000, 0.05); last = now;
+  simStep(dt);
+  updCam();
+  if(window.EMHUD) EMHUD.setPlayer(pos.x, pos.z, 0, NPCS.map(n=>({x:n.x, z:n.z, c:'#ffd98a'})));
+  renderer.render(scene, camera);
+}
+function simStep(dt){
+  // proximity gate: stop & act the moment we're within range of (and can see) the target —
+  // and re-path if the target is an NPC who has wandered.
+  if(move.pending){
+    const t = move.pending;
+    if(Math.hypot(t.x-pos.x, t.z-pos.z) <= t.talkRange && lineClear(pos.x,pos.z, t.x,t.z)){ arrive(); }
+    else if(move._lastGoal && Math.hypot(t.x-move._lastGoal.x, t.z-move._lastGoal.z) > 0.6){
+      planPath(t.x, t.z); move._lastGoal = {x:t.x, z:t.z};
+    }
+  }
+  followPath(dt);
+
+  // real walk cycle: swing legs/arms in opposite phase from the hip/shoulder pivots
+  const sw = move.moving ? Math.sin(walkPhase)*0.55 : 0;
+  if(rig.legL){ rig.legL.rotation.x =  sw;        rig.legR.rotation.x = -sw; }
+  if(rig.armL){ rig.armL.rotation.x = -sw*0.6;    rig.armR.rotation.x =  sw*0.6; }
+  const bob = move.moving ? Math.abs(Math.sin(walkPhase))*0.05 : 0;
+  player.position.set(pos.x, bob, pos.z);
+
+  if(marker.visible){
+    markerT -= dt*1.1; marker.material.opacity = Math.max(0, markerT);
+    marker.scale.setScalar(1 + (1-markerT)*0.5);
+    if(markerT <= 0) marker.visible = false;
+  }
+
+  updateNpcs(dt);                                  // wandering NPCs
+  if(glowT > 0){ glowT -= dt; altarGlow.intensity = Math.max(0, glowT) * 3.0; }
+  TEX.water.offset.x += dt*0.012; TEX.water.offset.y += dt*0.008;   // drifting ripple
+}
+requestAnimationFrame(loop);
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+</script>
+
+<!-- ===================== OSRS-style HUD (tabs / inventory / stats / equipment / combat / chat / minimap) ===================== -->
+<script>
+(function(){
+  const css = `
+  #emobj{position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:30;max-width:62vw;text-align:center;
+    background:rgba(33,29,24,.92);border:1px solid #c8a24a;border-radius:8px;padding:5px 14px;color:#f3e9cf;
+    font:13px "Trebuchet MS",sans-serif;text-shadow:0 1px 2px #000;}
+  #emobj .lab{color:#e7c64f;font-size:9px;letter-spacing:.22em;text-transform:uppercase;display:block;}
+  #emmap{position:fixed;right:10px;top:10px;z-index:30;width:108px;height:108px;border-radius:50%;
+    border:3px solid #5a4a2a;box-shadow:0 3px 12px #0008,inset 0 0 0 2px #2b2620;overflow:hidden;background:#3f6f3a;}
+  #emmap canvas{display:block;width:100%;height:100%;}
+  #emchat{position:fixed;left:8px;bottom:8px;width:min(44vw,360px);height:150px;z-index:30;display:flex;flex-direction:column;
+    background:linear-gradient(#2b2620,#1f1b16);border:2px solid #5a4a2a;border-radius:6px;box-shadow:0 4px 16px #000a;font-family:"Trebuchet MS",sans-serif;}
+  #emlog{flex:1;overflow-y:auto;padding:6px 9px;font-size:12.5px;color:#e3d6b8;line-height:1.5;}
+  #emlog .sys{color:#e7c64f;} #emlog .who{color:#7fb0e0;}
+  #emchch{display:flex;gap:2px;padding:3px;border-top:1px solid #4a3a26;}
+  #emchch button{flex:1;font-size:10px;background:#3a2e1f;color:#cdbf98;border:1px solid #4a3a26;border-radius:3px;padding:3px 0;cursor:pointer;}
+  #emtabs{position:fixed;right:8px;bottom:8px;z-index:31;display:grid;grid-template-columns:repeat(6,1fr);gap:3px;
+    width:min(80vw,318px);background:#1f1b16;border:2px solid #5a4a2a;border-radius:6px;padding:4px;}
+  #emtabs button{aspect-ratio:1;font-size:16px;background:#3a2e1f;border:1px solid #4a3a26;border-radius:5px;color:#f3e9cf;cursor:pointer;line-height:1;}
+  #emtabs button.on{border-color:#e7c64f;background:#5a4422;box-shadow:inset 0 0 6px #0006;}
+  #empanel{position:fixed;right:8px;bottom:92px;z-index:31;width:min(80vw,318px);max-height:52vh;overflow:auto;display:none;
+    background:linear-gradient(#3a2e1f,#28201601);border:2px solid #5a4a2a;border-radius:6px;padding:9px;
+    box-shadow:0 6px 22px #000b;font-family:"Trebuchet MS",sans-serif;background-color:#312718;}
+  #empanel.show{display:block;}
+  #empanel h4{margin:0 0 7px;color:#e7c64f;font-size:11px;letter-spacing:.1em;text-transform:uppercase;}
+  #empanel .muted{color:#9a8c6c;font-size:12px;}
+  .eminv{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;}
+  .eminv .s{aspect-ratio:1;background:#2b2620;border:1px solid #3e3424;border-radius:5px;position:relative;
+    display:flex;align-items:center;justify-content:center;font-size:21px;cursor:pointer;}
+  .eminv .s.empty{opacity:.4;cursor:default;}
+  .eminv .s .ct{position:absolute;top:1px;right:3px;font-size:10px;color:#8fe08f;font-weight:bold;text-shadow:0 1px 1px #000;}
+  .emsk{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;}
+  .emsk .sk{background:#2b2620;border:1px solid #3e3424;border-radius:4px;padding:3px 5px;font-size:11px;display:flex;align-items:center;gap:4px;}
+  .emsk .sk .lv{margin-left:auto;color:#fff;font-weight:bold;}
+  .emtot{text-align:center;margin-top:7px;color:#cdbf98;font-size:12px;}
+  .emeq{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;justify-items:center;}
+  .emeq .s{width:84%;aspect-ratio:1;background:#2b2620;border:1px solid #3e3424;border-radius:5px;display:flex;
+    align-items:center;justify-content:center;font-size:9px;color:#8a7a58;text-align:center;}
+  .emcs button{display:block;width:100%;text-align:left;background:#2b2620;color:#e3d6b8;border:1px solid #3e3424;
+    border-radius:4px;padding:7px 9px;font-size:12px;margin-bottom:4px;cursor:pointer;}
+  .emcs button.on{border-color:#e7c64f;color:#fff;}
+  #emxp{position:fixed;top:120px;left:50%;transform:translateX(-50%);z-index:29;pointer-events:none;}
+  #emxp .d{position:absolute;left:0;transform:translateX(-50%);white-space:nowrap;font-weight:bold;color:#8fe08f;
+    text-shadow:0 1px 3px #000;font:14px "Trebuchet MS";animation:emrise 1.5s ease-out forwards;}
+  @keyframes emrise{from{opacity:0;transform:translate(-50%,12px);}15%{opacity:1;}to{opacity:0;transform:translate(-50%,-32px);}}
+  `;
+  const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
+  const old = document.getElementById('hud'); if(old) old.style.display='none';
+  const help = document.getElementById('help'); if(help) help.style.display='none';
+
+  const TABS = [['inv','🎒','Inventory'],['stats','📊','Stats'],['equip','🛡️','Equipment'],['combat','⚔️','Combat'],
+    ['prayer','🙏','Prayer'],['magic','✨','Magic'],['quests','📜','Quests'],['settings','⚙️','Settings']];
+  document.body.insertAdjacentHTML('beforeend', `
+    <div id="emobj"><span class="lab">Objective</span><span id="emobjtx">Explore the chapel grounds</span></div>
+    <div id="emmap"><canvas width="108" height="108"></canvas></div>
+    <div id="emchat"><div id="emlog"></div>
+      <div id="emchch">${['All','Game','Public','Private','Clan','Trade'].map(c=>`<button>${c}</button>`).join('')}</div></div>
+    <div id="empanel"></div>
+    <div id="emtabs">${TABS.map(t=>`<button data-t="${t[0]}" title="${t[2]}">${t[1]}</button>`).join('')}</div>
+    <div id="emxp" class="ui"></div>`);
+
+  let SK=null, IT={}, ready=false;
+  const skillXp = {}; const inv = []; let curTab='inv', atkStyle=0;
+  const panel = document.getElementById('empanel');
+  function levelFromXp(xp){ const t=SK.xpTable; let l=1; for(let i=1;i<t.length;i++){ if(xp>=t[i]) l=i+1; else break; } return Math.min(l,99); }
+  function totalLevel(){ return SK.skills.reduce((a,s)=>a+levelFromXp(skillXp[s.id]||0),0); }
+  function combatLevel(){ const L=id=>levelFromXp(skillXp[id]||0);
+    const base=0.25*(L('defence')+L('hitpoints')+Math.floor(L('prayer')/2));
+    const melee=0.325*(L('attack')+L('strength')); return Math.floor(base+Math.max(melee,0.325*Math.floor(1.5*L('ranged'))))||3; }
+
+  function render(){
+    if(!ready) return;
+    if(curTab==='inv'){
+      panel.innerHTML='<h4>Inventory</h4><div class="eminv"></div>';
+      const g=panel.querySelector('.eminv');
+      for(let i=0;i<28;i++){ const it=inv[i];
+        g.insertAdjacentHTML('beforeend', it?`<div class="s" data-i="${i}"><span class="ct">${it.count>1?it.count:''}</span>${(IT[it.id]||{}).icon||'❓'}</div>`:'<div class="s empty"></div>'); }
+      g.querySelectorAll('.s[data-i]').forEach(el=>el.onclick=()=>{ const it=inv[+el.dataset.i]; const d=IT[it.id]||{};
+        EMHUD.addChat((d.verbs&&d.verbs[0]||'Use')+' '+(d.name||it.id)+'.'); });
+    } else if(curTab==='stats'){
+      panel.innerHTML='<h4>Skills</h4><div class="emsk"></div><div class="emtot"></div>';
+      const g=panel.querySelector('.emsk');
+      SK.skills.forEach(s=>{ const lv=levelFromXp(skillXp[s.id]||0);
+        g.insertAdjacentHTML('beforeend', `<div class="sk" title="${s.name}: ${Math.floor(skillXp[s.id]||0)} xp"><span>${s.icon}</span><span class="lv">${lv}</span></div>`); });
+      panel.querySelector('.emtot').textContent='Total level: '+totalLevel();
+    } else if(curTab==='equip'){
+      const slots=['head','cape','neck','weapon','body','shield','legs','hands','feet','ring','ammo'];
+      panel.innerHTML='<h4>Worn Equipment</h4><div class="emeq">'+slots.map(s=>`<div class="s">${s}</div>`).join('')+'</div>';
+    } else if(curTab==='combat'){
+      const styles=['Accurate','Aggressive','Defensive','Controlled'];
+      panel.innerHTML=`<h4>Combat — lvl ${combatLevel()}</h4><div class="muted" style="margin-bottom:6px">Weapon: Unarmed</div><div class="emcs">`+
+        styles.map((s,i)=>`<button data-s="${i}" class="${i===atkStyle?'on':''}">${s}</button>`).join('')+'</div>';
+      panel.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{ atkStyle=+b.dataset.s; render(); EMHUD.addChat('Attack style: '+styles[atkStyle]); });
+    } else if(curTab==='prayer'){ panel.innerHTML='<h4>Prayers</h4><div class="muted">Locked until you train Prayer at the altar.</div>';
+    } else if(curTab==='magic'){ panel.innerHTML='<h4>Spellbook</h4><div class="muted">Get runes from the Magic Instructor to cast Wind Strike.</div>';
+    } else if(curTab==='quests'){ panel.innerHTML='<h4>Quest Journal</h4><div class="muted">Tutorial Island — in progress.</div>';
+    } else { panel.innerHTML='<h4>Settings</h4><div class="muted">Audio, graphics & controls — coming soon.</div>'; }
+  }
+  function showTab(t){ curTab=t; document.querySelectorAll('#emtabs button').forEach(b=>b.classList.toggle('on', b.dataset.t===t));
+    panel.classList.add('show'); render(); }
+  document.querySelectorAll('#emtabs button').forEach(b=>b.onclick=()=>{ if(curTab===b.dataset.t && panel.classList.contains('show')){ panel.classList.remove('show'); } else showTab(b.dataset.t); });
+
+  const logEl=document.getElementById('emlog');
+  window.EMHUD = {
+    addChat(text, who){ const d=document.createElement('div'); d.className='c';
+      d.innerHTML=(who?`<span class="who">${who}: </span>`:'')+text; logEl.appendChild(d);
+      while(logEl.children.length>60) logEl.removeChild(logEl.firstChild); logEl.scrollTop=logEl.scrollHeight; },
+    giveItem(id,n){ n=n||1; const e=inv.find(x=>x.id===id); const it=IT[id];
+      if(it&&it.stackable&&e){ e.count+=n; } else { if(inv.length<28) inv.push({id,count:n}); }
+      if(curTab==='inv') render(); this.addChat('You receive: '+((IT[id]||{}).name||id)+(n>1?' ×'+n:'')+'.','', true); },
+    addXp(skill,amt){ const id=skill.toLowerCase(); const before=levelFromXp(skillXp[id]||0);
+      skillXp[id]=(skillXp[id]||0)+amt; const after=levelFromXp(skillXp[id]);
+      const d=document.createElement('div'); d.className='d'; d.textContent='+'+amt+' '+skill;
+      document.getElementById('emxp').appendChild(d); setTimeout(()=>d.remove(),1500);
+      if(after>before) this.addChat('⭐ '+skill+' level '+after+'!','', true);
+      if(curTab==='stats') render(); },
+    setObjective(t){ document.getElementById('emobjtx').textContent=t; },
+    show:showTab,
+    setPlayer(x,z,ang,markers){ drawMap(x,z,ang,markers); }
+  };
+
+  /* minimap */
+  const mc=document.querySelector('#emmap canvas'), mx=mc.getContext('2d');
+  function drawMap(px,pz,ang,markers){
+    mx.clearRect(0,0,108,108); mx.save(); mx.translate(54,54);
+    const sc=1.1; // world units → px
+    // markers (e.g. NPCs, next-step)
+    (markers||[]).forEach(m=>{ mx.fillStyle=m.c||'#ffe27a'; mx.beginPath();
+      mx.arc((m.x-(px||0))*sc, (m.z-(pz||0))*sc, m.r||2.5, 0, 7); mx.fill(); });
+    // player
+    mx.fillStyle='#fff'; mx.beginPath(); mx.arc(0,0,3.2,0,7); mx.fill();
+    // compass N
+    mx.fillStyle='#e7c64f'; mx.font='bold 11px Trebuchet MS'; mx.textAlign='center'; mx.fillText('N',0,-42);
+    mx.restore();
+  }
+  drawMap(0,8.5,0,[]);
+
+  /* load content data, then go */
+  Promise.all([
+    fetch('assets/data/skills.json').then(r=>r.json()),
+    fetch('assets/data/items.json').then(r=>r.json())
+  ]).then(([sk,it])=>{
+    SK=sk; (it.items||[]).forEach(i=>IT[i.id]=i);
+    SK.skills.forEach(s=>skillXp[s.id]=0);
+    const start=SK.startLevels||{}; for(const k in start){ skillXp[k]=SK.xpTable[(start[k]||1)-1]||0; }
+    ready=true; showTab('inv');
+    EMHUD.addChat('Welcome to <b>Eldermoor</b> <span style="opacity:.6">(v17)</span>.','', true);
+    EMHUD.addChat('Tap the world to walk. Tap an NPC to talk.','', true);
+    EMHUD.setObjective('Speak to Brother Aldric in the chapel');
+    // a few starting items so the bag isn\'t empty (placeholder)
+    ['bronze-axe','tinderbox','coins'].forEach(id=>{ if(IT[id]) EMHUD.giveItem(id, id==='coins'?25:1); });
+  }).catch(e=>{ if(window.EMHUD) EMHUD.addChat('HUD data failed to load.'); });
+})();
+</script>
+</body>
+</html>

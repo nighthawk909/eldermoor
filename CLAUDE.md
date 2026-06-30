@@ -15,7 +15,7 @@ These override convenience, speed, and token cost. If a step would violate one, 
    (e.g. a sandbox with no GPU) blocks full quality, say so and route around it (render on
    the Victus GPU) — do not quietly ship the lesser thing and call it done.
 3. **Fully baked.** Every thought, decision, plan, and increment is reasoned to completion
-   with rationale and tradeoffs recorded (in HANDOFF.md / MANIFEST.md). No hand-waving, no
+   with rationale and tradeoffs recorded (in HANDOFF.md / ROADMAP.md). No hand-waving, no
    "good enough for now" that hides debt.
 4. **Small verified chunks — never one-shot.** Build ONE increment from the manifest at a
    time. Each increment has a written Definition of Done and is rendered, inspected, and
@@ -35,7 +35,7 @@ RENDER  → render/run it (GPU)
 INSPECT → actually view the output
 CRITIQUE→ compare to reference + DoD; list concrete defects
 DECIDE  → defects? fix and re-loop. clean? mark done in MANIFEST, advance
-LOG     → update HANDOFF.md / MANIFEST.md with result + next chunk
+LOG     → update HANDOFF.md / ROADMAP.md with result + next chunk
 ```
 
 ## Definition of Done (per asset, unless the chunk says otherwise)
@@ -72,12 +72,21 @@ materials, deliberate lighting. Think "a notch above OSRS in craft, not in polyc
 
 - **Cost philosophy (decided):** free tooling now, architected to pay-to-scale the moment
   revenue/load justifies it. No tool choice made to avoid ever paying.
-- **Engine (working decision, not locked):** leaning **Unity** — free Personal under
-  $200K revenue/funding, Pro seats above. Revisit vs. Godot 4 / web-first before heavy
-  engine investment. Browser-instant-play is a desired property (RuneScape's DNA).
-- **Asset pipeline (decided):** authored in **Blender** (Python-generated geometry),
-  rendered in **Cycles**. Pipeline is engine-agnostic; models carry into Unity/Godot.
-- **Renderer:** Cycles, GPU. Production defaults live in `build_eldermoor.py`.
+- **Engine (DECIDED 2026-06-28):** **web-first — the playable client is Three.js**
+  (`eldermoor_client.html`), loading Blender-authored **glTF** assets. This is the parity
+  surface and the source of truth for "what you see." Browser-instant-play is RuneScape's DNA,
+  so the thing the owner looks at must be the real game, not an offline render. A native engine
+  (Unity/Godot) is a *later, optional* port once the look + vertical slice are locked — not the path.
+- **Asset pipeline (DECIDED, live):** authored in **Blender** (Python-generated geometry),
+  exported to **glTF (.glb)**, loaded by the web client. The bridge works end-to-end:
+  `build_kit.py → assets/*.glb → eldermoor_client.html → browser`. Cycles is kept for
+  high-fidelity look-judgment stills only. Pipeline stays engine-agnostic (glTF ports to Unity/Godot).
+- **Textures:** web client uses **seamless tiling PNGs** (`make_textures.py`, zero-dep) applied
+  by glTF material name with world-space repeat (uniform texel density, ART_SPEC §3). glTF can't
+  carry Blender's procedural node textures, so on `--export` those are swapped for solid palette
+  colors and the tiling PNGs supply detail in-browser.
+- **Renderer:** browser = Three.js (real-time, the game). Blender Cycles, GPU = offline beauty
+  stills. Production Cycles defaults live in `build_eldermoor.py` / `build_kit.py`.
 
 ## 4. Visual language / art bible
 
@@ -104,24 +113,45 @@ character silhouettes; keep UI quiet.
 
 ## 5. Current assets
 
-- `build_eldermoor.py` — builds the **Adventurer** and renders a still. The model is
-  approved; resolution/samples/denoise are what scale up on GPU.
-- `eldermoor.html` — interactive web prototype (Three.js). Reference for the *look* and
-  *interaction*: rotatable RS-style camera, click-to-move, floating nameplates, a
-  populated world chunk (trees, pond, cottage, campfire, NPCs). Not the shipping client.
+**The playable client (source of truth):**
+- `eldermoor_client.html` — **the game shell.** Three.js + GLTFLoader; loads `assets/*.glb`,
+  flat-shaded, OSRS camera, tiling textures applied by material name. Currently renders the
+  **Chapel** (room + altar/organ/banners + monk NPC). This is "what you see." Run via a static
+  server (see §6). *Next: player + click-to-move + collision (make the room playable).*
+- `assets/chapel.glb` — Blender-authored chapel, exported via `build_kit.py --export`.
+- `textures/brick.png`, `textures/plank.png` — seamless tiles from `make_textures.py`.
 
-## 6. How to render
+**The asset forge:**
+- `build_kit.py` — modular ENVIRONMENT kit + scenes (`--scene corner|chapel|character`),
+  Cycles render **or** `--export path.glb` for the client. Holds `build_npc_monk` (rounded-form
+  character per `docs/44_CHARACTER_RIG.md`).
+- `build_eldermoor.py` — the **Adventurer** hero (sculpted head/body/gear) + Cycles still.
+- `make_textures.py` — generates the tiling PNGs (zero dependencies, pure stdlib).
 
+**Reference / legacy:**
+- `eldermoor.html` — original look+interaction prototype (Three.js).
+- `tutorial_island.html` — **retired** skill-sampler demo; kept for interaction reference only,
+  no longer the parity target (it's the "old version" — the real client is `eldermoor_client.html`).
+
+## 6. How to run / render
+
+**Run the playable client (the game):**
 ```bash
-# preview (fast): 48 samples, 720x900
-blender --background --python build_eldermoor.py -- --preview
-# full quality: 1800x2250, 384 samples, OpenImageDenoise, GPU auto-detect
-blender --background --python build_eldermoor.py
-# overrides
-blender --background --python build_eldermoor.py -- --samples 512 --res 2400 3000 --out hero.png
+python make_textures.py                       # (re)generate tiling textures -> textures/
+# export an asset from the forge to glTF for the client:
+blender --background --python build_kit.py -- --scene chapel --export assets/chapel.glb
+python -m http.server 8099                     # serve the repo root
+# open http://localhost:8099/eldermoor_client.html
 ```
 
-**Always confirm GPU use:** the script prints `[eldermoor] render device: GPU (OPTIX/CUDA/HIP/...)`.
+**Offline Cycles beauty stills (look-judgment only):**
+```bash
+blender --background --python build_kit.py -- --scene chapel --samples 96 --res 1200 820 --out chapel.png
+blender --background --python build_eldermoor.py -- --preview        # hero, fast
+blender --background --python build_eldermoor.py                     # hero, full quality
+```
+
+**Always confirm GPU use:** scripts print `[kit]/[eldermoor] render device: GPU (OPTIX/CUDA/HIP/...)`.
 If it says `CPU`, enable the card in Blender > Preferences > System > Cycles Render Devices, then rerun.
 
 ## 7. Code conventions (build_eldermoor.py)
@@ -158,9 +188,29 @@ If it says `CPU`, enable the card in Blender > Preferences > System > Cycles Ren
 ## 10. Repo layout
 
 ```
-build_eldermoor.py   # asset generator + Cycles renderer
-README.md            # quick-start, run commands, troubleshooting
-CLAUDE.md            # this file (project context/rules)
-HANDOFF.md           # current state + next steps
+eldermoor_client.html  # THE GAME — Three.js client, loads glTF assets (source of truth)
+build_kit.py           # environment/world forge: scenes + Cycles render + --export glTF
+build_eldermoor.py     # character forge: Adventurer hero + Cycles still
+make_textures.py       # zero-dep seamless tiling textures -> textures/
+assets/                # exported glTF (.glb) consumed by the client (e.g. chapel.glb)
+textures/              # brick.png, plank.png (tiling)
+docs/                  # the MMORPG Bible (00_INDEX is the master TOC) + parity specs
+tutorial_island.html   # RETIRED skill-sampler demo (interaction reference only)
+eldermoor.html         # original look/interaction prototype
+CLAUDE.md              # this file (project context/operating law) — read first
+HANDOFF.md             # current state + changelog + next steps
+ROADMAP.md             # THE master phased checklist (done vs outstanding) — P0–P10 + lessons L0–L17
+PARITY_AUDIT.md        # granular per-feature test sheet (~250 itemised gaps, each a pass/fail test)
+ASSET_MANIFEST.md      # the one 3D-asset tracker (NPCs/buildings/fixtures/props/items + character sub-track)
+ART_SPEC.md MODELING_SPEC.md SKILL.md  # visual + modeling standards / the build-loop skill
+tutorial_island.html   # RETIRED skill-sampler demo (interaction reference only)
+eldermoor.html         # original look/interaction prototype
 .gitignore
 ```
+
+> **Documentation map (one job per file).** Read order: CLAUDE.md (why) → HANDOFF.md (now) →
+> ROADMAP.md (what's left, phase-level) → PARITY_AUDIT.md (item-level tests) → ASSET_MANIFEST.md (assets)
+> → ART_SPEC/MODELING_SPEC (standards). A feature's **status lives only in ROADMAP**; its **test only in
+> PARITY_AUDIT**; an asset's status only in ASSET_MANIFEST. No duplicate trackers.
+> _Retired 2026-06-29 (merged, not lost): BUILD_PLAN.md + TUTORIAL_ISLAND_PARITY.md → ROADMAP.md;
+> MANIFEST.md → ASSET_MANIFEST.md §9; KICKOFF.md (one-time bootstrap, superseded)._

@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "parts": {
+    "head": [
+      { "id": "head_clean", "label": "Clean-shaven" },
+      { "id": "head_short_beard", "label": "Short beard" },
+      { "id": "head_long_beard", "label": "Long beard" },
+      { "id": "head_hooded", "label": "Hooded" }
+    ],
+    "torso": [
+      { "id": "torso_tunic", "label": "Tunic" },
+      { "id": "torso_jerkin", "label": "Leather jerkin" },
+      { "id": "torso_robe", "label": "Robe" },
+      { "id": "torso_yoke", "label": "Shouldered yoke" }
+    ],
+    "arms": [
+      { "id": "arms_sleeved", "label": "Sleeved" },
+      { "id": "arms_bare", "label": "Bare" },
+      { "id": "arms_wrapped", "label": "Wrapped" }
+    ],
+    "hands": [
+      { "id": "hands_bare", "label": "Bare hands" },
+      { "id": "hands_gloves", "label": "Gloves" },
+      { "id": "hands_bracers", "label": "Bracers" }
+    ],
+    "legs": [
+      { "id": "legs_trousers", "label": "Trousers" },
+      { "id": "legs_skirt", "label": "Long skirt" },
+      { "id": "legs_breeches", "label": "Breeches" }
+    ],
+    "feet": [
+      { "id": "feet_boots", "label": "Boots" },
+      { "id": "feet_shoes", "label": "Shoes" },
+      { "id": "feet_sandals", "label": "Sandals" }
+    ]
+  },
+  "colours": {
+    "skin": ["#e8b98e", "#f1cfa9", "#d49a6a", "#b87a4e", "#8c5a36", "#5e3a22"],
+    "hair": ["#3a2a1c", "#4a3420", "#1c140d", "#6b4a2a", "#8a6a3a", "#c9a96a", "#9c3030", "#cfcfcf"],
+    "torso": ["#3f6f8c", "#9c3030", "#4f7a3c", "#5a3f28", "#2f3742", "#d8b25a", "#7a4a86", "#c2cad4"],
+    "legs": ["#2f3742", "#5a3f28", "#3f6f8c", "#4a3420", "#566073", "#6b3030"],
+    "feet": ["#5a3f28", "#3a2a1c", "#4a3420", "#2f3742", "#8c6b40", "#c2cad4"]
+  },
+  "bodyTypes": ["A", "B"],
+  "pronouns": [
+    { "id": "he", "label": "He / Him" },
+    { "id": "she", "label": "She / Her" },
+    { "id": "they", "label": "They / Them" }
+  ]
+}

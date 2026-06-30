@@ -1,0 +1,336 @@
+{
+  "lessons": [
+    {
+      "id": "L0",
+      "title": "Character Creation",
+      "instructor": "halric",
+      "zone": "spawn_house",
+      "prereq": [],
+      "objective": "Design your adventurer and confirm your appearance to enter Eldermoor.",
+      "steps": [
+        { "action": "talk", "detail": "Warden Halric greets you and opens the appearance designer." },
+        { "action": "use", "detail": "Cycle head, torso, arms, hands, legs, feet and colour options." },
+        { "action": "use", "detail": "Choose pronouns and body type, then press Confirm." }
+      ],
+      "grants": [],
+      "xp": [],
+      "complete_when": "flag:appearance_confirmed",
+      "next": "L1",
+      "gate": "spawn:player"
+    },
+    {
+      "id": "L1",
+      "title": "Controls & Settings",
+      "instructor": "halric",
+      "zone": "spawn_house",
+      "prereq": ["L0"],
+      "objective": "Talk to Warden Halric and learn movement, camera and the interface tabs.",
+      "steps": [
+        { "action": "talk", "detail": "Warden Halric explains click-to-move and the RS-style camera." },
+        { "action": "open_tab", "detail": "Open the Settings tab as instructed." },
+        { "action": "talk", "detail": "Halric points you to the door leading outside to the Survival Expert." }
+      ],
+      "grants": [],
+      "xp": [],
+      "complete_when": "flag:controls_taught",
+      "next": "L2",
+      "gate": "door:spawn_house"
+    },
+    {
+      "id": "L2",
+      "title": "Woodcutting",
+      "instructor": "maeve",
+      "zone": "survival",
+      "prereq": ["L1"],
+      "objective": "Get an axe from Forester Maeve and chop a tree for logs.",
+      "steps": [
+        { "action": "talk", "detail": "Forester Maeve explains gathering and hands you a bronze axe." },
+        { "action": "equip", "detail": "The bronze axe goes to your inventory; she explains the inventory tab." },
+        { "action": "chop", "detail": "Click a tree to chop it until you receive logs." }
+      ],
+      "grants": ["bronze-axe"],
+      "xp": [{ "skill": "Woodcutting", "amount": 25 }],
+      "complete_when": "has:logs",
+      "next": "L3",
+      "gate": "lesson:L3"
+    },
+    {
+      "id": "L3",
+      "title": "Firemaking",
+      "instructor": "maeve",
+      "zone": "survival",
+      "prereq": ["L2"],
+      "objective": "Use a tinderbox on your logs to light a fire.",
+      "steps": [
+        { "action": "talk", "detail": "Forester Maeve gives you a tinderbox." },
+        { "action": "use", "detail": "Use the tinderbox on the logs in your inventory." },
+        { "action": "light", "detail": "A fire ignites on the ground; keep it for cooking next." }
+      ],
+      "grants": ["tinderbox"],
+      "xp": [{ "skill": "Firemaking", "amount": 40 }],
+      "complete_when": "lit:fire",
+      "next": "L4",
+      "gate": "object:fire"
+    },
+    {
+      "id": "L4",
+      "title": "Fishing",
+      "instructor": "maeve",
+      "zone": "survival",
+      "prereq": ["L3"],
+      "objective": "Take a fishing net and catch raw shrimp at the pond.",
+      "steps": [
+        { "action": "talk", "detail": "Forester Maeve gives you a small fishing net." },
+        { "action": "fish", "detail": "Click the fishing spot in the pond to net raw shrimp." }
+      ],
+      "grants": ["small-fishing-net"],
+      "xp": [{ "skill": "Fishing", "amount": 30 }],
+      "complete_when": "has:raw-shrimp",
+      "next": "L5",
+      "gate": "lesson:L5"
+    },
+    {
+      "id": "L5",
+      "title": "Cooking on a Fire",
+      "instructor": "maeve",
+      "zone": "survival",
+      "prereq": ["L4"],
+      "objective": "Cook your raw shrimp on the fire, then continue through the gate.",
+      "steps": [
+        { "action": "use", "detail": "Use the raw shrimp on the fire you lit." },
+        { "action": "cook", "detail": "Cook the shrimp; a burnt one teaches that food can fail." },
+        { "action": "talk", "detail": "Forester Maeve sends you on toward Cook Tobin's house." }
+      ],
+      "grants": ["cooked-shrimp"],
+      "xp": [{ "skill": "Cooking", "amount": 30 }],
+      "complete_when": "has:cooked-shrimp",
+      "next": "L6",
+      "gate": "gate:survival"
+    },
+    {
+      "id": "L6",
+      "title": "Making Bread Dough",
+      "instructor": "tobin",
+      "zone": "cooks_house",
+      "prereq": ["L5"],
+      "objective": "Use the pot of flour on the bucket of water to make bread dough.",
+      "steps": [
+        { "action": "talk", "detail": "Cook Tobin welcomes you and gives flour and water." },
+        { "action": "use", "detail": "Use the pot of flour on the bucket of water to form dough." },
+        { "action": "cook", "detail": "Optionally bake the dough on the range into bread." }
+      ],
+      "grants": ["pot-of-flour", "bucket-of-water", "bread-dough"],
+      "xp": [{ "skill": "Cooking", "amount": 0 }],
+      "complete_when": "has:bread-dough",
+      "next": "L7",
+      "gate": "door:cooks_house"
+    },
+    {
+      "id": "L7",
+      "title": "Quests & the Journal",
+      "instructor": "edda",
+      "zone": "spawn_house",
+      "prereq": ["L6"],
+      "objective": "Talk to Loremaster Edda about the quest journal, then head to the mine ladder.",
+      "steps": [
+        { "action": "talk", "detail": "Loremaster Edda explains quests and the journal." },
+        { "action": "open_tab", "detail": "Open the Quests tab to view your quest list." },
+        { "action": "talk", "detail": "Edda directs you to the ladder down into the mine." }
+      ],
+      "grants": ["quest-journal"],
+      "xp": [],
+      "complete_when": "flag:quests_taught",
+      "next": "L8",
+      "gate": "ladder:mine_down"
+    },
+    {
+      "id": "L8",
+      "title": "Mining",
+      "instructor": "doran",
+      "zone": "mine",
+      "prereq": ["L7"],
+      "objective": "Take a pickaxe and mine tin and copper ore.",
+      "steps": [
+        { "action": "talk", "detail": "Pickmaster Doran hands you a bronze pickaxe." },
+        { "action": "mine", "detail": "Mine the tin ore rock for tin ore." },
+        { "action": "mine", "detail": "Mine the copper ore rock for copper ore." }
+      ],
+      "grants": ["bronze-pickaxe"],
+      "xp": [{ "skill": "Mining", "amount": 35 }],
+      "complete_when": "has:tin-ore&has:copper-ore",
+      "next": "L9",
+      "gate": "lesson:L9"
+    },
+    {
+      "id": "L9",
+      "title": "Smelting",
+      "instructor": "doran",
+      "zone": "mine",
+      "prereq": ["L8"],
+      "objective": "Smelt your tin and copper ore into a bronze bar at the furnace.",
+      "steps": [
+        { "action": "talk", "detail": "Pickmaster Doran explains the furnace." },
+        { "action": "use", "detail": "Use the ore on the furnace." },
+        { "action": "smelt", "detail": "Smelt tin + copper into a bronze bar." }
+      ],
+      "grants": ["bronze-bar"],
+      "xp": [{ "skill": "Smithing", "amount": 35 }],
+      "complete_when": "has:bronze-bar",
+      "next": "L10",
+      "gate": "object:anvil"
+    },
+    {
+      "id": "L10",
+      "title": "Smithing",
+      "instructor": "doran",
+      "zone": "mine",
+      "prereq": ["L9"],
+      "objective": "Use your bronze bar and hammer on the anvil to smith a bronze dagger, then climb out.",
+      "steps": [
+        { "action": "talk", "detail": "Pickmaster Doran gives you a hammer." },
+        { "action": "use", "detail": "Use the bronze bar on the anvil." },
+        { "action": "smith", "detail": "Smith the bar into a bronze dagger." },
+        { "action": "use", "detail": "Climb the ladder up out of the mine." }
+      ],
+      "grants": ["hammer", "bronze-dagger"],
+      "xp": [{ "skill": "Smithing", "amount": 50 }],
+      "complete_when": "has:bronze-dagger",
+      "next": "L11",
+      "gate": "ladder:mine_up"
+    },
+    {
+      "id": "L11",
+      "title": "Equipment & Melee",
+      "instructor": "vael",
+      "zone": "combat",
+      "prereq": ["L10"],
+      "objective": "Wield your dagger, equip leather armour, and kill a rat in the pen.",
+      "steps": [
+        { "action": "talk", "detail": "Sergeant Vael explains the Equipment tab." },
+        { "action": "equip", "detail": "Wield the bronze dagger and equip leather body and gloves." },
+        { "action": "open_tab", "detail": "Open the Equipment tab to confirm your worn gear." },
+        { "action": "attack", "detail": "Attack a giant rat in the pen until it dies." }
+      ],
+      "grants": ["leather-body", "leather-gloves"],
+      "xp": [
+        { "skill": "Attack", "amount": 40 },
+        { "skill": "Strength", "amount": 40 },
+        { "skill": "Defence", "amount": 40 },
+        { "skill": "Hitpoints", "amount": 13 }
+      ],
+      "complete_when": "killed:giant_rat",
+      "next": "L12",
+      "gate": "lesson:L12"
+    },
+    {
+      "id": "L12",
+      "title": "Ranged Combat",
+      "instructor": "vael",
+      "zone": "combat",
+      "prereq": ["L11"],
+      "objective": "Equip a shortbow and arrows and kill a rat at range.",
+      "steps": [
+        { "action": "talk", "detail": "Sergeant Vael gives you a shortbow and bronze arrows." },
+        { "action": "equip", "detail": "Wield the shortbow and equip the bronze arrows." },
+        { "action": "open_tab", "detail": "Open the Combat tab and review attack styles." },
+        { "action": "attack", "detail": "Shoot a giant rat at range until it dies." }
+      ],
+      "grants": ["shortbow", "bronze-arrows"],
+      "xp": [{ "skill": "Ranged", "amount": 30 }],
+      "complete_when": "killed:giant_rat_ranged",
+      "next": "L13",
+      "gate": "gate:combat"
+    },
+    {
+      "id": "L13",
+      "title": "Banking",
+      "instructor": "wynn",
+      "zone": "bank",
+      "prereq": ["L12"],
+      "objective": "Open the bank with Teller Wynn and learn to deposit and withdraw.",
+      "steps": [
+        { "action": "talk", "detail": "Teller Wynn explains the bank." },
+        { "action": "bank", "detail": "Open the bank booth interface." },
+        { "action": "bank", "detail": "Deposit an item, then withdraw it to learn the controls." }
+      ],
+      "grants": [],
+      "xp": [],
+      "complete_when": "flag:bank_used",
+      "next": "L14",
+      "gate": "door:bank"
+    },
+    {
+      "id": "L14",
+      "title": "Account & Poll",
+      "instructor": "brann",
+      "zone": "bank",
+      "prereq": ["L13"],
+      "objective": "Talk to Steward Brann about account management and the poll booth.",
+      "steps": [
+        { "action": "talk", "detail": "Steward Brann explains account security and management." },
+        { "action": "open_tab", "detail": "Open the Account Management tab." },
+        { "action": "use", "detail": "Inspect the poll booth (Eldermoor's civic voting station)." }
+      ],
+      "grants": ["poll-card"],
+      "xp": [],
+      "complete_when": "flag:account_taught",
+      "next": "L15",
+      "gate": "lesson:L15"
+    },
+    {
+      "id": "L15",
+      "title": "Prayer & Social",
+      "instructor": "aldric",
+      "zone": "chapel",
+      "prereq": ["L14"],
+      "objective": "Bury bones at the altar for Prayer XP and learn the Friends tabs.",
+      "steps": [
+        { "action": "talk", "detail": "Brother Aldric explains Prayer and the altar." },
+        { "action": "open_tab", "detail": "Open the Prayer tab to view your prayers." },
+        { "action": "pray", "detail": "Bury the bones at the altar for Prayer experience." },
+        { "action": "talk", "detail": "Aldric explains the Friends and Ignore lists." }
+      ],
+      "grants": ["bones"],
+      "xp": [{ "skill": "Prayer", "amount": 12 }],
+      "complete_when": "flag:bones_buried",
+      "next": "L16",
+      "gate": "door:chapel"
+    },
+    {
+      "id": "L16",
+      "title": "Magic",
+      "instructor": "sorrel",
+      "zone": "wizard",
+      "prereq": ["L15"],
+      "objective": "Receive runes and cast Wind Strike on the practice chicken.",
+      "steps": [
+        { "action": "talk", "detail": "Magus Sorrel gives you air runes and mind runes." },
+        { "action": "open_tab", "detail": "Open the Magic tab and find Wind Strike." },
+        { "action": "cast", "detail": "Cast Wind Strike on the practice chicken." }
+      ],
+      "grants": ["air-rune", "mind-rune"],
+      "xp": [{ "skill": "Magic", "amount": 35 }],
+      "complete_when": "cast:wind_strike",
+      "next": "L17",
+      "gate": "lesson:L17"
+    },
+    {
+      "id": "L17",
+      "title": "Departure",
+      "instructor": "halric",
+      "zone": "dock",
+      "prereq": ["L16"],
+      "objective": "Talk to Warden Halric, confirm departure, and sail to the mainland.",
+      "steps": [
+        { "action": "talk", "detail": "Warden Halric confirms you are ready to leave the island." },
+        { "action": "talk", "detail": "Confirm the leave-island prompt." },
+        { "action": "use", "detail": "Board the departure boat and sail to Eldermoor's mainland." }
+      ],
+      "grants": ["tutorial-cape"],
+      "xp": [],
+      "complete_when": "flag:departed",
+      "next": null,
+      "gate": "world:mainland"
+    }
+  ]
+}

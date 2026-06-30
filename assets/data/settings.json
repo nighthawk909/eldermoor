@@ -1,0 +1,208 @@
+{
+  "version": 1,
+  "groups": [
+    {
+      "id": "display",
+      "label": "Display",
+      "settings": [
+        {
+          "id": "brightness",
+          "label": "Brightness",
+          "type": "slider",
+          "default": 50,
+          "min": 0,
+          "max": 100,
+          "step": 1
+        },
+        {
+          "id": "defaultZoom",
+          "label": "Default zoom",
+          "type": "slider",
+          "default": 12,
+          "min": 5,
+          "max": 22,
+          "step": 1
+        },
+        {
+          "id": "drawDistance",
+          "label": "Draw distance",
+          "type": "slider",
+          "default": 80,
+          "min": 20,
+          "max": 120,
+          "step": 5
+        },
+        {
+          "id": "roofs",
+          "label": "Show roofs",
+          "type": "toggle",
+          "default": false
+        },
+        {
+          "id": "dataOrbs",
+          "label": "Data orbs",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "id": "antialiasing",
+          "label": "Anti-aliasing",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "id": "detail",
+          "label": "Graphics detail",
+          "type": "select",
+          "default": "high",
+          "options": [
+            { "value": "low", "label": "Low detail" },
+            { "value": "high", "label": "High detail" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "audio",
+      "label": "Audio",
+      "settings": [
+        {
+          "id": "masterVolume",
+          "label": "Master volume",
+          "type": "slider",
+          "default": 75,
+          "min": 0,
+          "max": 100,
+          "step": 1
+        },
+        {
+          "id": "masterMute",
+          "label": "Mute all",
+          "type": "toggle",
+          "default": false
+        },
+        {
+          "id": "musicVolume",
+          "label": "Music volume",
+          "type": "slider",
+          "default": 60,
+          "min": 0,
+          "max": 100,
+          "step": 1
+        },
+        {
+          "id": "musicMute",
+          "label": "Mute music",
+          "type": "toggle",
+          "default": false
+        },
+        {
+          "id": "sfxVolume",
+          "label": "Sound effects volume",
+          "type": "slider",
+          "default": 80,
+          "min": 0,
+          "max": 100,
+          "step": 1
+        },
+        {
+          "id": "sfxMute",
+          "label": "Mute sound effects",
+          "type": "toggle",
+          "default": false
+        },
+        {
+          "id": "areaVolume",
+          "label": "Area sounds volume",
+          "type": "slider",
+          "default": 70,
+          "min": 0,
+          "max": 100,
+          "step": 1
+        },
+        {
+          "id": "areaMute",
+          "label": "Mute area sounds",
+          "type": "toggle",
+          "default": false
+        }
+      ]
+    },
+    {
+      "id": "chat",
+      "label": "Chat",
+      "settings": [
+        {
+          "id": "splitPrivate",
+          "label": "Split private chat",
+          "type": "toggle",
+          "default": false
+        },
+        {
+          "id": "profanityFilter",
+          "label": "Profanity filter",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "id": "timestamps",
+          "label": "Chat timestamps",
+          "type": "toggle",
+          "default": false
+        },
+        {
+          "id": "clickableNames",
+          "label": "Clickable player names",
+          "type": "toggle",
+          "default": true
+        }
+      ]
+    },
+    {
+      "id": "controls",
+      "label": "Controls",
+      "settings": [
+        {
+          "id": "shiftClickDrop",
+          "label": "Shift-click to drop items",
+          "type": "toggle",
+          "default": false
+        },
+        {
+          "id": "mouseButtons",
+          "label": "Mouse buttons",
+          "type": "select",
+          "default": "two",
+          "options": [
+            { "value": "one", "label": "One mouse button" },
+            { "value": "two", "label": "Two mouse buttons" }
+          ]
+        },
+        {
+          "id": "middleMouseCamera",
+          "label": "Middle mouse moves camera",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "id": "scrollZoom",
+          "label": "Scroll wheel zoom",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "id": "escClosesInterface",
+          "label": "Esc closes open interface",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "id": "runToggle",
+          "label": "Run enabled by default",
+          "type": "toggle",
+          "default": false
+        }
+      ]
+    }
+  ]
+}

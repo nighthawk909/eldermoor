@@ -17,7 +17,7 @@ You are building original game assets in the early-RuneScape low-poly register. 
 ## The rule of this skill: chunks, not one-shots
 
 Never build a whole character/prop in one pass. Pull the next unchecked chunk from
-`MANIFEST.md`, build only that, verify it, and log it. One chunk per loop.
+`ASSET_MANIFEST.md`, build only that, verify it, and log it. One chunk per loop.
 
 ## Loop (repeat per chunk)
 
@@ -30,7 +30,7 @@ Never build a whole character/prop in one pass. Pull the next unchecked chunk fr
 4. **INSPECT** — Open the image and actually look at it.
 5. **CRITIQUE** — Compare to the OSRS reference and the DoD. Write a concrete defect list
    ("waist seam visible", "eyes read as grey rectangles", "hands oversized").
-6. **DECIDE** — Any defect → fix and re-loop. Clean → mark the chunk done in `MANIFEST.md`.
+6. **DECIDE** — Any defect → fix and re-loop. Clean → mark the chunk done in `ASSET_MANIFEST.md`.
 7. **LOG** — Update `HANDOFF.md` with what changed and the next chunk.
 
 ## Quality bars (what "good" means here)

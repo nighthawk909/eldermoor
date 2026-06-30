@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "eldermoor",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8099", "--directory", "C:/Users/jcoci/OneDrive/Desktop/eldermoor"],
+      "port": 8099
+    },
+    {
+      "name": "eldermoor-play",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8100", "--directory", "C:/Users/jcoci/OneDrive/Desktop/eldermoor"],
+      "port": 8100
+    }
+  ]
+}

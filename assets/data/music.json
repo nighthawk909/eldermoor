@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "tracks": [
+    {
+      "id": "wakening-shore",
+      "name": "Wakening Shore",
+      "unlockArea": "title",
+      "locked": false,
+      "loop": true
+    },
+    {
+      "id": "candlelit-vows",
+      "name": "Candlelit Vows",
+      "unlockArea": "chapel",
+      "locked": false,
+      "loop": true
+    },
+    {
+      "id": "first-firelight",
+      "name": "First Firelight",
+      "unlockArea": "survival",
+      "locked": false,
+      "loop": true
+    },
+    {
+      "id": "deepvein-echoes",
+      "name": "Deepvein Echoes",
+      "unlockArea": "mine",
+      "locked": true,
+      "loop": true
+    },
+    {
+      "id": "sparring-circle",
+      "name": "Sparring Circle",
+      "unlockArea": "combat_ring",
+      "locked": true,
+      "loop": true
+    },
+    {
+      "id": "weight-of-coin",
+      "name": "Weight of Coin",
+      "unlockArea": "bank",
+      "locked": true,
+      "loop": true
+    },
+    {
+      "id": "runes-and-reverie",
+      "name": "Runes and Reverie",
+      "unlockArea": "wizard_tower",
+      "locked": true,
+      "loop": true
+    },
+    {
+      "id": "farewell-tide",
+      "name": "Farewell Tide",
+      "unlockArea": "departure_dock",
+      "locked": true,
+      "loop": true
+    }
+  ]
+}

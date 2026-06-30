@@ -1,0 +1,177 @@
+{
+  "version": 1,
+  "questPointsTotal": 6,
+  "stateColours": {
+    "not_started": "red",
+    "in_progress": "yellow",
+    "complete": "green"
+  },
+  "groups": [
+    { "id": "Free", "label": "Free Quests" },
+    { "id": "Members", "label": "Members' Quests" },
+    { "id": "Miscellaneous", "label": "Miscellaneous" }
+  ],
+  "groupCounts": {
+    "Free": 4,
+    "Members": 1,
+    "Miscellaneous": 1
+  },
+  "quests": [
+    {
+      "id": "wardens-isle-tutorial",
+      "name": "Wardens' Isle",
+      "state": "in_progress",
+      "difficulty": "Novice",
+      "length": "Medium",
+      "group": "Miscellaneous",
+      "questPoints": 0,
+      "requirements": [],
+      "description": "Warden Halric and the isle's instructors teach you the foundations of survival, craft, combat and lore before you sail for the mainland of Eldermoor.",
+      "steps": [
+        "Design your adventurer with Warden Halric and confirm your appearance.",
+        "Learn click-to-move, the camera and the interface tabs, then step outside.",
+        "Take a bronze axe from Forester Maeve and chop a tree for logs.",
+        "Use a tinderbox on your logs to light a fire.",
+        "Net raw shrimp at the pond with a small fishing net.",
+        "Cook the raw shrimp on your fire and pass through the survival gate.",
+        "Make bread dough with Cook Tobin's flour and water.",
+        "Hear Loremaster Edda explain the quest journal, then find the mine ladder.",
+        "Mine tin and copper ore with Pickmaster Doran's bronze pickaxe.",
+        "Smelt the ores into a bronze bar at the furnace.",
+        "Smith the bar into a bronze dagger at the anvil and climb out.",
+        "Wield the dagger, equip leather armour and slay a giant rat for Sergeant Vael.",
+        "Equip a shortbow and arrows and down a rat at range.",
+        "Open the bank with Teller Wynn and practise deposit and withdraw.",
+        "Talk to Steward Brann about account management and the poll booth.",
+        "Bury bones at the chapel altar with Brother Aldric for Prayer experience.",
+        "Take runes from Magus Sorrel and cast Wind Strike on the practice chicken.",
+        "Confirm departure with Warden Halric and sail to Eldermoor's mainland."
+      ],
+      "rewards": [
+        "Bronze axe, tinderbox, fishing net, pickaxe and hammer starter tools",
+        "Starting experience across eleven skills",
+        "Tutorial cape",
+        "Passage to the Eldermoor mainland"
+      ]
+    },
+    {
+      "id": "the-cooks-shortfall",
+      "name": "The Cook's Shortfall",
+      "state": "not_started",
+      "difficulty": "Novice",
+      "length": "Short",
+      "group": "Free",
+      "questPoints": 1,
+      "requirements": [],
+      "description": "Master Cook Brindle of Hartwell Keep has burned the harvest-feast cake and is missing three ingredients. Gather them before the steward returns.",
+      "steps": [
+        "Speak with Master Cook Brindle in the Hartwell Keep kitchen.",
+        "Fetch a pail of milk from the dairy cow in the keep pasture.",
+        "Gather a sheaf of grain and grind it to flour at the windmill.",
+        "Collect a fresh egg from the henhouse behind the stables.",
+        "Return all three ingredients to Brindle to save the feast."
+      ],
+      "rewards": [
+        "1 Quest Point",
+        "Access to Brindle's range and assorted foodstuffs",
+        "300 Cooking experience"
+      ]
+    },
+    {
+      "id": "the-grellkin-menace",
+      "name": "The Grellkin Menace",
+      "state": "not_started",
+      "difficulty": "Novice",
+      "length": "Short",
+      "group": "Free",
+      "questPoints": 1,
+      "requirements": [
+        { "type": "skill", "id": "Attack", "level": 5 }
+      ],
+      "description": "Grellkin raiders from the Mirewood have been stealing from the village of Lownbrook. Sergeant Holt needs them driven back across the marsh.",
+      "steps": [
+        "Report to Sergeant Holt at the Lownbrook palisade.",
+        "Recover the stolen armour crate from the Grellkin scouting camp.",
+        "Defeat the Grellkin warband leader, Snagrot, in the Mirewood clearing.",
+        "Bring Snagrot's banner back to Sergeant Holt as proof."
+      ],
+      "rewards": [
+        "1 Quest Point",
+        "A bronze warhammer",
+        "250 Attack experience and a small coin purse"
+      ]
+    },
+    {
+      "id": "secrets-of-the-runestones",
+      "name": "Secrets of the Runestones",
+      "state": "not_started",
+      "difficulty": "Intermediate",
+      "length": "Short",
+      "group": "Free",
+      "questPoints": 1,
+      "requirements": [],
+      "description": "Archivist Pell of the Pale Tower suspects the old runestones beneath Eldermoor still hum with power. Carry her sealed enquiry to the reclusive Rune Warden.",
+      "steps": [
+        "Meet Archivist Pell in the Pale Tower library.",
+        "Deliver her sealed enquiry to the Rune Warden in the cliffside hermitage.",
+        "Receive the Warden's talisman and return it to Archivist Pell.",
+        "Witness the first runestone awaken under Pell's reading."
+      ],
+      "rewards": [
+        "1 Quest Point",
+        "Access to the Runecrafting altar network",
+        "An air talisman and starter rune essence"
+      ]
+    },
+    {
+      "id": "the-feud-of-the-vinemoors",
+      "name": "The Feud of the Vinemoors",
+      "state": "in_progress",
+      "difficulty": "Novice",
+      "length": "Short",
+      "group": "Free",
+      "questPoints": 1,
+      "requirements": [],
+      "description": "Two rival vineyard houses, Corwell and Ashvale, have feuded for a generation, yet young Ilsa Corwell and Tomas Ashvale are secretly betrothed. Help them be together before the harvest tears the valley apart.",
+      "steps": [
+        "Hear Tomas Ashvale's plea outside the Ashvale gate.",
+        "Carry a written message to Ilsa Corwell on her balcony.",
+        "Seek the herbalist Maither in the willow grove for a sleeping draught.",
+        "Deliver the draught to Ilsa so she may slip away unseen.",
+        "Reunite the lovers and broker an uneasy truce between the houses."
+      ],
+      "rewards": [
+        "1 Quest Point",
+        "A modest coin reward and a Vinemoor signet",
+        "150 Crafting experience"
+      ]
+    },
+    {
+      "id": "tides-of-the-saltmarsh",
+      "name": "Tides of the Saltmarsh",
+      "state": "not_started",
+      "difficulty": "Experienced",
+      "length": "Long",
+      "group": "Members",
+      "questPoints": 2,
+      "requirements": [
+        { "type": "skill", "id": "Fishing", "level": 15 },
+        { "type": "skill", "id": "Magic", "level": 10 },
+        { "type": "quest", "id": "secrets-of-the-runestones" }
+      ],
+      "description": "The fishing hamlet of Saltmarsh is drowning under unnatural tides. Uncover the sunken shrine offshore and bind the tide-spirit before the village is lost.",
+      "steps": [
+        "Investigate the rising tides with Harbourmaster Quenn.",
+        "Repair the old skiff and row out to the sunken shrine.",
+        "Dive the flooded shrine and recover the three tide-sigils.",
+        "Restore the sigils to the shrine pedestals in the correct order.",
+        "Confront and bind the tide-spirit Maelgra to calm the waters."
+      ],
+      "rewards": [
+        "2 Quest Points",
+        "The Saltmarsh charm (water-breathing boost)",
+        "2,000 Fishing experience and 1,500 Magic experience"
+      ]
+    }
+  ]
+}

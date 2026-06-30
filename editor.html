@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eldermoor — Map Editor</title>
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;height:100%;overflow:hidden;background:#1a1f25;
+    font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;color:#e8e0cf;}
+  #wrap{display:flex;flex-direction:column;height:100%;}
+  #top{display:flex;align-items:center;gap:8px;padding:6px 10px;background:#222932;border-bottom:1px solid #3a424c;}
+  #top b{color:#e7c64f;margin-right:8px;}
+  #top button{background:#2f3a46;color:#e8e0cf;border:1px solid #4a5662;border-radius:6px;padding:6px 10px;font-size:12px;cursor:pointer;}
+  #top button:hover{background:#3a4654;}
+  #readout{margin-left:auto;font-size:12px;color:#9fb0c0;}
+  #body{display:flex;flex:1;min-height:0;}
+  #palette{width:128px;background:#222932;border-right:1px solid #3a424c;padding:8px;overflow:auto;}
+  #palette .grp{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#7f8b98;margin:10px 2px 4px;}
+  #palette button{display:flex;align-items:center;gap:7px;width:100%;text-align:left;background:#2a323c;color:#e8e0cf;
+    border:1px solid #3a444f;border-radius:6px;padding:7px 8px;font-size:12px;cursor:pointer;margin-bottom:4px;}
+  #palette button.sel{border-color:#e7c64f;background:#3a3420;color:#fff;}
+  #palette .sw{width:14px;height:14px;border-radius:3px;border:1px solid #0006;flex:none;}
+  #canvasWrap{flex:1;position:relative;min-width:0;}
+  canvas{display:block;width:100%;height:100%;background:#10151a;cursor:crosshair;touch-action:none;}
+  #hint{position:absolute;left:10px;bottom:10px;font-size:11px;color:#8a96a3;background:#0008;padding:5px 9px;border-radius:6px;pointer-events:none;}
+  #hint b{color:#e7c64f;}
+  textarea{position:absolute;inset:0;margin:auto;width:70%;height:60%;display:none;background:#11161c;color:#cfe;
+    border:1px solid #e7c64f;border-radius:8px;padding:12px;font-family:monospace;font-size:12px;}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="top">
+    <b>Eldermoor Map Editor</b>
+    <button id="bNew">New</button>
+    <button id="bImport">Import</button>
+    <button id="bExport">⤓ Export JSON</button>
+    <button id="bCopy">Copy JSON</button>
+    <button id="bRot">Rotate ⟳ <span id="rotv">0°</span></button>
+    <span id="readout">—</span>
+  </div>
+  <div id="body">
+    <div id="palette"></div>
+    <div id="canvasWrap">
+      <canvas id="c"></canvas>
+      <div id="hint"><b>Left-click</b> place/paint · <b>drag empty</b> or right-drag pan · <b>wheel</b> zoom · <b>R</b> rotate · <b>Path</b>: click points, dbl-click to finish</div>
+      <textarea id="json" spellcheck="false"></textarea>
+    </div>
+  </div>
+</div>
+<input type="file" id="file" accept=".json" style="display:none">
+<script>
+/* =====================================================================
+   ELDERMOOR MAP EDITOR — top-down composer. Paint terrain + drop buildings,
+   props, NPCs, and paths; export a world manifest the game builds from.
+   ===================================================================== */
+const TILE_COL = { grass:'#4f8a3c', dirt:'#8c6b40', sand:'#d8c896', water:'#2c6a82' };
+const PALETTE = [
+  { grp:'Tools' },
+  { id:'pan', label:'Pan / Select' },
+  { id:'erase', label:'Erase' },
+  { grp:'Paint terrain' },
+  { id:'paint:grass', label:'Grass', sw:TILE_COL.grass },
+  { id:'paint:dirt',  label:'Dirt',  sw:TILE_COL.dirt },
+  { id:'paint:sand',  label:'Sand',  sw:TILE_COL.sand },
+  { id:'paint:water', label:'Water', sw:TILE_COL.water },
+  { grp:'Buildings' },
+  { id:'b:chapel', label:'Chapel', sw:'#9a9ea6' },
+  { id:'b:house',  label:'House',  sw:'#9a9ea6' },
+  { grp:'Props' },
+  { id:'o:tree', label:'Tree', sw:'#3f7a32' },
+  { id:'o:bush', label:'Bush', sw:'#5f9a43' },
+  { id:'o:rock', label:'Rock', sw:'#7d8089' },
+  { id:'o:sign', label:'Sign', sw:'#6e4a2a' },
+  { grp:'Actors' },
+  { id:'npc', label:'NPC', sw:'#ffd98a' },
+  { id:'spawn', label:'Spawn point', sw:'#7fd0ff' },
+  { grp:'Routes' },
+  { id:'path', label:'Path (dirt)', sw:'#8c6b40' },
+];
+// footprint radius/size for rendering + default scale
+const OBJ = { tree:{r:1.0,c:'#3f7a32'}, bush:{r:0.5,c:'#5f9a43'}, rock:{r:0.6,c:'#7d8089'}, sign:{r:0.3,c:'#6e4a2a'} };
+const BLD = { chapel:{w:14.34,d:10.34,c:'#9a9ea6'}, house:{w:8,d:6,c:'#9a9ea6'} };
+
+let tool = 'pan', placeRot = 0;
+const TILE = 2;
+const M = newManifest();
+function newManifest(){
+  return { name:'tutorial_island', bound:{x0:-40,x1:40,z0:-40,z1:60},
+           terrain:{ cell:TILE, tiles:{} }, buildings:[], objects:[], npcs:[],
+           paths:[], spawn:{x:0,z:8.5,rot:Math.PI} };
+}
+
+/* preload the current Chapel Grounds so the editor opens on real content */
+function loadGrounds(){
+  M.buildings.push({type:'chapel', x:0, z:0, rot:0});
+  [[5.4,12.4,1.05],[-5.4,12.6,0.95],[9,19,1.1],[-9.5,22,1.0],[6,27,0.95],[-5,29,1.15],
+   [12,25,1.05],[-12,28,0.9],[3,33,1.1],[-2,24,0.85]].forEach(([x,z,s])=>M.objects.push({type:'tree',x,z,rot:0,scale:s}));
+  M.npcs.push({type:'sister',name:'Sister Wenna',x:-1.4,z:-0.6,rot:0.7});
+  M.npcs.push({type:'pilgrim',name:'Pilgrim Joss',x:1.4,z:0.6,rot:-0.7});
+  M.npcs.push({type:'pilgrim',name:'Old Maven',x:0,z:3.4,rot:Math.PI});
+  M.paths.push({points:[[0,5],[0,28]], width:3, tile:'dirt'});
+}
+loadGrounds();
+
+/* ----- view (pan/zoom) ----- */
+const canvas = document.getElementById('c'), ctx = canvas.getContext('2d');
+const view = { ox:0, oy:0, scale:7 };
+function resize(){ canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; }
+function centerView(){ resize(); view.scale = 7; view.ox = canvas.width/2; view.oy = canvas.height/2 - 10*view.scale; redraw(); }
+const w2s = (x,z) => ({ x: view.ox + x*view.scale, y: view.oy + z*view.scale });
+const s2w = (sx,sz) => ({ x: (sx-view.ox)/view.scale, z: (sz-view.oy)/view.scale });
+
+/* ----- palette UI ----- */
+const pal = document.getElementById('palette');
+PALETTE.forEach(p => {
+  if(p.grp){ const d=document.createElement('div'); d.className='grp'; d.textContent=p.grp; pal.appendChild(d); return; }
+  const b=document.createElement('button'); b.dataset.id=p.id;
+  b.innerHTML = (p.sw?`<span class="sw" style="background:${p.sw}"></span>`:'') + p.label;
+  b.onclick = ()=>{ tool=p.id; document.querySelectorAll('#palette button').forEach(x=>x.classList.toggle('sel', x.dataset.id===tool)); };
+  pal.appendChild(b);
+});
+function selTool(id){ tool=id; document.querySelectorAll('#palette button').forEach(x=>x.classList.toggle('sel', x.dataset.id===tool)); }
+selTool('pan');
+
+/* ----- render ----- */
+function redraw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const b=M.bound; const tl=w2s(b.x0,b.z0), br=w2s(b.x1,b.z1);
+  // base grass over the bound
+  ctx.fillStyle=TILE_COL.grass; ctx.fillRect(tl.x,tl.y,br.x-tl.x,br.y-tl.y);
+  // painted terrain cells
+  const cs=M.terrain.cell*view.scale;
+  for(const [k,t] of Object.entries(M.terrain.tiles)){
+    const [cx,cz]=k.split(',').map(Number); const p=w2s(cx*M.terrain.cell, cz*M.terrain.cell);
+    ctx.fillStyle=TILE_COL[t]||'#f0f'; ctx.fillRect(p.x,p.y,cs+1,cs+1);
+  }
+  // paths
+  M.paths.forEach(pa=>{ if(pa.points.length<2)return; ctx.strokeStyle=TILE_COL[pa.tile]||TILE_COL.dirt;
+    ctx.lineWidth=(pa.width||3)*view.scale; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.beginPath();
+    pa.points.forEach((pt,i)=>{ const s=w2s(pt[0],pt[1]); i?ctx.lineTo(s.x,s.y):ctx.moveTo(s.x,s.y); }); ctx.stroke(); });
+  // grid
+  ctx.strokeStyle='rgba(255,255,255,.05)'; ctx.lineWidth=1;
+  for(let gx=b.x0; gx<=b.x1; gx+=TILE){ const a=w2s(gx,b.z0),c=w2s(gx,b.z1); ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(c.x,c.y);ctx.stroke(); }
+  for(let gz=b.z0; gz<=b.z1; gz+=TILE){ const a=w2s(b.x0,gz),c=w2s(b.x1,gz); ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(c.x,c.y);ctx.stroke(); }
+  // buildings
+  M.buildings.forEach(bl=>{ const d=BLD[bl.type]||{w:6,d:6,c:'#888'}; const s=w2s(bl.x,bl.z);
+    ctx.save(); ctx.translate(s.x,s.y); ctx.rotate(bl.rot||0);
+    ctx.fillStyle=d.c; ctx.strokeStyle='#2b2f35'; ctx.lineWidth=2;
+    ctx.fillRect(-d.w/2*view.scale,-d.d/2*view.scale,d.w*view.scale,d.d*view.scale);
+    ctx.strokeRect(-d.w/2*view.scale,-d.d/2*view.scale,d.w*view.scale,d.d*view.scale);
+    ctx.fillStyle='#2b2f35'; ctx.font='bold 11px Trebuchet MS'; ctx.textAlign='center'; ctx.fillText(bl.type,0,4); ctx.restore(); });
+  // objects
+  M.objects.forEach(o=>{ const d=OBJ[o.type]||{r:0.5,c:'#aaa'}; const s=w2s(o.x,o.z); const r=d.r*(o.scale||1)*view.scale;
+    ctx.fillStyle=d.c; ctx.beginPath(); ctx.arc(s.x,s.y,r,0,7); ctx.fill();
+    if(o.type==='tree'){ ctx.fillStyle='#3a2a1c'; ctx.beginPath(); ctx.arc(s.x,s.y,Math.max(2,r*0.25),0,7); ctx.fill(); } });
+  // npcs
+  M.npcs.forEach(n=>{ const s=w2s(n.x,n.z); ctx.fillStyle='#ffd98a'; ctx.beginPath(); ctx.arc(s.x,s.y,Math.max(3,0.45*view.scale),0,7); ctx.fill();
+    ctx.strokeStyle='#1a1f25'; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.fillStyle='#ffe9bf'; ctx.font='10px Trebuchet MS'; ctx.textAlign='center'; ctx.fillText(n.name||n.type, s.x, s.y-7*view.scale*0+ s.y- (0.7*view.scale)); });
+  // spawn
+  if(M.spawn){ const s=w2s(M.spawn.x,M.spawn.z); ctx.fillStyle='#7fd0ff'; ctx.beginPath();
+    ctx.arc(s.x,s.y,Math.max(4,0.5*view.scale),0,7); ctx.fill();
+    ctx.strokeStyle='#0a2a3a'; ctx.lineWidth=2; ctx.stroke();
+    const dx=Math.sin(M.spawn.rot||0), dz=Math.cos(M.spawn.rot||0);
+    ctx.beginPath(); ctx.moveTo(s.x,s.y); ctx.lineTo(s.x+dx*0.9*view.scale, s.y+dz*0.9*view.scale); ctx.stroke(); }
+  // in-progress path
+  if(draftPath){ ctx.strokeStyle='#e7c64f'; ctx.lineWidth=2; ctx.setLineDash([5,4]); ctx.beginPath();
+    draftPath.forEach((pt,i)=>{ const s=w2s(pt[0],pt[1]); i?ctx.lineTo(s.x,s.y):ctx.moveTo(s.x,s.y); }); ctx.stroke(); ctx.setLineDash([]); }
+  document.getElementById('readout').textContent =
+    `${M.buildings.length} buildings · ${M.objects.length} props · ${M.npcs.length} NPCs · ${M.paths.length} paths`;
+}
+
+/* ----- input ----- */
+let dragging=false, panning=false, last=null, draftPath=null;
+function snap(v){ return Math.round(v*2)/2; }     // half-unit snap
+canvas.addEventListener('pointerdown', e=>{
+  try{ canvas.setPointerCapture(e.pointerId); }catch(_){}
+  last={x:e.offsetX,y:e.offsetY}; dragging=true;
+  const w=s2w(e.offsetX,e.offsetY); const wx=snap(w.x), wz=snap(w.z);
+  if(e.button===2 || tool==='pan'){ panning=true; return; }
+  if(tool.startsWith('paint:')){ paintCell(w.x,w.z, tool.split(':')[1]); }
+  else if(tool.startsWith('b:')){ M.buildings.push({type:tool.slice(2), x:wx, z:wz, rot:placeRot}); }
+  else if(tool.startsWith('o:')){ M.objects.push({type:tool.slice(2), x:wx, z:wz, rot:placeRot, scale:1.0}); }
+  else if(tool==='npc'){ const name=prompt('NPC name?','Villager')||'Villager'; M.npcs.push({type:'villager', name, x:wx, z:wz, rot:placeRot}); }
+  else if(tool==='spawn'){ M.spawn={x:wx, z:wz, rot:placeRot}; }
+  else if(tool==='erase'){ eraseAt(w.x,w.z); }
+  else if(tool==='path'){ if(!draftPath) draftPath=[]; draftPath.push([wx,wz]); }
+  redraw();
+});
+canvas.addEventListener('pointermove', e=>{
+  const w=s2w(e.offsetX,e.offsetY);
+  document.getElementById('readout').dataset.pos = `${w.x.toFixed(1)}, ${w.z.toFixed(1)}`;
+  if(!dragging) return;
+  if(panning){ view.ox += e.offsetX-last.x; view.oy += e.offsetY-last.y; last={x:e.offsetX,y:e.offsetY}; redraw(); return; }
+  if(tool.startsWith('paint:')){ paintCell(w.x,w.z, tool.split(':')[1]); redraw(); }
+  else if(tool==='erase'){ eraseAt(w.x,w.z); redraw(); }
+});
+canvas.addEventListener('pointerup', ()=>{ dragging=false; panning=false; });
+canvas.addEventListener('dblclick', ()=>{ if(tool==='path' && draftPath && draftPath.length>=2){ M.paths.push({points:draftPath, width:3, tile:'dirt'}); draftPath=null; redraw(); } });
+canvas.addEventListener('contextmenu', e=>e.preventDefault());
+canvas.addEventListener('wheel', e=>{ e.preventDefault(); const w=s2w(e.offsetX,e.offsetY);
+  view.scale = Math.max(2, Math.min(40, view.scale * (e.deltaY<0?1.1:0.9)));
+  const ns=w2s(w.x,w.z); view.ox += e.offsetX-ns.x; view.oy += e.offsetY-ns.y; redraw(); }, {passive:false});
+addEventListener('keydown', e=>{ if(e.key==='r'||e.key==='R'){ placeRot=(placeRot+Math.PI/4)%(Math.PI*2);
+  document.getElementById('rotv').textContent=Math.round(placeRot*180/Math.PI)+'°'; }
+  if(e.key==='Enter' && draftPath && draftPath.length>=2){ M.paths.push({points:draftPath,width:3,tile:'dirt'}); draftPath=null; redraw(); } });
+
+function paintCell(wx,wz,t){ const cx=Math.round(wx/M.terrain.cell), cz=Math.round(wz/M.terrain.cell);
+  if(t==='grass') delete M.terrain.tiles[cx+','+cz]; else M.terrain.tiles[cx+','+cz]=t; }
+function eraseAt(wx,wz){
+  const near=(arr,rad)=>{ let bi=-1,bd=rad*rad; arr.forEach((o,i)=>{ const dx=o.x-wx,dz=o.z-wz,d=dx*dx+dz*dz; if(d<bd){bd=d;bi=i;} }); return bi; };
+  let i=near(M.objects,1.2); if(i>=0){ M.objects.splice(i,1); return; }
+  i=near(M.npcs,1.2); if(i>=0){ M.npcs.splice(i,1); return; }
+  i=near(M.buildings,3); if(i>=0){ M.buildings.splice(i,1); return; }
+  paintCell(wx,wz,'grass');   // else clear terrain back to grass
+}
+
+/* ----- manifest IO ----- */
+document.getElementById('bRot').onclick=()=>{ placeRot=(placeRot+Math.PI/4)%(Math.PI*2); document.getElementById('rotv').textContent=Math.round(placeRot*180/Math.PI)+'°'; };
+document.getElementById('bNew').onclick=()=>{ if(confirm('Clear the map?')){ Object.assign(M, newManifest()); redraw(); } };
+document.getElementById('bExport').onclick=()=>{ const blob=new Blob([JSON.stringify(M,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='world.manifest.json'; a.click(); };
+document.getElementById('bCopy').onclick=async ()=>{ try{ await navigator.clipboard.writeText(JSON.stringify(M,null,2)); alert('Manifest JSON copied to clipboard.'); }catch(_){ const t=document.getElementById('json'); t.style.display='block'; t.value=JSON.stringify(M,null,2); t.select(); } };
+document.getElementById('bImport').onclick=()=>document.getElementById('file').click();
+document.getElementById('file').onchange=e=>{ const f=e.target.files[0]; if(!f)return; const r=new FileReader();
+  r.onload=()=>{ try{ Object.assign(M, newManifest(), JSON.parse(r.result)); redraw(); }catch(err){ alert('Bad JSON: '+err); } }; r.readAsText(f); };
+
+addEventListener('resize', ()=>{ resize(); redraw(); });
+window.__M = M;   // expose for verification
+centerView();
+</script>
+</body>
+</html>

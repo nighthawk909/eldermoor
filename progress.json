@@ -1,5 +1,5 @@
 {
-  "updated": 1782860834426,
+  "updated": 1782860861432,
   "version": "v41",
   "note": "Live fleet board. Reflects v36 owner QA + browser screenshots. Character art (studio + in-world avatar/creator) owned by a separate chat. Statuses: queued | building | review | requeue | shipped | done | blocked | failed.",
   "board": [
@@ -304,10 +304,10 @@
       "id": "P7-DIALOGUE",
       "epic": "P7 Lessons",
       "title": "Instructor dialogue trees L0-L17 in dialogue.json",
-      "status": "building",
+      "status": "review",
       "agent": "builder-story",
-      "note": "Instructor dialogue trees L0-L17 in dialogue.json",
-      "ts": 1782860585738
+      "note": "11 instructor trees, dual-keyed (slug + role id), fire complete:L1-L17",
+      "ts": 1782860861432
     },
     {
       "id": "P4-ZONES",

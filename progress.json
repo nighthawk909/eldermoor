@@ -1,5 +1,5 @@
 {
-  "updated": 1782863083478,
+  "updated": 1782863522455,
   "version": "v41",
   "note": "Live fleet board. Reflects v36 owner QA + browser screenshots. Character art (studio + in-world avatar/creator) owned by a separate chat. Statuses: queued | building | review | requeue | shipped | done | blocked | failed.",
   "board": [
@@ -425,6 +425,60 @@
       "agent": "orchestrator",
       "note": "creator preview is now a live rotating 3D avatar (canvas 300x300, not SVG); v45 boot-verified",
       "ts": 1782863083133
+    },
+    {
+      "id": "ASSETS-REAL",
+      "epic": "Character Art",
+      "title": "ASSETS-REAL",
+      "status": "building",
+      "agent": "researcher",
+      "note": "downloading...",
+      "ts": 1782863394784
+    },
+    {
+      "id": "HUD-FIX",
+      "epic": "HUD",
+      "title": "HUD-FIX",
+      "status": "building",
+      "agent": "builder-hud2",
+      "note": "inventory/XP overlap, skills use full panel, tab dock to bottom, WORKING chat input",
+      "ts": 1782863358583
+    },
+    {
+      "id": "COMBAT-FIX",
+      "epic": "Combat",
+      "title": "COMBAT-FIX",
+      "status": "review",
+      "agent": "builder-combat3",
+      "note": "Root cause: world.js placeMob() pushed a disconnected userData.mob CLONE (plain object literal) to clickTargets instead of a reference to the persistent MOB_NODES entry. Every click handed combat.js a throwaway object with no real hp/dead state and no link to the visible mesh (_inst), so kills never stuck and the rat never died/respawned visually. Fixed entirely in combat.js: added resolveCanonicalMob() which looks up window.EMMOB.nodes by id+position and re-targets attack() at the real persistent node; added mobVisual() helper and fixed mobAnchor()/killMob() to recognize node._inst (previously only checked .group/.mesh, which placeMob() nodes never have). player.js needed no change - arrive() already correctly called EMCOMBAT.attack(t) for kind:'mob'. node --check passes both files.",
+      "ts": 1782863508943
+    },
+    {
+      "id": "PRAYER-FIX",
+      "epic": "Prayer",
+      "title": "PRAYER-FIX",
+      "status": "review",
+      "agent": "builder-prayer2",
+      "note": "Active-state now unmistakable (bright lime border+glow halo+checkmark badge+ON label vs neutral dark inactive). Overhead icon sprite (canvas-texture, same tech as npc.js nameplate) follows window.EMPLAYERPOS via local rAF loop, shown for overhead/protect group prayers, only one at a time, removed on toggle-off. node --check passes.",
+      "ts": 1782863522455
+    },
+    {
+      "id": "MAGIC-FIX",
+      "epic": "Magic",
+      "title": "MAGIC-FIX",
+      "status": "building",
+      "agent": "builder-magic2",
+      "note": "spells actually cast (runes->damage) + projectile/cast animation",
+      "ts": 1782863359679
+    },
+    {
+      "id": "CREATOR-LAYOUT",
+      "epic": "Character",
+      "title": "CREATOR-LAYOUT",
+      "status": "building",
+      "agent": "builder-creator",
+      "note": "Reformatting char creator to two-column OSRS layout with centered preview, no scroll on desktop",
+      "ts": 1782863508822
     }
   ]
 }

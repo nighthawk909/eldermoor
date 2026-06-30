@@ -93,12 +93,12 @@ export function MageCharacter({ silhouette = false }: { silhouette?: boolean }) 
         </mesh>
       </group>
 
-      {/* belt / sash at the waist + buckle */}
+      {/* belt / sash at the waist + a flat buckle block */}
       <group name="belt" position={[0, 1.0, 0]}>
-        <mesh geometry={g.torso} scale={[0.95, 0.34, 0.95]} position={[0, -0.05, 0]}>
+        <mesh geometry={g.torso} scale={[0.98, 0.34, 0.98]} position={[0, -0.05, 0]}>
           <M color={C.belt} sil={sil} />
         </mesh>
-        <mesh geometry={g.crystal} scale={[0.6, 0.45, 0.4]} position={[0, 0.0, 0.33]}>
+        <mesh geometry={g.torso} scale={[0.42, 0.2, 0.34]} position={[0, -0.04, 0.3]}>
           <M color={C.buckle} sil={sil} />
         </mesh>
       </group>
@@ -129,9 +129,9 @@ export function MageCharacter({ silhouette = false }: { silhouette?: boolean }) 
         </mesh>
       </group>
 
-      {/* dark recessed face — smaller + lower so it reads as a shadowed face,
-          not a window; set back into the hood. */}
-      <mesh name="face" geometry={g.torso} scale={[0.5, 0.5, 0.42]} position={[0, 1.5, 0.05]}>
+      {/* dark recessed face — centred, set back into the hood opening so it
+          reads as a shadowed face, not a window. */}
+      <mesh name="face" geometry={g.torso} scale={[0.54, 0.62, 0.4]} position={[0, 1.52, 0.0]}>
         <M color={C.face} sil={sil} />
       </mesh>
 
@@ -143,10 +143,10 @@ export function MageCharacter({ silhouette = false }: { silhouette?: boolean }) 
         <M color={C.hood} sil={sil} />
       </mesh>
 
-      {/* staff in the right hand, crystal on top (out + forward so the shaft reads) */}
-      <group name="staff" ref={staff} position={[0.46, 0, 0.26]} rotation={[0, 0, -0.05]}>
+      {/* staff held out to the RIGHT side so the crystal clears the face */}
+      <group name="staff" ref={staff} position={[0.62, 0, 0.12]} rotation={[0, 0, -0.06]}>
         <mesh geometry={g.staff}><M color={C.staff} sil={sil} /></mesh>
-        <mesh name="crystal" geometry={g.crystal} position={[0, 2.08, 0]}>
+        <mesh name="crystal" geometry={g.crystal} scale={0.85} position={[0, 2.12, 0]}>
           {sil
             ? <meshBasicMaterial color="#0b0c0e" side={THREE.DoubleSide} />
             : <meshStandardMaterial ref={crystalMat} color={C.crystal} emissive={C.crystal} emissiveIntensity={0.9} flatShading roughness={0.25} metalness={0.1} side={THREE.DoubleSide} />}

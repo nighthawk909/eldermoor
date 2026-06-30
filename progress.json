@@ -1,5 +1,5 @@
 {
-  "updated": 1782858049174,
+  "updated": 1782858228365,
   "version": "v38",
   "note": "Live fleet board. Reflects v36 owner QA + browser screenshots. Character art (studio + in-world avatar/creator) owned by a separate chat. Statuses: queued | building | review | requeue | shipped | done | blocked | failed.",
   "board": [
@@ -241,28 +241,28 @@
       "id": "1C",
       "epic": "Mobile",
       "title": "Combat loop path->attack->death->respawn",
-      "status": "queued",
-      "agent": null,
-      "note": "QA FAIL: combat smoke garbage",
-      "ts": 0
+      "status": "review",
+      "agent": "builder-combat2",
+      "note": "Path-to-mob before attack (move.pending/planPath via window.EMWORLD+EMMOVE), player death/respawn at world spawn (world.js respawnAtSpawn), lightweight rig-driven attack lunge + death topple/fade anim. node --check clean on combat.js/player.js/world.js.",
+      "ts": 1782858210216
     },
     {
       "id": "1D",
       "epic": "Mobile",
       "title": "Tutorial progression on mobile",
-      "status": "queued",
-      "agent": null,
-      "note": "",
-      "ts": 0
+      "status": "review",
+      "agent": "builder-lessons",
+      "note": "Fixed lesson chain: onLessonEvent now respects complete_when (flag vs action predicates) instead of blind-completing on dialogue; added lit:/killed:/cast: namespaced-flag predicate support to evalAtom; added bounded anti-brick grace timer so action-driven lessons (L2,L3,L4,L5,L6,L8,L9,L10,L11,L12,L16) cannot soft-lock while downstream systems are unwired. gating.js unchanged (already consumes EMLESSON.current() correctly).",
+      "ts": 1782858183236
     },
     {
       "id": "1E",
       "epic": "Mobile",
       "title": "Audio/settings/save/logout on mobile",
-      "status": "queued",
-      "agent": null,
-      "note": "",
-      "ts": 0
+      "status": "review",
+      "agent": "builder-audio",
+      "note": "per-zone music+crossfade; settings persist; pending deploy",
+      "ts": 1782858228365
     },
     {
       "id": "RUNE-ITEMS",

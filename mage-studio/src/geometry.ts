@@ -121,9 +121,9 @@ export function createRobePanelGeometry(): THREE.BufferGeometry {
    cavity). rings shift -z as they rise so the point rakes backward; the front
    gap is left by using an arc profile instead of a full ring. */
 export function createHoodGeometry(): THREE.BufferGeometry {
-  const S = 7;
-  const gapStart = Math.PI / 2 + 0.6;     // front (+z) is PI/2; leave a gap there
-  const sweep = Math.PI * 2 - 1.2;
+  const S = 8;
+  const gapStart = Math.PI / 2 + 0.42;    // front (+z) is PI/2; centred face gap
+  const sweep = Math.PI * 2 - 0.84;
   const ring = (y: number, rx: number, rz: number, zoff: number): Ring => ({
     y, pts: arc(S, rx, rz, gapStart, sweep).map(([x, z]) => [x, z + zoff] as V2),
   });

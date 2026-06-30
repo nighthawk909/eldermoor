@@ -59,7 +59,7 @@ export default function App() {
     <div style={{ position: 'fixed', inset: 0, background: '#191b1f' }}>
       <Canvas
         frameloop={STILL ? 'demand' : 'always'}
-        camera={{ position: [1.7, 1.35, 3.9], fov: 42 }}
+        camera={{ position: [0.75, 1.4, 4.3], fov: 42 }}
         gl={{ antialias: true, preserveDrawingBuffer: true }}
         onCreated={({ gl }) => {
           gl.outputColorSpace = THREE.SRGBColorSpace;

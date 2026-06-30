@@ -1,22 +1,116 @@
 {
-  "version": "v38",
-  "title": "v38 — QA-fix wave (login, HUD, combat, prayer, magic, dialogue, dev tools)",
+  "version": "v39",
+  "title": "v39 — QA-fix wave 2 (combat loop, skill guide, tutorial, zone music, runes)",
   "items": [
-    { "id": "login", "title": "Login screen on load", "how": "On load a login/landing screen appears; type a name and Enter Eldermoor starts the game." },
-    { "id": "logout", "title": "Logout returns to login", "how": "Open the Logout tab → Logout: it returns to the login screen, not a dead/blank screen." },
-    { "id": "hud-xp", "title": "XP counter no longer overlaps inventory", "how": "Gain XP with the inventory open — the XP-gained numbers don't sit on top of the inventory." },
-    { "id": "hud-chat", "title": "Chat box always visible", "how": "A chat box is visible at bottom-left and stays usable even with the inventory/tab panel open." },
-    { "id": "hud-orbs", "title": "Stat orbs placed cleanly", "how": "HP/Prayer/Run/Spec orbs sit in a tidy cluster (under the minimap), not overlapping anything." },
-    { "id": "hud-tabs", "title": "Proper tab dock", "how": "The tabs are a fixed docked strip (no random floating 'Tabs' button up top)." },
-    { "id": "hud-tone", "title": "Warm brown-stone tone", "how": "The UI reads warm brown-stone (OSRS-like), not blue everywhere." },
-    { "id": "minimap", "title": "Minimap rebuilt", "how": "Minimap has a compass, click-to-walk, zoom (scroll/pinch), and coloured blips." },
-    { "id": "combat-styles", "title": "Combat styles explain + train", "how": "Combat tab lists styles with what each trains; XP goes to the matching skill; styles change when you equip a different weapon (bow vs sword)." },
-    { "id": "prayer", "title": "Full prayer roster", "how": "Prayer tab shows a large roster (~28) with level requirements; locked ones greyed." },
-    { "id": "magic", "title": "Spellbook tiers + runes", "how": "Magic tab shows strike/bolt/blast/wave tiers + teleports/alchemy, each with rune requirements; greyed when you lack runes/level." },
-    { "id": "dialogue", "title": "Dialogue dismiss + new chat", "how": "Walking away from an NPC closes the dialogue; you can immediately talk to a different NPC; Esc/X also closes it." },
-    { "id": "dev-toolbox", "title": "Dev toolbox", "how": "Press backtick (`) or the 🛠 button: a dev panel opens to give items, set skills/HP/prayer, give runes, teleport, and spawn a mob." },
-    { "id": "dev-runes", "title": "Dev kit complete", "how": "The dev character has all runes + a spread of gear tiers + tools to test everything." },
-    { "id": "items-tiers", "title": "Gear tiers exist", "how": "Multiple gear tiers exist beyond bronze (Ferrite→Steel→Blacksteel→Duskstone→Verdigrant→Sunsteel) — give yourself some via the dev toolbox." },
-    { "id": "qa-sync", "title": "QA live sync", "how": "As you tap Pass/Fail/notes, results sync to the dev dashboard." }
+    {
+      "id": "login",
+      "title": "Login screen on load",
+      "how": "On load a login/landing screen appears; type a name and Enter Eldermoor starts the game."
+    },
+    {
+      "id": "logout",
+      "title": "Logout returns to login",
+      "how": "Open the Logout tab → Logout: it returns to the login screen, not a dead/blank screen."
+    },
+    {
+      "id": "hud-xp",
+      "title": "XP counter no longer overlaps inventory",
+      "how": "Gain XP with the inventory open — the XP-gained numbers don't sit on top of the inventory."
+    },
+    {
+      "id": "hud-chat",
+      "title": "Chat box always visible",
+      "how": "A chat box is visible at bottom-left and stays usable even with the inventory/tab panel open."
+    },
+    {
+      "id": "hud-orbs",
+      "title": "Stat orbs placed cleanly",
+      "how": "HP/Prayer/Run/Spec orbs sit in a tidy cluster (under the minimap), not overlapping anything."
+    },
+    {
+      "id": "hud-tabs",
+      "title": "Proper tab dock",
+      "how": "The tabs are a fixed docked strip (no random floating 'Tabs' button up top)."
+    },
+    {
+      "id": "hud-tone",
+      "title": "Warm brown-stone tone",
+      "how": "The UI reads warm brown-stone (OSRS-like), not blue everywhere."
+    },
+    {
+      "id": "minimap",
+      "title": "Minimap rebuilt",
+      "how": "Minimap has a compass, click-to-walk, zoom (scroll/pinch), and coloured blips."
+    },
+    {
+      "id": "combat-styles",
+      "title": "Combat styles explain + train",
+      "how": "Combat tab lists styles with what each trains; XP goes to the matching skill; styles change when you equip a different weapon (bow vs sword)."
+    },
+    {
+      "id": "prayer",
+      "title": "Full prayer roster",
+      "how": "Prayer tab shows a large roster (~28) with level requirements; locked ones greyed."
+    },
+    {
+      "id": "magic",
+      "title": "Spellbook tiers + runes",
+      "how": "Magic tab shows strike/bolt/blast/wave tiers + teleports/alchemy, each with rune requirements; greyed when you lack runes/level."
+    },
+    {
+      "id": "dialogue",
+      "title": "Dialogue dismiss + new chat",
+      "how": "Walking away from an NPC closes the dialogue; you can immediately talk to a different NPC; Esc/X also closes it."
+    },
+    {
+      "id": "dev-toolbox",
+      "title": "Dev toolbox",
+      "how": "Press backtick (`) or the 🛠 button: a dev panel opens to give items, set skills/HP/prayer, give runes, teleport, and spawn a mob."
+    },
+    {
+      "id": "dev-runes",
+      "title": "Dev kit complete",
+      "how": "The dev character has all runes + a spread of gear tiers + tools to test everything."
+    },
+    {
+      "id": "items-tiers",
+      "title": "Gear tiers exist",
+      "how": "Multiple gear tiers exist beyond bronze (Ferrite→Steel→Blacksteel→Duskstone→Verdigrant→Sunsteel) — give yourself some via the dev toolbox."
+    },
+    {
+      "id": "qa-sync",
+      "title": "QA live sync",
+      "how": "As you tap Pass/Fail/notes, results sync to the dev dashboard."
+    },
+    {
+      "id": "combat-loop",
+      "title": "Combat: walk-to-mob + death/respawn",
+      "how": "Attack a distant mob: the character walks to it then fights; if you die you respawn at spawn; the mob dies and respawns."
+    },
+    {
+      "id": "combat-anim",
+      "title": "Combat animation",
+      "how": "Attacking shows a swing/lunge; dying shows a fall."
+    },
+    {
+      "id": "skill-guide",
+      "title": "Skill guide opens",
+      "how": "Open the Stats tab and click a skill — a guide popup opens (what unlocks at which level) + xp-to-next."
+    },
+    {
+      "id": "tutorial-progress",
+      "title": "Tutorial completes on the action",
+      "how": "A lesson completes when you DO the task (e.g. chop a tree), not the instant the instructor stops talking."
+    },
+    {
+      "id": "zone-music",
+      "title": "Per-zone music + settings persist",
+      "how": "Music changes between zones with a crossfade; Settings audio mute/volume persist across reload."
+    },
+    {
+      "id": "runes-cast",
+      "title": "Higher spells castable",
+      "how": "With runes from the dev kit/toolbox, you can cast the higher spells (blast/wave/teleport)."
+    }
   ]
 }

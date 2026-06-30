@@ -1,6 +1,6 @@
 {
-  "updated": 1782860010140,
-  "version": "v39",
+  "updated": 1782860585738,
+  "version": "v41",
   "note": "Live fleet board. Reflects v36 owner QA + browser screenshots. Character art (studio + in-world avatar/creator) owned by a separate chat. Statuses: queued | building | review | requeue | shipped | done | blocked | failed.",
   "board": [
     {
@@ -286,10 +286,64 @@
       "id": "MUSIC-UNIQUE",
       "epic": "Audio",
       "title": "MUSIC-UNIQUE",
-      "status": "building",
+      "status": "shipped",
       "agent": "builder-music2",
-      "note": "designing 6+ original zone themes (melody+bass+arp+perc) + lookahead scheduler",
-      "ts": 1782860010140
+      "note": "v41 deployed; 8 original themes; awaiting your playtest",
+      "ts": 1782860585738
+    },
+    {
+      "id": "P7-LESSONS",
+      "epic": "P7 Lessons",
+      "title": "Full L0-L17 gated lesson chain in lessons.json",
+      "status": "building",
+      "agent": "builder-lessons2",
+      "note": "Full L0-L17 gated lesson chain in lessons.json",
+      "ts": 1782860585738
+    },
+    {
+      "id": "P7-DIALOGUE",
+      "epic": "P7 Lessons",
+      "title": "Instructor dialogue trees L0-L17 in dialogue.json",
+      "status": "building",
+      "agent": "builder-story",
+      "note": "Instructor dialogue trees L0-L17 in dialogue.json",
+      "ts": 1782860585738
+    },
+    {
+      "id": "P4-ZONES",
+      "epic": "P4 World",
+      "title": "Lay out 9 zones + instructor NPC placement in world.manifest.json",
+      "status": "building",
+      "agent": "builder-world",
+      "note": "Lay out 9 zones + instructor NPC placement in world.manifest.json",
+      "ts": 1782860585738
+    },
+    {
+      "id": "P4-QUESTS",
+      "epic": "P3 Quests",
+      "title": "Flesh out quests.json + 2 starter quests",
+      "status": "building",
+      "agent": "builder-quests",
+      "note": "Flesh out quests.json + 2 starter quests",
+      "ts": 1782860585738
+    },
+    {
+      "id": "P4-EXAMINE",
+      "epic": "P2 Interaction",
+      "title": "Examine text for new items+scenery in examine.json",
+      "status": "building",
+      "agent": "builder-examine",
+      "note": "Examine text for new items+scenery in examine.json",
+      "ts": 1782860585738
+    },
+    {
+      "id": "P4-ASSETS",
+      "epic": "P4 World",
+      "title": "New zone fixtures/props in build_kit.py",
+      "status": "building",
+      "agent": "builder-modeler",
+      "note": "New zone fixtures/props in build_kit.py",
+      "ts": 1782860585738
     }
   ]
 }

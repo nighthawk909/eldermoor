@@ -3,14 +3,28 @@
    facet-readable three-point lighting, dark neutral background, a faceted
    base disc, OrbitControls to inspect, and a Silhouette Mode toggle.
    ===================================================================== */
-import { useState } from 'react';
-import { Canvas } from '@react-three/fiber';
+import { useState, useEffect } from 'react';
+import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { MageCharacter } from './MageCharacter';
 import { createBaseGeometry } from './geometry';
 
 const baseGeo = createBaseGeometry();
+
+/* ?still -> render on demand (idle page) so screenshot tools can capture; we
+   kick a few frames after mount so geometry/lighting settle, then idle. */
+const STILL = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('still');
+
+function Kick() {
+  const invalidate = useThree((s) => s.invalidate);
+  useEffect(() => {
+    let n = 0;
+    const id = setInterval(() => { invalidate(); if (++n > 6) clearInterval(id); }, 90);
+    return () => clearInterval(id);
+  }, [invalidate]);
+  return null;
+}
 
 function Scene({ silhouette }: { silhouette: boolean }) {
   return (
@@ -31,7 +45,8 @@ function Scene({ silhouette }: { silhouette: boolean }) {
         )}
       </group>
 
-      <OrbitControls target={[0, 1.15, 0]} enableDamping />
+      <OrbitControls target={[0, 1.15, 0]} enableDamping={!STILL} />
+      {STILL && <Kick />}
     </>
   );
 }
@@ -41,8 +56,9 @@ export default function App() {
   return (
     <div style={{ position: 'fixed', inset: 0, background: '#191b1f' }}>
       <Canvas
+        frameloop={STILL ? 'demand' : 'always'}
         camera={{ position: [2.0, 1.5, 4.4], fov: 40 }}
-        gl={{ antialias: true }}
+        gl={{ antialias: true, preserveDrawingBuffer: true }}
         onCreated={({ gl }) => {
           gl.outputColorSpace = THREE.SRGBColorSpace;
           gl.toneMapping = THREE.ACESFilmicToneMapping;

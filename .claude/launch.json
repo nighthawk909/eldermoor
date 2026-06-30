@@ -24,6 +24,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["--prefix", "C:/Users/jcoci/OneDrive/Desktop/eldermoor/mage-studio", "run", "dev"],
       "port": 5174
+    },
+    {
+      "name": "mage-build",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8124", "--directory", "C:/Users/jcoci/OneDrive/Desktop/eldermoor/mage-studio/dist"],
+      "port": 8124
     }
   ]
 }

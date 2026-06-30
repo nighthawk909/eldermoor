@@ -16,8 +16,8 @@
     {
       "name": "eldermoor-verify",
       "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "8137", "--directory", "C:/Users/jcoci/OneDrive/Desktop/eldermoor"],
-      "port": 8137
+      "runtimeArgs": ["-m", "http.server", "8138", "--directory", "C:/Users/jcoci/OneDrive/Desktop/eldermoor"],
+      "port": 8138
     },
     {
       "name": "char-forge",

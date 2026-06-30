@@ -11,14 +11,20 @@
      - levelUp() : short ascending arpeggio jingle
      - blip()    : button / error blip
      - playZone(id): real per-zone/per-track music. id may be a zone key
-       (chapel/town/forest/cave/...) or a track id from
-       assets/data/music.json (window.EMDATA.music.tracks, the jukebox
-       list). Resolves to that track's zone-voiced, looping ambient pad and
-       CROSSFADES into it (the outgoing pad fades out while the new one
-       swells in) instead of hard-cutting. Locked tracks fall back to their
-       zone's base voicing. No sample files exist yet, so every track still
-       renders through the procedural synth - but track/zone identity now
-       genuinely drives which voicing plays (see resolveMusic()).
+       (chapel/town/forest/cave/... or a lesson zone like survival/mine/
+       combat/wizard/dock) or a track id from assets/data/music.json
+       (window.EMDATA.music.tracks, the jukebox list). Resolves to that
+       track's theme and CROSSFADES into it (the outgoing theme fades out
+       while the new one swells in) instead of hard-cutting.
+       MUSIC-UNIQUE: every track in assets/data/music-tracks.json is now a
+       real ORIGINAL composition - lead melody + bass line + arpeggio/pluck
+       layer + light percussion, scheduled by src/music-engine.js's
+       lookahead sequencer (createComposer) - not a static chord drone. If
+       a resolved id has no authored theme (or composer/theme data fails to
+       load) playZone() falls back to the original procedural ambient pad
+       below so playback is never silent. Locked tracks fall back to their
+       zone's base pad voicing. Track/zone identity genuinely drives which
+       composition plays (see resolveMusic()).
      - Auto zone-follow: polls window.EMLESSON (src/lessons.js) for the
        player's current tutorial zone and calls playZone() automatically
        on change, so areas (chapel/survival/mine/bank/...) get real music
@@ -39,6 +45,8 @@
    main.js invokes initAudio() once; everything else talks through the
    window.EMAUDIO global (mirrors the EMHUD/EMWORLD pattern).
    ===================================================================== */
+import { createComposer } from './music-engine.js';
+
 export function initAudio(){
   // ---- internal state ---------------------------------------------------
   let ctx = null;                 // AudioContext (lazily created on gesture)
@@ -52,6 +60,16 @@ export function initAudio(){
 
   // The currently-playing ambient pad (so playZone can swap/stop it).
   let zone = null;        // { id, nodes:[], stop:fn }
+
+  // MUSIC-UNIQUE: the generative composer (src/music-engine.js). Created
+  // lazily once the AudioContext exists (it needs ctx + the music bus to
+  // build its synthesis graph). `composerThemes` resolves once themes.json
+  // has loaded; `playingTheme` tracks the active composer handle (separate
+  // from `zone`'s pad handle) so playZone can crossfade composer<->composer
+  // or composer<->pad cleanly and stopZone can tear down whichever is live.
+  let composer = null;
+  let composerThemesReady = false;
+  let playingTheme = null;  // { stop, stage, trackId, playKey, zoneId, label }
 
   const clamp01 = v => Math.max(0, Math.min(1, Number(v)||0));
 
@@ -120,6 +138,26 @@ export function initAudio(){
     sfx.connect(master);
     master.connect(ctx.destination);
     applyGains();
+
+    // MUSIC-UNIQUE composer: built once the music bus exists, connects its
+    // per-theme stage gains into `music` so it shares the same volume/mute
+    // bus + settings wiring as everything else. Theme JSON loads async and
+    // failure is non-fatal (hasTheme() just returns false -> pad fallback).
+    composer = createComposer(ctx, music);
+    composer.loadThemes().then(() => {
+      composerThemesReady = true;
+      // If something was already playing as the procedural pad (themes
+      // hadn't loaded yet when playZone() first ran), and the now-loaded
+      // theme data actually covers it, upgrade to the real composition by
+      // replaying the same id - playZone() will crossfade pad -> theme
+      // exactly like any other zone swap.
+      if(zone && !playingTheme){
+        const stillId = zone.trackId || zone.id;
+        const r = resolveMusic(stillId);
+        if(r.themeId && composer.hasTheme(r.themeId)) playZone(stillId);
+      }
+    });
+
     return ctx;
   }
 
@@ -227,6 +265,27 @@ export function initAudio(){
     cave:    [82.41, 110.00, 123.47],           // E, dark + close
   };
 
+  // Lesson zone ids (assets/data/lessons.json `zone`, polled below by
+  // pollZoneFollow) don't all share spelling with music.json's
+  // `unlockArea` ids (e.g. lesson zone "combat" vs unlockArea
+  // "combat_ring", "wizard" vs "wizard_tower", "dock" vs
+  // "departure_dock"). This alias table lets a raw lesson zone id resolve
+  // straight to its track so zone-follow picks the correct ORIGINAL theme
+  // without requiring lessons.json/main.js to change. Zones with no
+  // dedicated theme yet (spawn_house, cooks_house) fall through to the
+  // nearest sensible track.
+  const ZONE_ID_ALIAS = {
+    spawn_house: 'chapel',
+    cooks_house: 'survival',
+    survival:    'survival',
+    mine:        'mine',
+    combat:      'combat_ring',
+    bank:        'bank',
+    chapel:      'chapel',
+    wizard:      'wizard_tower',
+    dock:        'departure_dock',
+  };
+
   // ---- real per-zone/per-track resolution (assets/data/music.json) -----
   // music.json maps track -> zone via { tracks:[{id,name,unlockArea,locked,
   // loop}] }. playZone() accepts either a zone id (legacy ZONE_CHORDS key,
@@ -251,6 +310,15 @@ export function initAudio(){
     return musicTracks().find(t => t && t.unlockArea === zoneId) || null;
   }
 
+  // ANY track (locked or not) whose unlockArea matches a given zone id -
+  // used to find a THEME id to play even when the real track is still
+  // locked (a locked track plays its zone's original composition, just
+  // without being individually "unlocked" in the jukebox UI).
+  function anyTrackForZone(zoneId){
+    if(!zoneId) return null;
+    return musicTracks().find(t => t && t.unlockArea === zoneId) || null;
+  }
+
   // Deterministic string hash -> a small detune/transpose so every distinct
   // track id gets its own stable, recognizable voicing (no two tracks that
   // share a base chord sound identical) without needing real audio assets.
@@ -260,38 +328,76 @@ export function initAudio(){
     return Math.abs(h);
   }
 
-  // Resolve any id (track id or legacy zone id) to { chordKey, chord,
-  // transpose, loop, trackId, zoneId, label }. Locked tracks never auto-play
-  // their own voicing - they fall back to their zone's base chord (still
-  // genuinely zone-specific, just without the per-track transpose flourish).
+  // Resolve any id (track id, legacy zone id, or a lesson zone id via
+  // ZONE_ID_ALIAS) to { chordKey, chord, transpose, loop, trackId, zoneId,
+  // label, themeId }. `trackId` follows the original semantics (null when
+  // the matched track is locked - so the jukebox "now playing" highlight
+  // never lights up a locked row). `themeId` (MUSIC-UNIQUE) is the track id
+  // whose ORIGINAL composition (music-tracks.json) should actually play -
+  // it resolves even for locked tracks, since "locked tracks fall back to
+  // their zone's base voicing" now means their zone's real theme, not just
+  // a chord. playZone() tries themeId with the composer first and only
+  // falls back to the procedural chord pad if no theme exists for it.
   function resolveMusic(id){
-    if(!id) return { chordKey:'default', chord:ZONE_CHORDS.default, transpose:1, loop:true, trackId:null, zoneId:null };
+    const empty = { chordKey:'default', chord:ZONE_CHORDS.default, transpose:1, loop:true, trackId:null, zoneId:null, themeId:null };
+    if(!id) return empty;
+
+    // A lesson zone id (survival/mine/combat/wizard/dock/...) maps onto the
+    // music.json unlockArea vocabulary via ZONE_ID_ALIAS first.
+    const aliasedArea = ZONE_ID_ALIAS[id] || null;
 
     // 1) id is a known zone key in ZONE_CHORDS -> prefer its unlocked track.
     if(ZONE_CHORDS[id]){
       const t = trackForZone(id);
+      const anyT = anyTrackForZone(id);
       if(t && !t.locked){
         return { chordKey:id, chord:ZONE_CHORDS[id], transpose: 1 + (hashStr(t.id) % 7) / 100,
-                 loop: t.loop !== false, trackId:t.id, zoneId:id, label:t.name };
+                 loop: t.loop !== false, trackId:t.id, zoneId:id, label:t.name, themeId:t.id };
       }
-      return { chordKey:id, chord:ZONE_CHORDS[id], transpose:1, loop:true, trackId:null, zoneId:id };
+      return { chordKey:id, chord:ZONE_CHORDS[id], transpose:1, loop:true, trackId:null, zoneId:id,
+               themeId: anyT ? anyT.id : null };
+    }
+
+    // 1b) id is a lesson zone id aliased to a music.json unlockArea (e.g.
+    //     "wizard" -> "wizard_tower") that isn't itself a ZONE_CHORDS key.
+    if(aliasedArea){
+      const t = trackForZone(aliasedArea);
+      const anyT = anyTrackForZone(aliasedArea);
+      const baseChord = ZONE_CHORDS[aliasedArea] || ZONE_CHORDS.default;
+      if(t && !t.locked){
+        return { chordKey:aliasedArea, chord:baseChord, transpose: 1 + (hashStr(t.id) % 7) / 100,
+                 loop: t.loop !== false, trackId:t.id, zoneId:aliasedArea, label:t.name, themeId:t.id };
+      }
+      return { chordKey:aliasedArea, chord:baseChord, transpose:1, loop:true, trackId:null, zoneId:aliasedArea,
+               themeId: anyT ? anyT.id : null };
     }
 
     // 2) id is a track id from music.json -> use its own (unlocked) area
     //    chord as a base, with a per-track transpose so it reads distinct.
     const t = trackById(id);
-    if(t && !t.locked){
+    if(t){
       const base = ZONE_CHORDS[t.unlockArea] || ZONE_CHORDS.default;
       return { chordKey: t.unlockArea || 'default', chord: base,
                 transpose: 1 + (hashStr(t.id) % 7) / 100,
-                loop: t.loop !== false, trackId:t.id, zoneId:t.unlockArea || null, label:t.name };
+                loop: t.loop !== false, trackId: t.locked ? null : t.id,
+                zoneId:t.unlockArea || null, label: t.locked ? null : t.name,
+                themeId: t.id };
     }
 
-    // 3) nothing resolves (unknown id, or a locked track) -> default pad.
-    return { chordKey:'default', chord:ZONE_CHORDS.default, transpose:1, loop:true, trackId:null, zoneId:null };
+    // 3) nothing resolves (unknown id) -> try it directly as a theme id
+    //    (covers calling playZone() with a raw track id before music.json
+    //    has loaded yet), else fall back to the default pad.
+    return { ...empty, themeId: id };
   }
 
+  // Stops whichever is currently live - the MUSIC-UNIQUE composer theme
+  // and/or the legacy procedural pad - with the same gentle fade-then-halt
+  // behaviour either way, so swaps crossfade rather than pop.
   function stopZone(){
+    if(playingTheme){
+      const pt = playingTheme; playingTheme = null;
+      try { pt.stop(0.7); } catch(_){}
+    }
     if(!zone) return;
     const z = zone; zone = null;
     if(!ctx){ return; }
@@ -303,17 +409,38 @@ export function initAudio(){
     z.lfos.forEach(o => { try { o.stop(t + 2.0); } catch(_){} });
   }
 
-  // Start (or crossfade to) the looping ambient pad for a zone/track id.
-  // Very subtle by design; loops indefinitely (LFO-driven sustain) until
-  // swapped or stopped, mirroring a real looping music track.
+  // Start (or crossfade to) the looping theme/pad for a zone/track id.
+  // MUSIC-UNIQUE: prefers a real authored composition (lead+bass+arp+perc,
+  // src/music-engine.js) for resolved.themeId; only falls back to the
+  // procedural chord pad when no theme exists for that id (or the composer
+  // /theme data isn't ready yet) - so playback is never silent and never
+  // regresses for ids that predate this feature.
   function playZone(id){
     if(!ready()) return;
     const resolved = resolveMusic(id);
-    const playKey = resolved.trackId || resolved.chordKey;
-    if(zone && zone.playKey === playKey) return;   // already playing this id
+    const playKey = resolved.trackId || resolved.themeId || resolved.chordKey;
+    const currentKey = playingTheme ? playingTheme.playKey : (zone ? zone.playKey : null);
+    if(currentKey === playKey) return;   // already playing this id
 
-    const wasPlaying = !!zone;
-    stopZone();   // old pad fades out over ~2.4s (crossfade tail)
+    const useComposer = !!(composer && composerThemesReady && resolved.themeId && composer.hasTheme(resolved.themeId));
+
+    if(useComposer){
+      const wasPlaying = !!(playingTheme || zone);
+      stopZone();   // old theme/pad fades out (crossfade tail)
+      const handle = composer.start(resolved.themeId, { fadeInSec: wasPlaying ? 1.4 : 2.2 });
+      if(handle){
+        playingTheme = {
+          ...handle, playKey, trackId: resolved.trackId, zoneId: resolved.zoneId,
+          label: resolved.label || null,
+        };
+        return;
+      }
+      // composer.start() failed unexpectedly (e.g. theme vanished mid-call)
+      // - fall through to the procedural pad so something still plays.
+    }
+
+    const wasPlaying = !!(zone || playingTheme);
+    stopZone();   // old pad/theme fades out over ~2.4s (crossfade tail)
 
     const chord = resolved.chord.map(f => f * resolved.transpose);
     const t0 = ctx.currentTime;
@@ -361,7 +488,12 @@ export function initAudio(){
   }
 
   // What's playing right now (id, resolved track/zone, label) or null.
+  // Checks the composer theme first (MUSIC-UNIQUE), then the legacy pad.
   function nowPlaying(){
+    if(playingTheme){
+      return { id: playingTheme.playKey, trackId: playingTheme.trackId,
+                zoneId: playingTheme.zoneId, label: playingTheme.label };
+    }
     if(!zone) return null;
     return { id: zone.playKey, trackId: zone.trackId, zoneId: zone.zoneId, label: zone.label };
   }

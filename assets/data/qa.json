@@ -1,6 +1,6 @@
 {
-  "version": "v40",
-  "title": "v40 — boot hotfix (world.js SPAWN TDZ) + QA-fix wave 2",
+  "version": "v41",
+  "title": "v41 — unique generative per-zone music + wave-2",
   "items": [
     {
       "id": "login",
@@ -111,6 +111,11 @@
       "id": "runes-cast",
       "title": "Higher spells castable",
       "how": "With runes from the dev kit/toolbox, you can cast the higher spells (blast/wave/teleport)."
+    },
+    {
+      "id": "zone-music-unique",
+      "title": "Unique per-zone music",
+      "how": "Each zone has its OWN melodic theme (lead+bass+arp+perc), not a drone; themes crossfade on zone change; jukebox (Music tab) plays each."
     }
   ]
 }

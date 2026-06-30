@@ -1,0 +1,314 @@
+{
+  "version": 1,
+  "_format": "Original Eldermoor compositions (Claude-built, zero external audio). Each theme is keyed by its music.json track id. root = base note in Hz (octave-3-ish). scale = array of semitone offsets used to interpret scale-degree numbers in every part. beatSec = seconds per beat (tempo). swing = 0..1 (0 = straight). Each instrument part is a list of steps [degreeOrNull, beats, octaveOffset?]. degree is an index into `scale` (wraps + carries octave automatically); null/'.' = rest. octaveOffset (optional, default 0) shifts that single note by +/-1 octave. The whole part array loops seamlessly (length determines loop bar count when multiplied by beatSec).",
+  "themes": {
+    "wakening-shore": {
+      "label": "Wakening Shore",
+      "mood": "wistful dawn, gentle wandering",
+      "root": 196.00,
+      "scale": [0, 2, 3, 5, 7, 9, 10],
+      "beatSec": 0.5,
+      "swing": 0.08,
+      "voices": {
+        "lead":  { "type": "triangle", "gain": 0.16, "detune": 4, "vibrato": 4.5, "vibratoDepth": 3, "lpf": 2600 },
+        "bass":  { "type": "sine",     "gain": 0.20, "detune": 0, "lpf": 900 },
+        "arp":   { "type": "sine",     "gain": 0.085, "detune": 6, "lpf": 4200 },
+        "perc":  { "type": "noise",    "gain": 0.10 }
+      },
+      "pattern": {
+        "lead": [
+          [0,2],[null,1],[2,1],[4,2],[3,1],[2,1],
+          [0,2],[null,1],[4,1],[6,2],[4,1],[2,1],
+          [3,2],[null,1],[2,1],[0,2],[null,2],
+          [4,2],[6,1],[7,2],[6,1],[4,1],
+          [3,2],[2,1],[0,2],[null,3]
+        ],
+        "bass": [
+          [0,4,-1],[null,2],[4,4,-1],[null,2],
+          [3,4,-1],[null,2],[0,4,-1],[null,4],
+          [2,4,-1],[null,2],[6,4,-1],[null,2],
+          [0,4,-1],[null,4]
+        ],
+        "arp": [
+          [0,1],[2,1],[4,1],[2,1], [0,1],[2,1],[4,1],[2,1],
+          [3,1],[5,1],[7,1],[5,1], [3,1],[5,1],[7,1],[5,1],
+          [2,1],[4,1],[6,1],[4,1], [0,1],[2,1],[4,1],[null,1]
+        ],
+        "perc": [
+          [1,2],[null,2],[1,1],[null,3],
+          [1,2],[null,2],[1,1],[1,1],[null,2]
+        ]
+      }
+    },
+
+    "candlelit-vows": {
+      "label": "Candlelit Vows",
+      "mood": "solemn hymn, slow Dorian, harp + choir-pad",
+      "root": 130.81,
+      "scale": [0, 2, 3, 5, 7, 9, 10],
+      "beatSec": 0.72,
+      "swing": 0,
+      "voices": {
+        "lead":  { "type": "sine",     "gain": 0.17, "detune": 5, "vibrato": 3.2, "vibratoDepth": 2.5, "lpf": 2200 },
+        "bass":  { "type": "sine",     "gain": 0.22, "detune": 0, "lpf": 700 },
+        "arp":   { "type": "triangle", "gain": 0.08, "detune": 4, "lpf": 3000 },
+        "perc":  { "type": "noise",    "gain": 0.05 }
+      },
+      "pattern": {
+        "lead": [
+          [0,3],[2,2],[3,3],[null,2],
+          [4,3],[3,2],[2,3],[0,2],
+          [3,3],[5,2],[4,3],[null,2],
+          [2,3],[0,2],[0,4],[null,2],
+
+          [4,3],[5,2],[7,3],[null,2],
+          [5,3],[4,2],[3,3],[2,2],
+          [3,3],[2,2],[0,3],[null,2],
+          [0,6]
+        ],
+        "bass": [
+          [0,6,-1],[null,2],[3,6,-1],[null,2],
+          [4,6,-1],[null,2],[0,8,-1],
+          [5,6,-1],[null,2],[3,6,-1],[null,2],
+          [4,6,-1],[null,2],[0,8,-1]
+        ],
+        "arp": [
+          [0,2],[3,2],[7,2],[3,2],
+          [2,2],[5,2],[9,2],[5,2],
+          [4,2],[7,2],[10,2],[7,2],
+          [0,2],[3,2],[7,2],[null,2]
+        ],
+        "perc": [
+          [1,4],[null,4],[1,4],[null,4],
+          [1,4],[null,4],[1,2],[1,2],[null,4]
+        ]
+      }
+    },
+
+    "first-firelight": {
+      "label": "First Firelight",
+      "mood": "pastoral, hopeful Mixolydian, flute + pluck",
+      "root": 220.00,
+      "scale": [0, 2, 4, 5, 7, 9, 10],
+      "beatSec": 0.4,
+      "swing": 0.12,
+      "voices": {
+        "lead":  { "type": "triangle", "gain": 0.18, "detune": 3, "vibrato": 5.5, "vibratoDepth": 4, "lpf": 3200 },
+        "bass":  { "type": "sine",     "gain": 0.20, "detune": 0, "lpf": 1000 },
+        "arp":   { "type": "sine",     "gain": 0.10, "detune": 5, "lpf": 4600 },
+        "perc":  { "type": "noise",    "gain": 0.12 }
+      },
+      "pattern": {
+        "lead": [
+          [0,1],[2,1],[4,2],[2,1],[0,1],[4,2],
+          [5,1],[4,1],[2,2],[null,2],
+          [7,1],[5,1],[4,2],[2,1],[0,1],[2,2],
+          [4,1],[2,1],[0,2],[null,2],
+          [0,1],[4,1],[7,2],[9,1],[7,1],[4,2],
+          [5,1],[4,1],[2,1],[0,1],[0,2],[null,2]
+        ],
+        "bass": [
+          [0,3,-1],[null,1],[4,3,-1],[null,1],
+          [5,3,-1],[null,1],[4,3,-1],[null,1],
+          [0,3,-1],[null,1],[2,3,-1],[null,1],
+          [5,3,-1],[null,1],[0,3,-1],[null,1]
+        ],
+        "arp": [
+          [0,1],[4,1],[7,1],[4,1],[0,1],[4,1],[7,1],[4,1],
+          [2,1],[5,1],[9,1],[5,1],[2,1],[5,1],[9,1],[5,1],
+          [0,1],[4,1],[7,1],[4,1],[0,1],[4,1],[7,1],[null,1]
+        ],
+        "perc": [
+          [1,1],[null,1],[1,1],[null,1],[1,1],[null,1],[1,1],[null,1],
+          [1,1],[1,1],[null,1],[1,1],[null,1],[1,1],[null,1],[null,1]
+        ]
+      }
+    },
+
+    "deepvein-echoes": {
+      "label": "Deepvein Echoes",
+      "mood": "dark, sparse minor; low drone + marimba",
+      "root": 82.41,
+      "scale": [0, 2, 3, 5, 7, 8, 10],
+      "beatSec": 0.85,
+      "swing": 0,
+      "voices": {
+        "lead":  { "type": "sine",     "gain": 0.12, "detune": 2, "vibrato": 1.6, "vibratoDepth": 1.5, "lpf": 1800 },
+        "bass":  { "type": "sine",     "gain": 0.24, "detune": 0, "lpf": 500 },
+        "arp":   { "type": "triangle", "gain": 0.085, "detune": 0, "lpf": 2400 },
+        "perc":  { "type": "noise",    "gain": 0.06 }
+      },
+      "pattern": {
+        "lead": [
+          [null,2],[0,2,1],[null,2],[3,2,1],
+          [null,2],[2,2,1],[null,2],[0,2,1],
+          [null,3],[5,2,1],[null,3],
+          [null,2],[3,2,1],[null,2],[0,3,1]
+        ],
+        "bass": [
+          [0,8,-1],[null,4],
+          [5,8,-2],[null,4],
+          [3,8,-1],[null,4],
+          [0,8,-1],[null,4]
+        ],
+        "arp": [
+          [0,2,1],[null,2],[3,2,1],[null,2],
+          [null,4],
+          [2,2,1],[null,2],[5,2,1],[null,2],
+          [null,4]
+        ],
+        "perc": [
+          [null,4],[1,1],[null,3],
+          [null,4],[1,1],[1,1],[null,2]
+        ]
+      }
+    },
+
+    "sparring-circle": {
+      "label": "Sparring Circle",
+      "mood": "tense, driving Phrygian; percussive",
+      "root": 174.61,
+      "scale": [0, 1, 3, 5, 7, 8, 10],
+      "beatSec": 0.28,
+      "swing": 0,
+      "voices": {
+        "lead":  { "type": "sawtooth", "gain": 0.13, "detune": 6, "vibrato": 0, "vibratoDepth": 0, "lpf": 2600 },
+        "bass":  { "type": "square",   "gain": 0.17, "detune": 0, "lpf": 800 },
+        "arp":   { "type": "square",   "gain": 0.07, "detune": 5, "lpf": 3400 },
+        "perc":  { "type": "noise",    "gain": 0.16 }
+      },
+      "pattern": {
+        "lead": [
+          [0,1],[1,1],[0,1],[3,1],[0,1],[1,1],[5,1],[3,1],
+          [0,1],[1,1],[0,1],[3,1],[5,1],[3,1],[1,1],[0,1],
+          [7,1],[5,1],[3,1],[1,1],[0,1],[1,1],[3,1],[5,1],
+          [7,2],[5,1],[3,1],[1,1],[0,2]
+        ],
+        "bass": [
+          [0,2,-1],[0,1,-1],[null,1],[0,2,-1],[3,1,-1],[null,1],
+          [0,2,-1],[0,1,-1],[null,1],[5,2,-1],[3,1,-1],[null,1],
+          [0,2,-1],[0,1,-1],[null,1],[0,2,-1],[1,1,-1],[null,1]
+        ],
+        "arp": [
+          [0,1],[3,1],[5,1],[3,1],[0,1],[3,1],[5,1],[3,1],
+          [0,1],[1,1],[5,1],[1,1],[0,1],[1,1],[5,1],[null,1]
+        ],
+        "perc": [
+          [1,1],[null,1],[1,1],[1,1],[null,1],[1,1],[null,1],[1,1],
+          [1,1],[null,1],[1,1],[1,1],[null,1],[1,1],[1,1],[null,1]
+        ]
+      }
+    },
+
+    "weight-of-coin": {
+      "label": "Weight of Coin",
+      "mood": "wry, measured major; counting-house plucks",
+      "root": 164.81,
+      "scale": [0, 2, 4, 5, 7, 9, 11],
+      "beatSec": 0.42,
+      "swing": 0.1,
+      "voices": {
+        "lead":  { "type": "triangle", "gain": 0.15, "detune": 3, "vibrato": 3, "vibratoDepth": 2, "lpf": 2800 },
+        "bass":  { "type": "sine",     "gain": 0.19, "detune": 0, "lpf": 850 },
+        "arp":   { "type": "sine",     "gain": 0.095, "detune": 4, "lpf": 4000 },
+        "perc":  { "type": "noise",    "gain": 0.07 }
+      },
+      "pattern": {
+        "lead": [
+          [0,2],[4,1],[2,1],[0,2],[null,2],
+          [5,2],[4,1],[2,1],[0,2],[null,2],
+          [4,2],[5,1],[7,1],[4,2],[null,2],
+          [2,2],[0,2],[0,2],[null,2]
+        ],
+        "bass": [
+          [0,3,-1],[null,1],[4,3,-1],[null,1],
+          [5,3,-1],[null,1],[0,3,-1],[null,1],
+          [4,3,-1],[null,1],[5,3,-1],[null,1],
+          [0,3,-1],[null,1],[0,3,-1],[null,1]
+        ],
+        "arp": [
+          [0,1],[2,1],[4,1],[7,1],[4,1],[2,1],
+          [0,1],[2,1],[4,1],[7,1],[4,1],[null,1]
+        ],
+        "perc": [
+          [1,2],[null,2],[1,1],[null,3],[1,2],[null,2],[1,1],[1,1]
+        ]
+      }
+    },
+
+    "runes-and-reverie": {
+      "label": "Runes and Reverie",
+      "mood": "mysterious, shimmering whole-tone; bells + glass",
+      "root": 220.00,
+      "scale": [0, 2, 4, 6, 8, 10],
+      "beatSec": 0.55,
+      "swing": 0,
+      "voices": {
+        "lead":  { "type": "sine",     "gain": 0.14, "detune": 7, "vibrato": 5, "vibratoDepth": 5, "lpf": 5200 },
+        "bass":  { "type": "sine",     "gain": 0.16, "detune": 0, "lpf": 650 },
+        "arp":   { "type": "triangle", "gain": 0.10, "detune": 8, "lpf": 6000 },
+        "perc":  { "type": "noise",    "gain": 0.045 }
+      },
+      "pattern": {
+        "lead": [
+          [0,2,1],[null,2],[2,2,1],[null,2],
+          [4,2,1],[null,2],[6,2,1],[null,2],
+          [8,2,1],[null,1],[6,1,1],[4,2,1],[null,2],
+          [2,2,1],[null,1],[0,3,1],[null,3]
+        ],
+        "bass": [
+          [0,6,-1],[null,2],[4,6,-1],[null,2],
+          [2,6,-1],[null,2],[0,8,-1]
+        ],
+        "arp": [
+          [0,1],[4,1],[8,1],[4,1], [2,1],[6,1],[10,1],[6,1],
+          [0,1],[4,1],[8,1],[4,1], [0,1],[null,1],[null,1],[null,1]
+        ],
+        "perc": [
+          [null,4],[1,1],[null,3],[null,4],[1,1],[null,7]
+        ]
+      }
+    },
+
+    "farewell-tide": {
+      "label": "Farewell Tide",
+      "mood": "wistful, wandering; reflective close",
+      "root": 174.61,
+      "scale": [0, 2, 3, 5, 7, 8, 10],
+      "beatSec": 0.62,
+      "swing": 0.06,
+      "voices": {
+        "lead":  { "type": "sine",     "gain": 0.16, "detune": 4, "vibrato": 3.6, "vibratoDepth": 3, "lpf": 2400 },
+        "bass":  { "type": "sine",     "gain": 0.20, "detune": 0, "lpf": 750 },
+        "arp":   { "type": "sine",     "gain": 0.08, "detune": 5, "lpf": 3600 },
+        "perc":  { "type": "noise",    "gain": 0.05 }
+      },
+      "pattern": {
+        "lead": [
+          [0,3],[null,1],[3,2],[2,2],
+          [0,3],[null,1],[5,2],[3,2],
+          [2,3],[null,1],[0,2],[2,2],
+          [3,4],[null,2],
+
+          [5,3],[null,1],[7,2],[5,2],
+          [3,3],[null,1],[2,2],[0,2],
+          [0,6],[null,2]
+        ],
+        "bass": [
+          [0,6,-1],[null,2],[5,6,-1],[null,2],
+          [3,6,-1],[null,2],[0,8,-1],
+          [2,6,-1],[null,2],[5,6,-1],[null,2],
+          [0,8,-1],[null,4]
+        ],
+        "arp": [
+          [0,2],[3,2],[5,2],[3,2],
+          [2,2],[5,2],[7,2],[5,2],
+          [0,2],[3,2],[5,2],[null,2]
+        ],
+        "perc": [
+          [1,3],[null,5],[1,3],[null,5]
+        ]
+      }
+    }
+  }
+}

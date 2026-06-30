@@ -1,0 +1,913 @@
+diff --git a/index.html b/index.html
+index 8cede53..dd2c8f4 100644
+--- a/index.html
++++ b/index.html
+@@ -42,7 +42,7 @@
+ </head>
+ <body>
+ <canvas id="c"></canvas>
+-<div class="ui" id="hud">Eldermoor — <b>Chapel Grounds</b> <span style="opacity:.6">v25</span> · <b>tap</b> to walk/talk · <b>long-press</b> for options · drag to look</div>
++<div class="ui" id="hud">Eldermoor — <b>Chapel Grounds</b> <span style="opacity:.6">v26</span> · <b>tap</b> to walk/talk · <b>long-press</b> for options · drag to look</div>
+ <div class="ui" id="help"><b>Controls</b><br>Tap — walk / talk to the monk<br>Long-press (or right-click) — Talk-to / Examine / Walk here<br>Drag — orbit · pinch / scroll — zoom</div>
+ <div id="dlg"><div class="who" id="dlgwho"></div><div class="tx" id="dlgtx"></div><div class="go"><button id="dlgbtn">Continue</button></div></div>
+ <div id="menu"></div>
+diff --git a/index.modular.html b/index.modular.html
+index 8cede53..dd2c8f4 100644
+--- a/index.modular.html
++++ b/index.modular.html
+@@ -42,7 +42,7 @@
+ </head>
+ <body>
+ <canvas id="c"></canvas>
+-<div class="ui" id="hud">Eldermoor — <b>Chapel Grounds</b> <span style="opacity:.6">v25</span> · <b>tap</b> to walk/talk · <b>long-press</b> for options · drag to look</div>
++<div class="ui" id="hud">Eldermoor — <b>Chapel Grounds</b> <span style="opacity:.6">v26</span> · <b>tap</b> to walk/talk · <b>long-press</b> for options · drag to look</div>
+ <div class="ui" id="help"><b>Controls</b><br>Tap — walk / talk to the monk<br>Long-press (or right-click) — Talk-to / Examine / Walk here<br>Drag — orbit · pinch / scroll — zoom</div>
+ <div id="dlg"><div class="who" id="dlgwho"></div><div class="tx" id="dlgtx"></div><div class="go"><button id="dlgbtn">Continue</button></div></div>
+ <div id="menu"></div>
+diff --git a/src/bank.js b/src/bank.js
+index b0e73d4..0e3a2ad 100644
+--- a/src/bank.js
++++ b/src/bank.js
+@@ -65,6 +65,31 @@ let _qty = 1;             // active quantity mode value; 0 = "All"
+ let _qtyMode = '1';       // '1'|'5'|'10'|'X'|'All'
+ let _overlay = null;      // root DOM node
+ 
++/* ── BANK2/3/5/6 state ─────────────────────────────────────────────── */
++
++const TOGGLES_KEY = 'eldermoor:bank:toggles';
++
++function loadToggles() {
++  try {
++    const raw = localStorage.getItem(TOGGLES_KEY);
++    return raw ? JSON.parse(raw) : {};
++  } catch { return {}; }
++}
++
++function saveToggles() {
++  try {
++    localStorage.setItem(TOGGLES_KEY, JSON.stringify({ noteMode: _noteMode, placeholders: _placeholders }));
++  } catch { /* swallow */ }
++}
++
++const _tog = loadToggles();
++let _searchText    = '';          // current search filter string
++let _noteMode      = !!_tog.noteMode;      // withdraw-as-note cosmetic flag
++let _placeholders  = !!_tog.placeholders;  // keep greyed slot after last withdraw
++// placeholder registry: { [id]: true } - items that once had a slot
++let _placeholderSet = {};
++let _activeTab     = 'Main';      // visual-only for now
++
+ /* ── DOM builder ─────────────────────────────────────────────────── */
+ 
+ const CSS = `
+@@ -97,6 +122,51 @@ const CSS = `
+   padding:1px 7px;transition:background .15s;
+ }
+ #em-bank-close:hover{background:#5a3a10;}
++
++/* ── tab row ── */
++#em-bank-tab-row{
++  display:flex;align-items:stretch;gap:0;
++  background:#1a1710;border-bottom:1px solid #5a4a2a;
++  padding:0 8px;overflow-x:auto;
++}
++.em-bank-tab{
++  padding:6px 14px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;
++  color:#9a8c6c;background:none;border:none;border-bottom:2px solid transparent;
++  cursor:pointer;white-space:nowrap;transition:color .12s,border-color .12s;
++}
++.em-bank-tab:hover{color:#e7c64f;}
++.em-bank-tab.active{color:#e7c64f;border-bottom-color:#e7c64f;}
++.em-bank-tab-add{
++  padding:6px 10px;font-size:15px;color:#5a4a2a;background:none;border:none;
++  cursor:pointer;transition:color .12s;
++}
++.em-bank-tab-add:hover{color:#c8a24a;}
++
++/* ── search + toggles bar ── */
++#em-bank-controls{
++  display:flex;align-items:center;gap:7px;
++  padding:6px 12px;border-bottom:1px solid #3a3020;
++  background:#201c12;flex-wrap:wrap;
++}
++#em-bank-search{
++  flex:1;min-width:100px;
++  padding:4px 8px;font-size:12px;
++  background:#2b2418;border:1px solid #5a4a2a;border-radius:4px;
++  color:#e3d6b8;outline:none;
++}
++#em-bank-search::placeholder{color:#5a4a2a;}
++#em-bank-search:focus{border-color:#c8a24a;}
++.em-bank-toggle-btn{
++  padding:4px 10px;font-size:11px;letter-spacing:.05em;
++  background:#2b2418;border:1px solid #5a4a2a;border-radius:4px;
++  color:#9a8c6c;cursor:pointer;white-space:nowrap;
++  transition:background .12s,border-color .12s,color .12s;
++}
++.em-bank-toggle-btn.on{
++  background:#3a2e10;border-color:#e7c64f;color:#e7c64f;
++}
++.em-bank-toggle-btn:hover:not(.on){background:#3a2e1f;color:#cdbf98;}
++
+ #em-bank-body{flex:1;overflow-y:auto;padding:10px 12px;}
+ #em-bank-grid{
+   display:grid;
+@@ -112,6 +182,9 @@ const CSS = `
+   transition:border-color .12s,background .12s;
+ }
+ .em-bank-slot:hover{background:#3d3020;border-color:#c8a24a;}
++.em-bank-slot.placeholder{
++  opacity:.35;cursor:default;pointer-events:none;
++}
+ .em-bank-slot .em-bk-ct{
+   position:absolute;bottom:2px;right:4px;
+   font-size:10px;color:#8fe08f;font-weight:bold;text-shadow:0 1px 1px #000;
+@@ -208,8 +281,17 @@ function buildOverlay() {
+   overlay.innerHTML = `
+     <div id="em-bank-panel">
+       <div id="em-bank-title-bar">
+-        <h2>Bank of Eldermoor</h2>
+-        <button id="em-bank-close" aria-label="Close bank">✕</button>
++        <h2 id="em-bank-title-text">Bank of Eldermoor</h2>
++        <button id="em-bank-close" aria-label="Close bank">&#x2715;</button>
++      </div>
++      <div id="em-bank-tab-row">
++        <button class="em-bank-tab active" data-tab="Main">Main</button>
++        <button class="em-bank-tab-add" title="Add tab (coming soon)">+</button>
++      </div>
++      <div id="em-bank-controls">
++        <input id="em-bank-search" type="search" placeholder="Search items..." autocomplete="off" />
++        <button class="em-bank-toggle-btn" id="em-bank-note-toggle" title="Toggle note mode">Note</button>
++        <button class="em-bank-toggle-btn" id="em-bank-ph-toggle" title="Toggle placeholders">Placeholders</button>
+       </div>
+       <div id="em-bank-body">
+         <div id="em-bank-grid"></div>
+@@ -281,9 +363,62 @@ function buildOverlay() {
+     });
+   });
+ 
++  /* ── BANK2: search box ── */
++  const searchEl = overlay.querySelector('#em-bank-search');
++  searchEl.addEventListener('input', () => {
++    _searchText = searchEl.value.trim().toLowerCase();
++    renderGrid();
++  });
++
++  /* ── BANK3: withdraw-as-note toggle ── */
++  const noteBtn = overlay.querySelector('#em-bank-note-toggle');
++  noteBtn.classList.toggle('on', _noteMode);
++  refreshTitleNote();
++  noteBtn.addEventListener('click', () => {
++    _noteMode = !_noteMode;
++    noteBtn.classList.toggle('on', _noteMode);
++    saveToggles();
++    refreshTitleNote();
++  });
++
++  /* ── BANK5: placeholders toggle ── */
++  const phBtn = overlay.querySelector('#em-bank-ph-toggle');
++  phBtn.classList.toggle('on', _placeholders);
++  phBtn.addEventListener('click', () => {
++    _placeholders = !_placeholders;
++    phBtn.classList.toggle('on', _placeholders);
++    if (!_placeholders) _placeholderSet = {};
++    saveToggles();
++    renderGrid();
++  });
++
++  /* ── BANK6: tab row (visual only) ── */
++  overlay.querySelectorAll('.em-bank-tab').forEach(tab => {
++    tab.addEventListener('click', () => {
++      _activeTab = tab.dataset.tab;
++      overlay.querySelectorAll('.em-bank-tab').forEach(t => t.classList.toggle('active', t === tab));
++    });
++  });
++  /* "+" tab: cosmetic no-op for now */
++  const addTabBtn = overlay.querySelector('.em-bank-tab-add');
++  if (addTabBtn) {
++    addTabBtn.addEventListener('click', () => {
++      /* future: create named sub-tabs */
++    });
++  }
++
+   return overlay;
+ }
+ 
++/* ── BANK3: title note helper ────────────────────────────────────── */
++
++function refreshTitleNote() {
++  if (!_overlay) return;
++  const titleEl = _overlay.querySelector('#em-bank-title-text');
++  if (!titleEl) return;
++  titleEl.textContent = _noteMode ? 'Bank of Eldermoor [NOTE]' : 'Bank of Eldermoor';
++}
++
+ /* ── grid renderer ───────────────────────────────────────────────── */
+ 
+ function renderGrid() {
+@@ -293,36 +428,74 @@ function renderGrid() {
+ 
+   const IT = (window.EMHUD && window.EMHUD.getItems) ? window.EMHUD.getItems() : {};
+ 
+-  if (_bank.length === 0) {
+-    grid.innerHTML = '<div class="em-bank-empty">Your bank is empty.</div>';
++  /* Build the display list: real slots + placeholder slots (BANK5). */
++  const realIds = new Set(_bank.map(s => s.id));
++
++  /* Add any currently-banked item ids to the placeholder registry. */
++  _bank.forEach(s => { _placeholderSet[s.id] = true; });
++
++  /* Placeholder entries: items that were once banked but are now gone. */
++  const phSlots = _placeholders
++    ? Object.keys(_placeholderSet)
++        .filter(id => !realIds.has(id))
++        .map(id => ({ id, count: 0, _placeholder: true }))
++    : [];
++
++  /* BANK2: apply search filter to real slots; placeholders also filter. */
++  function matchesSearch(id) {
++    if (!_searchText) return true;
++    const IT2 = (window.EMHUD && window.EMHUD.getItems) ? window.EMHUD.getItems() : {};
++    const label = (IT2[id] && IT2[id].name) ? IT2[id].name.toLowerCase() : id.toLowerCase();
++    return label.includes(_searchText) || id.toLowerCase().includes(_searchText);
++  }
++
++  const visibleReal = _bank.filter(s => matchesSearch(s.id));
++  const visiblePh   = phSlots.filter(s => matchesSearch(s.id));
++  const allSlots    = [...visibleReal, ...visiblePh];
++
++  if (allSlots.length === 0) {
++    if (_searchText) {
++      grid.innerHTML = '<div class="em-bank-empty">No items match your search.</div>';
++    } else {
++      grid.innerHTML = '<div class="em-bank-empty">Your bank is empty.</div>';
++    }
+     return;
+   }
+ 
+   grid.innerHTML = '';
+-  _bank.forEach(slot => {
++  allSlots.forEach(slot => {
+     const def = IT[slot.id] || {};
+-    const icon = (def.icon) ? def.icon : getItemIcon(slot.id);
++    const icon = def.icon ? def.icon : getItemIcon(slot.id);
+     const label = def.name || slot.id;
+ 
+     const el = document.createElement('div');
+-    el.className = 'em-bank-slot';
+-    el.title = `${label} (${slot.count})\nClick to withdraw`;
+-    el.innerHTML = `
+-      <span class="em-bk-icon">${icon}</span>
+-      <span class="em-bk-id" style="display:none">${label}</span>
+-      ${slot.count > 1 ? `<span class="em-bk-ct">${fmtCount(slot.count)}</span>` : ''}
+-    `;
+-    /* Show icon if emoji truthy, else show text id */
++    el.className = slot._placeholder ? 'em-bank-slot placeholder' : 'em-bank-slot';
++
++    if (slot._placeholder) {
++      el.title = label + " (empty slot)";
++      el.innerHTML = `
++        <span class="em-bk-icon" style="opacity:.4">${icon}</span>
++        <span class="em-bk-id" style="display:none">${label}</span>
++      `;
++    } else {
++      el.title = label + " (" + slot.count + ")\nClick to withdraw";
++      el.innerHTML = `
++        <span class="em-bk-icon">${icon}</span>
++        <span class="em-bk-id" style="display:none">${label}</span>
++        ${slot.count > 1 ? '<span class="em-bk-ct">' + fmtCount(slot.count) + '</span>' : ''}
++      `;
++      el.addEventListener('click', () => {
++        const n = _qtyMode === 'All' ? slot.count : Math.min(_qty, slot.count);
++        if (n > 0) EMBANK.withdraw(slot.id, n);
++      });
++    }
++
++    /* Show icon if emoji truthy, else show text id. */
+     if (!icon || icon === '📦') {
+       el.querySelector('.em-bk-icon').style.display = 'none';
+       el.querySelector('.em-bk-id').style.display = '';
+     }
+ 
+-    el.addEventListener('click', () => {
+-      const n = _qtyMode === 'All' ? slot.count : Math.min(_qty, slot.count);
+-      if (n > 0) EMBANK.withdraw(slot.id, n);
+-    });
+-
+     grid.appendChild(el);
+   });
+ }
+@@ -350,6 +523,7 @@ const EMBANK = {
+       _overlay = buildOverlay();
+     }
+     refreshQtyButtons();
++    refreshTitleNote();
+     document.body.appendChild(_overlay);
+     renderGrid();
+     _overlay.querySelector('#em-bank-close').focus();
+@@ -375,7 +549,7 @@ const EMBANK = {
+     if (removeFromInv && window.EMHUD && typeof window.EMHUD.getInv === 'function') {
+       const inv = window.EMHUD.getInv();
+       const slot = inv.find(s => s.id === id);
+-      if (!slot) return; // item not in inventory - cannot deposit what you don\'t have
++      if (!slot) return; // item not in inventory - cannot deposit what you do not have
+       const toDeposit = Math.min(n, slot.count);
+       if (toDeposit <= 0) return;
+       // Mutate inventory array (matches hud.js pattern - inv is a shared reference)
+@@ -399,6 +573,8 @@ const EMBANK = {
+    */
+   withdraw(id, n) {
+     if (!id || n <= 0) return;
++    /* BANK5: register item in placeholder set before potentially removing its slot. */
++    if (_placeholders) _placeholderSet[id] = true;
+     const { bank: nextBank, removed } = bankRemove(_bank, id, n);
+     if (removed <= 0) return;
+     _bank = nextBank;
+diff --git a/src/gating.js b/src/gating.js
+new file mode 100644
+index 0000000..ae89c7f
+--- /dev/null
++++ b/src/gating.js
+@@ -0,0 +1,205 @@
++/* =====================================================================
++   ELDERMOOR - tutorial gating (FLOW2/GATE).
++
++   Exposes window.EMGATING = { canDo(targetId), nudge(targetId), lockedZones() }.
++   Reads tutorial progress from window.EMLESSON.current() and the ordered
++   L0-L17 lesson sequence (instructor ids + zone ids) to decide whether a
++   player interaction is allowed yet.
++
++   canDo(npcOrZoneId) -> true when the target is the current/already-done step,
++                         false when it is still locked.
++   nudge(targetId)    -> shows an OSRS-style chat hint via EMHUD.addChat and
++                         returns false (convenience: call inside interact guards).
++   lockedZones()      -> array of zone ids not yet reachable.
++
++   Listens to the 'em-lesson' event so the gating map refreshes automatically
++   whenever the lesson state advances.
++
++   Self-contained and defensive: no-ops cleanly when EMLESSON or EMHUD are
++   absent (headless / pre-boot environments). No mutation of external state.
++   ===================================================================== */
++
++/* ------------------------------------------------------------------ helpers */
++function hud() {
++  return (typeof window !== "undefined" && window.EMHUD) ? window.EMHUD : null;
++}
++
++function lesson() {
++  if (typeof window === "undefined" || !window.EMLESSON) return null;
++  try { return window.EMLESSON.current(); } catch (e) { return null; }
++}
++
++/* Return the ordered lesson array from EMDATA, falling back to the static
++   inline table built from lessons.json at authoring time.  The inline table
++   is intentionally kept in sync with assets/data/lessons.json (L0-L17). */
++function lessonList() {
++  const d = (typeof window !== "undefined") ? window.EMDATA : null;
++  const list = d && d.lessons;
++  if (Array.isArray(list)) return list;
++  if (list && Array.isArray(list.lessons)) return list.lessons;
++  return STATIC_LESSONS;
++}
++
++/* Collect every id (instructor + zone) that belongs to lesson i and beyond. */
++function idsForIndex(i) {
++  const ls = lessonList();
++  const ids = new Set();
++  for (let j = i; j < ls.length; j++) {
++    const l = ls[j];
++    if (!l) continue;
++    if (l.instructor) ids.add(String(l.instructor).toLowerCase());
++    if (l.zone) ids.add(String(l.zone).toLowerCase());
++    if (l.id) ids.add(String(l.id).toLowerCase());
++  }
++  return ids;
++}
++
++/* --------------------------------------------------------- inline fallback */
++/* Mirrors assets/data/lessons.json so the module works even before EMDATA
++   loads.  Kept minimal: only the fields we query (id, instructor, zone). */
++const STATIC_LESSONS = [
++  { id: "L0",  instructor: "halric", zone: "spawn_house" },
++  { id: "L1",  instructor: "halric", zone: "spawn_house" },
++  { id: "L2",  instructor: "maeve",  zone: "survival" },
++  { id: "L3",  instructor: "maeve",  zone: "survival" },
++  { id: "L4",  instructor: "maeve",  zone: "survival" },
++  { id: "L5",  instructor: "maeve",  zone: "survival" },
++  { id: "L6",  instructor: "tobin",  zone: "cooks_house" },
++  { id: "L7",  instructor: "edda",   zone: "spawn_house" },
++  { id: "L8",  instructor: "doran",  zone: "mine" },
++  { id: "L9",  instructor: "doran",  zone: "mine" },
++  { id: "L10", instructor: "doran",  zone: "mine" },
++  { id: "L11", instructor: "vael",   zone: "combat" },
++  { id: "L12", instructor: "vael",   zone: "combat" },
++  { id: "L13", instructor: "wynn",   zone: "bank" },
++  { id: "L14", instructor: "brann",  zone: "bank" },
++  { id: "L15", instructor: "aldric", zone: "chapel" },
++  { id: "L16", instructor: "sorrel", zone: "wizard" },
++  { id: "L17", instructor: "halric", zone: "dock" }
++];
++
++/* --------------------------------------------------------- current state */
++/* Derive a snapshot of gating state from EMLESSON.current(). Returns a plain
++   object so callers never hold a mutable reference into lesson internals. */
++function state() {
++  const snap = lesson();
++  if (!snap) {
++    // EMLESSON not present yet - treat everything as allowed (fail-open).
++    return { lessonIndex: 0, completed: [], done: false };
++  }
++  const ls = lessonList();
++  const lessonId = snap.lessonId || (snap.lesson && snap.lesson.id) || null;
++  let lessonIndex = snap.progress ? snap.progress.lessonIndex : 0;
++  if (typeof lessonIndex !== "number" || lessonIndex < 0) lessonIndex = 0;
++
++  // completed is an array of lesson ids already finished.
++  const completed = Array.isArray(snap.completed) ? snap.completed.slice() : [];
++
++  return { lessonIndex, completed, done: !!snap.done, lessonId, ls };
++}
++
++/* --------------------------------------------------------- public helpers */
++/* Given a target id (instructor name, zone id, or lesson id) decide if it is
++   currently accessible: it is accessible when its first lesson in the chain
++   is at or before the current lesson (or the tutorial is done). */
++function canDo(targetId) {
++  if (!targetId) return true;           // no id supplied -> don\'t gate
++  const key = String(targetId).toLowerCase();
++  const s = state();
++
++  if (s.done) return true;             // tutorial finished -> open world
++
++  const ls = lessonList();
++
++  // Walk the lesson list and find the earliest lesson that involves this id.
++  let firstLessonIndex = -1;
++  for (let i = 0; i < ls.length; i++) {
++    const l = ls[i];
++    if (!l) continue;
++    const matchInstructor = l.instructor && String(l.instructor).toLowerCase() === key;
++    const matchZone = l.zone && String(l.zone).toLowerCase() === key;
++    const matchId = l.id && String(l.id).toLowerCase() === key;
++    if (matchInstructor || matchZone || matchId) {
++      firstLessonIndex = i;
++      break;
++    }
++  }
++
++  if (firstLessonIndex === -1) return true;  // unknown id - don\'t gate it
++
++  // The target is available when the player has reached or passed its lesson.
++  return firstLessonIndex <= s.lessonIndex;
++}
++
++/* Show an OSRS-style hint pointing to the current instructor.  Returns false
++   so callers can do: if (!EMGATING.canDo(id)) return EMGATING.nudge(id); */
++function nudge(targetId) {
++  const h = hud();
++  if (!h || typeof h.addChat !== "function") return false;
++
++  const s = state();
++  if (s.done) return false;
++
++  const ls = lessonList();
++  const current = ls[s.lessonIndex];
++  if (!current) return false;
++
++  const who = current.instructor
++    ? capitalize(current.instructor)
++    : "your current instructor";
++
++  h.addChat("You should speak to " + who + " first.", "", true);
++  return false;
++}
++
++/* Return an array of zone ids that the player has not yet unlocked. */
++function lockedZones() {
++  const s = state();
++  if (s.done) return [];
++
++  const ls = lessonList();
++  const locked = [];
++  for (let i = s.lessonIndex + 1; i < ls.length; i++) {
++    const l = ls[i];
++    if (l && l.zone) {
++      const z = String(l.zone).toLowerCase();
++      if (!locked.includes(z)) locked.push(z);
++    }
++  }
++  return locked;
++}
++
++/* ----------------------------------------------------------------- utils */
++function capitalize(s) {
++  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
++}
++
++/* -------------------------------------------------------- event wiring */
++function onLessonEvent() {
++  // The gating functions re-read EMLESSON.current() on every call, so no
++  // cached state needs to be flushed here.  The listener exists so external
++  // code can hook 'em-lesson' knowing gating is always in sync.
++  // (intentionally a no-op - present for future extension and documentation)
++}
++
++/* ------------------------------------------------------ public entry point */
++export function initGating() {
++  if (typeof window !== "undefined") {
++    window.addEventListener("em-lesson", onLessonEvent);
++    window.addEventListener("em-data-ready", onLessonEvent);
++  }
++
++  const api = {
++    canDo,
++    nudge,
++    lockedZones
++  };
++
++  if (typeof window !== "undefined") {
++    window.EMGATING = api;
++  }
++
++  return api;
++}
++
++export default initGating;
+diff --git a/src/hud.js b/src/hud.js
+index 28f220a..1a22a56 100644
+--- a/src/hud.js
++++ b/src/hud.js
+@@ -222,7 +222,7 @@ export function initHud(){
+     SK.skills.forEach(s=>skillXp[s.id]=0);
+     const start=SK.startLevels||{}; for(const k in start){ skillXp[k]=SK.xpTable[(start[k]||1)-1]||0; }
+     ready=true; showTab('inv');
+-    EMHUD.addChat('Welcome to <b>Eldermoor</b> <span style="opacity:.6">(v25)</span>.','', true);
++    EMHUD.addChat('Welcome to <b>Eldermoor</b> <span style="opacity:.6">(v26)</span>.','', true);
+     EMHUD.addChat('Tap the world to walk. Tap an NPC to talk.','', true);
+     EMHUD.setObjective('Speak to Brother Aldric in the chapel');
+     // a few starting items so the bag isn\'t empty (placeholder)
+diff --git a/src/main.js b/src/main.js
+index efc2df7..f343109 100644
+--- a/src/main.js
++++ b/src/main.js
+@@ -43,6 +43,8 @@ import { initLogoutTab } from './logout-tab.js';
+ import { initAppearanceApply } from './appearance-apply.js';
+ import { initMakeInterface } from './make-interface.js';
+ import { initSfxActions } from './sfx-actions.js';
++import { initGating } from './gating.js';
++import { initWornRender } from './worn-render.js';
+ 
+ /* --- shared globals the feature modules read (player pos/rig/move, walk, scene) --- */
+ window.EMPLAYERPOS = pos;          // live Vector3 (mutated in place) → {x,z} reads stay current
+@@ -64,7 +66,8 @@ initHud();                          // window.EMHUD now exists for the feature m
+   initCombat, initSkilling, initEquipment, initEquipTab, initPrayerTab, initMagicTab,
+   initQuestsTab, initSettingsTab, initInvOps, initMinimapNav,
+   initLessons, initCharCreate, initMusicTab, initSocial, initSkillGuide, initMinimapRender,
+-  initBank, initLogoutTab, initAppearanceApply, initMakeInterface, initSfxActions
++  initBank, initLogoutTab, initAppearanceApply, initMakeInterface, initSfxActions,
++  initGating, initWornRender
+ ].forEach(fn => { try { fn(); } catch(e){ console.warn('[em] init failed:', fn.name, e); } });
+ 
+ /* minimap click-to-walk fallback (when EMWALK isn\'t reached directly) */
+diff --git a/src/prayer-tab.js b/src/prayer-tab.js
+index fbcef2f..bf869f6 100644
+--- a/src/prayer-tab.js
++++ b/src/prayer-tab.js
+@@ -48,7 +48,7 @@ const PRAYERS = [
+     osrs: 'Mystic Will',        effect: '+5% Magic.',             drain_rate: 1 },
+   { id: 'granitehide',   name: 'Granite Hide',   req: 10, icon: '\u{1FAA8}',
+     osrs: 'Rock Skin',          effect: '+10% Defence.',          drain_rate: 2 },
+-  { id: 'berserkersoul', name: 'Berserker\'s Soul', req: 13, icon: '⚔️',
++  { id: 'berserkersoul', name: "Berserker\'s Soul", req: 13, icon: '⚔️',
+     osrs: 'Superhuman Strength', effect: '+10% Strength.',        drain_rate: 2 },
+   { id: 'hawkeye',       name: 'Hawk Eye',       req: 16, icon: '\u{1F985}',
+     osrs: 'Improved Reflexes',  effect: '+10% Attack.',           drain_rate: 2 },
+@@ -153,26 +153,39 @@ function syncPtsMax(state) {
+ 
+ /* --------------------------------------------------------- BURY BONES */
+ /* Award 45 base Prayer XP per bones item buried.
+-   Requires window.EMINV with consumeItem(id) and grantXp(skill, amount).
+-   Safe-guards: does nothing if inventory API is absent or no bones held. */
++   Reads inventory via window.EMHUD.getInv() (array of {id,count}), finds a
++   'bones' entry, decrements/removes it, awards XP via window.EMHUD.addXp,
++   calls window.EMHUD.refresh?.(), and chats "You bury the bones." via
++   window.EMHUD.addChat. Returns true on success, false if no bones / HUD absent. */
+ const BONES_PRAYER_XP = 45;
+ const BONES_ITEM_ID = 'bones';
+ 
+ function buryBones() {
+   if (typeof window === 'undefined') return false;
+-  const inv = window.EMINV;
+-  if (!inv || typeof inv.consumeItem !== 'function') return false;
+-  const consumed = inv.consumeItem(BONES_ITEM_ID);
+-  if (!consumed) return false;
+-  /* Award XP - prefer window.EMHUD.grantXp if available, fall back to
+-     window.EMINV.grantXp, otherwise no-op gracefully. */
+-  const grantFn =
+-    (window.EMHUD && typeof window.EMHUD.grantXp === 'function')
+-      ? window.EMHUD.grantXp.bind(window.EMHUD)
+-      : (inv && typeof inv.grantXp === 'function')
+-        ? inv.grantXp.bind(inv)
+-        : null;
+-  if (grantFn) grantFn('prayer', BONES_PRAYER_XP);
++  const hud = window.EMHUD;
++  if (!hud || typeof hud.getInv !== 'function') return false;
++
++  /* Find a bones slot in the inventory array [{id, count}, ...]. */
++  const inv = hud.getInv();
++  const slot = inv.find((s) => s.id === BONES_ITEM_ID);
++  if (!slot || slot.count <= 0) return false;
++
++  /* Decrement or remove the slot in-place (mutate the live array entry). */
++  slot.count -= 1;
++  if (slot.count <= 0) {
++    const idx = inv.indexOf(slot);
++    if (idx !== -1) inv.splice(idx, 1);
++  }
++
++  /* Award Prayer XP. */
++  if (typeof hud.addXp === 'function') hud.addXp('prayer', BONES_PRAYER_XP);
++
++  /* Refresh HUD display if available. */
++  if (typeof hud.refresh === 'function') hud.refresh();
++
++  /* Notify via chat. */
++  if (typeof hud.addChat === 'function') hud.addChat("You bury the bones.");
++
+   return true;
+ }
+ 
+diff --git a/src/sfx-actions.js b/src/sfx-actions.js
+index ad539fe..3d2dec2 100644
+--- a/src/sfx-actions.js
++++ b/src/sfx-actions.js
+@@ -31,7 +31,7 @@ export function initSfxActions() {
+   function audio()  { return (typeof window !== 'undefined' && window.EMAUDIO)  || null; }
+   function hud()    { return (typeof window !== 'undefined' && window.EMHUD)    || null; }
+ 
+-  /* ---- inline-beep fallback: raw oscillator via EMAUDIO's AudioContext -- */
++  /* ---- inline-beep fallback: raw oscillator via EMAUDIO\'s AudioContext -- */
+   /* Used when EMAUDIO exposes its context but not a named cue.              */
+   function rawBeep(freq, dur, peak, type) {
+     const a = audio();
+@@ -58,7 +58,7 @@ export function initSfxActions() {
+ 
+   /* ---- synthesized cues (built on EMAUDIO.blip / tone helpers) --------- */
+ 
+-  /* Tab / button click: re-use EMAUDIO's built-in soft-click. */
++  /* Tab / button click: re-use EMAUDIO\'s built-in soft-click. */
+   function sfxTabClick() {
+     const a = audio(); if (!a) return;
+     try { a.click(); } catch (_) {}
+diff --git a/src/skilling.js b/src/skilling.js
+index 597263f..9fbb416 100644
+--- a/src/skilling.js
++++ b/src/skilling.js
+@@ -57,7 +57,7 @@ function chat(text){ const h = hud(); if(h && h.addChat) h.addChat(text, '', tru
+ /* count free inventory slots, honouring stackables already in the bag */
+ function bagFull(outputId){
+   const h = hud();
+-  if(!h || !h.getInv || !h.getItems) return false;        // can't tell -> assume room
++  if(!h || !h.getInv || !h.getItems) return false;        // can\'t tell -> assume room
+   const inv = h.getInv() || [];
+   if(inv.length < BAG_SLOTS) return false;                 // a free slot exists
+   if(!outputId) return false;                              // no item to store (e.g. lighting a fire)
+@@ -70,7 +70,7 @@ function bagFull(outputId){
+ /* does the bag hold this item id? */
+ function hasItem(id){
+   const h = hud();
+-  if(!h || !h.getInv) return true;                         // unknown -> don't block
++  if(!h || !h.getInv) return true;                         // unknown -> don\'t block
+   return !!(h.getInv() || []).find(x => x && x.id === id);
+ }
+ 
+@@ -272,7 +272,7 @@ function smith(){ return smithMakeX(); }
+ 
+ /* route a scenery `kind:'scenery'` interaction (Chop down / Mine / Search) here.
+    The interact layer can call window.EMSKILL.doSceneryVerb(scenery). Returns true
+-   if the verb was handled by skilling, false if it's not a gather node. */
++   if the verb was handled by skilling, false if it\'s not a gather node. */
+ function doSceneryVerb(scenery){
+   if(!scenery || scenery.kind !== 'scenery') return false;
+   const verb = SCENERY_VERB[scenery.type];
+diff --git a/src/worn-render.js b/src/worn-render.js
+new file mode 100644
+index 0000000..f5cbf30
+--- /dev/null
++++ b/src/worn-render.js
+@@ -0,0 +1,214 @@
++/* =====================================================================
++   ELDERMOOR - worn-render module (EQ4 / FEEL+6).
++
++   Attaches simple THREE.js primitive meshes to the player rig to
++   represent wielded/worn gear (weapon + shield) whenever
++   window.EMEQUIP.worn changes.
++
++   Exposes: window.EMWORNRENDER = { refresh }
++   main.js calls initWornRender() once after initEquipment().
++
++   Defensive contract:
++   - No-ops if window.THREE, window.EMEQUIP, or window.EMRIG are absent.
++   - Polls window.EMEQUIP.worn at ~3 Hz and also listens for the
++     "em-equip-changed" event so the display is immediate on equip/unequip.
++   - Meshes are attached as children of the right-arm pivot (armR) for the
++     weapon and the left-arm pivot (armL) for the shield.  Falls back to
++     window.EMSCENE if neither limb pivot exists.
++   - Old meshes are disposed (geometry + material) before building new ones.
++
++   Shape / colour table:
++     Weapon slot
++       *sword*, *dagger*, *mace*, *axe*, *warhammer*, *scimitar*
++           -> thin elongated box (blade), steel #c2cad4
++       *staff*, *wand*
++           -> thin tall box (staff), dark wood #5a3f28
++       *bow*, *shortbow*, *longbow*, *crossbow*
++           -> narrow flat box (limbs), wood #5a3f28
++       (unknown weapon)
++           -> thin box, iron grey #8a8a8a
++     Shield slot
++       *shield*
++           -> flat square slab, steel #c2cad4
++       (unknown shield)
++           -> flat square slab, iron grey #8a8a8a
++
++   Mesh local-space layout (relative to arm pivot, +Y up, +Z forward):
++     Weapon: x=0.18, y=-0.35, z=0 (held forward of right fist)
++     Shield: x=-0.18, y=-0.25, z=0.06 (on left forearm, facing front)
++   ===================================================================== */
++
++export function initWornRender() {
++  if (typeof window === "undefined") return;
++  if (window.__emWornRenderInit) return;
++  window.__emWornRenderInit = true;
++
++  /* ------------------------------------------------------------------ deps */
++  // All global references are read lazily so load-order doesn\'t matter.
++  function THREE()  { return window.THREE || null; }
++  function equip()  { return window.EMEQUIP || null; }
++  function rig()    { return window.EMRIG   || null; }
++  function scene()  { return window.EMSCENE || (window.EMENGINE && window.EMENGINE.scene) || null; }
++
++  /* ---------------------------------------------------------- state */
++  // Track the currently-attached mesh for each slot so we can remove/dispose.
++  const attached = { weapon: null, shield: null };
++
++  // Last snapshot of worn ids used to skip redundant rebuilds.
++  const prev = { weapon: null, shield: null };
++
++  /* ------------------------------------------------ colour lookup */
++  // Returns an integer colour suitable for THREE.MeshLambertMaterial.
++  function colourForWeapon(id) {
++    if (!id) return 0x8a8a8a;
++    const lo = id.toLowerCase();
++    if (/bow/.test(lo) || /staff/.test(lo) || /wand/.test(lo)) return 0x5a3f28; // wood
++    if (/sword/.test(lo) || /dagger/.test(lo) || /mace/.test(lo) ||
++        /axe/.test(lo)   || /hammer/.test(lo) || /scimitar/.test(lo)) return 0xc2cad4; // steel
++    return 0x8a8a8a; // unknown -> iron grey
++  }
++
++  function colourForShield(/*id*/) {
++    return 0xc2cad4; // all shields -> steel
++  }
++
++  /* ----------------------------------------------- geometry helpers */
++  // Returns { w, h, d } box dimensions for the weapon id.
++  function weaponDims(id) {
++    if (!id) return { w: 0.04, h: 0.55, d: 0.04 };
++    const lo = id.toLowerCase();
++    if (/bow/.test(lo)) return { w: 0.04, h: 0.60, d: 0.02 };  // bow stave, flat
++    if (/staff/.test(lo) || /wand/.test(lo)) return { w: 0.03, h: 0.70, d: 0.03 }; // tall thin staff
++    // swords, daggers, axes, maces, etc.
++    return { w: 0.04, h: 0.55, d: 0.05 };
++  }
++
++  /* ------------------------------------------- mesh factory helpers */
++  function makeMesh(T, geo, colour) {
++    const mat = new T.MeshLambertMaterial({ color: colour });
++    const mesh = new T.Mesh(geo, mat);
++    mesh.name = "__worn_mesh__";
++    return mesh;
++  }
++
++  function buildWeaponMesh(T, id) {
++    const dims = weaponDims(id);
++    const geo = new T.BoxGeometry(dims.w, dims.h, dims.d);
++    const mesh = makeMesh(T, geo, colourForWeapon(id));
++    // Position: out to the right of the arm, below the pivot, centred depth
++    mesh.position.set(0.18, -0.35, 0.0);
++    return mesh;
++  }
++
++  function buildShieldMesh(T, id) {
++    const geo = new T.BoxGeometry(0.30, 0.30, 0.04); // flat slab
++    const mesh = makeMesh(T, geo, colourForShield(id));
++    // Position: left arm, facing outward
++    mesh.position.set(-0.18, -0.25, 0.06);
++    return mesh;
++  }
++
++  /* ------------------------------------------------- disposal */
++  function disposeMesh(mesh) {
++    if (!mesh) return;
++    if (mesh.parent) mesh.parent.remove(mesh);
++    if (mesh.geometry) mesh.geometry.dispose();
++    if (mesh.material) {
++      if (Array.isArray(mesh.material)) {
++        mesh.material.forEach(function(m) { m.dispose(); });
++      } else {
++        mesh.material.dispose();
++      }
++    }
++  }
++
++  /* --------------------------------- anchor helpers (arm or scene) */
++  function weaponAnchor() {
++    const r = rig();
++    if (r && r.armR) return r.armR;
++    return scene();
++  }
++
++  function shieldAnchor() {
++    const r = rig();
++    if (r && r.armL) return r.armL;
++    return scene();
++  }
++
++  /* -------------------------------------------- core refresh */
++  function refresh() {
++    const T = THREE();
++    if (!T) return;           // THREE not loaded yet
++    const eq = equip();
++    if (!eq || !eq.worn) return; // EMEQUIP not ready
++
++    const worn = eq.worn;
++
++    // Slot ids -- worn[slot] is { id, count } per equipment.js contract,
++    // or a bare string id in older schemas; handle both.
++    function slotId(entry) {
++      if (!entry) return null;
++      if (typeof entry === "string") return entry;
++      return entry.id || null;
++    }
++
++    const wId = slotId(worn.weapon) || null;
++    const sId = slotId(worn.shield) || null;
++
++    // ----- weapon -----
++    if (wId !== prev.weapon) {
++      prev.weapon = wId;
++      disposeMesh(attached.weapon);
++      attached.weapon = null;
++
++      if (wId) {
++        const anchor = weaponAnchor();
++        if (anchor && typeof anchor.add === "function") {
++          const mesh = buildWeaponMesh(T, wId);
++          anchor.add(mesh);
++          attached.weapon = mesh;
++        }
++      }
++    }
++
++    // ----- shield -----
++    if (sId !== prev.shield) {
++      prev.shield = sId;
++      disposeMesh(attached.shield);
++      attached.shield = null;
++
++      if (sId) {
++        const anchor = shieldAnchor();
++        if (anchor && typeof anchor.add === "function") {
++          const mesh = buildShieldMesh(T, sId);
++          anchor.add(mesh);
++          attached.shield = mesh;
++        }
++      }
++    }
++  }
++
++  /* ----------------------------------------- event listener */
++  // Instant response when the equipment module fires its change event.
++  window.addEventListener("em-equip-changed", refresh);
++
++  /* ------------------------------------------- polling */
++  // Fallback poll at ~3 Hz covers modules that mutate worn without firing the event.
++  let _pollHandle = null;
++
++  function startPoll() {
++    if (_pollHandle !== null) return;
++    _pollHandle = setInterval(refresh, 333);
++  }
++
++  // Start polling immediately; if THREE/EMEQUIP aren\'t ready yet the refresh
++  // is a cheap no-op that returns early.
++  startPoll();
++
++  // First eager refresh in case everything is already loaded synchronously.
++  refresh();
++
++  /* ------------------------------------------- public API */
++  const api = { refresh: refresh };
++  window.EMWORNRENDER = api;
++}

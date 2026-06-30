@@ -45,7 +45,8 @@ Outstanding work to 100%. Item-level pass/fail tests in `PARITY_AUDIT.md` (~645 
 - [x] Magic cast (combat spell → mob, consume runes, bolt projectile, Magic+HP XP) — integrated v24, playtest pending.
 - [x] Prayer points pool + activation drain + bury-bones — integrated v25, playtest pending.
 - [x] Route smithing/cooking through the Make-X interface — integrated v25, playtest pending.
-- [ ] Equipment renders on the 3D avatar.
+- [ ] Equipment renders on the 3D avatar. *(reference impl salvaged from the retired fork:
+      `salvage/opus-wave-v26/worn-render.js` — port onto v31 in Milestone 1B.)*
 
 ## P2 — world build-out (needs assets via build_kit.py)
 - [ ] 9 missing zones: spawn house, full survival area, cook's house, quest house, mine/underground,
@@ -55,7 +56,8 @@ Outstanding work to 100%. Item-level pass/fail tests in `PARITY_AUDIT.md` (~645 
 
 ## P3 — systems
 - [ ] Trading (player-to-player) · multiplayer presence.
-- [ ] Bank PIN/tabs/search/notes/placeholders.
+- [ ] Bank PIN/tabs/search/notes/placeholders. *(reference impl salvaged from the retired fork:
+      `salvage/opus-wave-v26/bank.js` — cherry-pick the depth features onto v31's bank.js.)*
 - [~] Quest accept/track/complete flow — accept/complete + QP increment integrated v25; reward screen pending.
 - [~] Audio: action-SFX coverage integrated v25 (`sfx-actions.js`); real per-zone music still pending.
 

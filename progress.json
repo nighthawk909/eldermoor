@@ -147,14 +147,13 @@
       "note": "from QA finding R2",
       "ts": 0
     },
-    {
-      "id": "P1",
-      "epic": "P1",
-      "title": "Render-correctness pass (8 fixes, unstarted)",
-      "status": "queued",
-      "agent": null,
-      "note": "cheap, kills worst on-sight glitches",
-      "ts": 0
-    }
+    { "id": "P1.5", "epic": "P1 / render (Batch A engine.js)", "title": "Explicit per-mesh material roles (replace substring matching)", "status": "queued", "agent": null, "note": "engine.js 73-83; do first", "ts": 0 },
+    { "id": "P1.1", "epic": "P1 / render (Batch A engine.js)", "title": "Terrain: null m.map so vertex colours don't multiply a texture", "status": "queued", "agent": null, "note": "engine.js ~74", "ts": 0 },
+    { "id": "P1.2", "epic": "P1 / render (Batch A engine.js)", "title": "Water: depthWrite=false + renderOrder (stop holes in floor)", "status": "queued", "agent": null, "note": "engine.js ~83", "ts": 0 },
+    { "id": "P1.6", "epic": "P1 / render (Batch A engine.js)", "title": "Seal interiors: roof hides on entry + kill z-fight gap", "status": "queued", "agent": null, "note": "engine.js 109-121 (helpers unused)", "ts": 0 },
+    { "id": "P1.7", "epic": "P1 / render (Batch A engine.js)", "title": "Sky tone-map fix + altar-glow decay fix", "status": "queued", "agent": null, "note": "engine.js 32-38, player.js 122", "ts": 0 },
+    { "id": "P1.3", "epic": "P1 / render (Batch B npc.js)", "title": "Nameplates: drop depthTest:false (names show through walls)", "status": "queued", "agent": null, "note": "npc.js 24, 58", "ts": 0 },
+    { "id": "P1.4", "epic": "P1 / render (Batch C meshes)", "title": "Stop flatShading player/NPC meshes (keep smooth normals)", "status": "queued", "agent": null, "note": "avatar.js 33, loaders.js 65/79, world.js 269-290", "ts": 0 },
+    { "id": "P1.8", "epic": "P1 / render (Batch C meshes)", "title": "Loader: count ALL async loads so the fade waits", "status": "queued", "agent": null, "note": "loaders.js 16-21", "ts": 0 }
   ]
 }

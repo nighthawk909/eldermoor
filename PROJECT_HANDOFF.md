@@ -1,9 +1,9 @@
 # PROJECT HANDOFF — Eldermoor
 
-**Version (live):** v22 · **Live link:** https://eldermoor.vercel.app
-**Working copy:** v23 in progress, **blocked** (see Blockers).
-**Overall progress:** ~20% (features integrated + boot-verified; **~0% live-playtested**).
-**Date:** 2026-06-29.
+**Version (live):** v25 · **Live link:** https://eldermoor.vercel.app
+**Working copy:** v25 (commit 88eaa61), clean — in sync with live.
+**Overall progress:** ~23% (features integrated + boot-verified; **~6 features live-playtested**).
+**Date:** 2026-06-30.
 
 > **Honesty note:** "Completed" below means *integrated into the build + boot-verified in a headless
 > browser (no console errors)*. It does **not** mean manually playtested in the 3D scene — that gate is
@@ -100,17 +100,21 @@ ART_SPEC.md  MODELING_SPEC.md  SKILL.md  README.md
 - Skilling engine (chop/mine/fish/light/cook/smelt/smith) + in-world fixtures (fishing-spot/fire/
   furnace/anvil); resource-node depletion + respawn.
 - Combat engine (tick-based, accuracy/max-hit, hitsplats, HP bars, player HP + death/respawn +
-  auto-retaliate); attackable giant-rat mob + Attack verb.
+  auto-retaliate); attackable giant-rat mob + Attack verb. **Ranged (bow+arrows, projectile, max range,
+  melee fallback) and magic-cast on mobs (consume runes, bolt projectile) added v24.**
 - Banking interface (Bank of Eldermoor: deposit/withdraw, 1/5/10/X/All, deposit-inventory/worn).
 - Tutorial L0–L17 state machine (objective + gating + handoff scaffolding, predicate-driven).
 - Character creator (L0 gate) + appearance-apply to the player model.
-- Make-X production interface (reusable).
+- Make-X production interface (reusable), **wired to smithing (anvil) + cooking (range) (v25).**
+- **Prayer points (v25):** pool = Prayer level, activation drain, bury-bones for XP.
+- **Quest accept → track → complete flow + QP increment (v25)** (reward screen still pending).
+- **Action SFX coverage (v25):** chop/mine/fish/smith/hit/eat cues via `sfx-actions.js`.
 
-**Count:** ~36 feature-level items integrated.
+**Count:** ~44 feature-level items integrated.
 
 ---
 
-## 4. Incomplete / missing features (~54)
+## 4. Incomplete / missing features (~46)
 
 - **Trading** (player-to-player) — not started.
 - **Multiplayer presence** (other players, white dots, PvP-off) — not started.
@@ -119,13 +123,10 @@ ART_SPEC.md  MODELING_SPEC.md  SKILL.md  README.md
   departure dock) and the instructor roster placed in-world (data authored, NPCs not placed).
 - **The gated lesson chain actually driving gameplay** (state machine exists; doors/areas not yet locked;
   grants/handoffs not fully wired to in-world actions).
-- **Ranged + Magic combat** (melee works; ranged/spellcast projectiles not wired).
-- **Prayer points / activation drain**, **rune consumption on cast**, **bury-bones**.
-- **Smithing/cooking via the Make-X interface** (interface built; not yet called by the skills).
 - **Equipment on the 3D avatar** (worn gear doesn't render on the model).
 - **Banking PIN, tabs, search, placeholders, notes.**
-- **Quest detail/accept/complete flow + reward screen.**
-- **Audio: real per-zone music + action SFX coverage** (only procedural cues exist).
+- **Quest reward screen** (accept/track/complete flow + QP shipped v25; reward screen still missing).
+- **Audio: real per-zone music** (action SFX shipped v25; per-zone music still missing).
 - **Accessibility, i18n, world-map POI search, collection log / diaries / GE** (future scope).
 - **Mobile-specific HUD reflow.**
 - Full list with pass/fail tests: `PARITY_AUDIT.md` (~645 itemised gaps); phase-level: `ROADMAP.md`.
@@ -134,12 +135,11 @@ ART_SPEC.md  MODELING_SPEC.md  SKILL.md  README.md
 
 ## 5. Known bugs
 
-1. **[BLOCKER, v23 working copy] Smart-quote → apostrophe break.** A smart-quote normalization pass
-   converted curly apostrophes inside single-quoted strings to unescaped `'`, breaking several core
-   modules (`world.js:157` `Expert's`, and likely a few more across the ~37 normalized files). Browser
-   error: `Unexpected identifier 's'`. **The deployed v22 is NOT affected** (it predates the corruption);
-   only the working copy / v23 is. `node --check` did not reliably catch these, so the fix must escape or
-   remove the in-string apostrophes and re-verify in a real browser boot.
+1. **[RESOLVED — shipped v23, follow-up v25] Apostrophe-in-string break.** A smart-quote normalization pass
+   converted curly apostrophes inside single-quoted strings to unescaped `'`, breaking several core modules
+   (browser error `Unexpected identifier 's'`). Escaped/rephrased across the affected files; cache-free boot
+   verified clean and shipped v23. v25 fixed the inverse case — invalid `\'` backslash-apostrophe delimiters
+   in `sfx-actions.js` + `skilling.js`. No longer blocking.
 2. **Verification limit (not a code bug):** the headless preview caches ES-module dependencies, so a
    `?cachebuster` on one module doesn't refresh its static imports — making in-tool boot re-verification
    unreliable after edits. Mitigation: stop/restart the preview server and hard-navigate, or verify on the
@@ -155,7 +155,8 @@ ART_SPEC.md  MODELING_SPEC.md  SKILL.md  README.md
 
 ## 6. Current blockers
 
-- **B1 (active):** the v23 apostrophe break — must be fixed before v23 can deploy. Live v22 is unaffected.
+- **B1 (RESOLVED):** the apostrophe-in-string break — fixed and shipped v23; v25 cleared a follow-up `\'`
+  delimiter case. No longer blocking.
 - **B2 (standing):** no live 3D-interaction testing in this environment → features can't be promoted from
   "integrated" to "complete" without a human (or a real-browser session) clicking through them.
 
@@ -168,20 +169,21 @@ ART_SPEC.md  MODELING_SPEC.md  SKILL.md  README.md
 - `BUILD_QUEUE.md` — the fleet FIFO + reviewer re-queue.
 - `ASSET_MANIFEST.md` — every 3D asset needed (zones, buildings, NPCs, fixtures) with status.
 
-Near-term priority order: fix v23 → live-playtest the integrated features → wire the lesson chain to gate
-real actions → build out zones/instructors (assets) → ranged/magic/prayer mechanics → audio/polish.
+Near-term priority order: wire the lesson chain to gate real actions → render worn gear on the avatar →
+bank depth + quest reward screen → build out zones/instructors (assets) → live-playtest the integrated
+features → per-zone music / polish.
 
 ---
 
 ## 8. Exact next task
 
-**Fix the smart-quote apostrophe breakage and ship v23:**
-1. In `src/`, find every single-quoted string literal containing an unescaped apostrophe (start:
-   `world.js:157` `'...Survival Expert's axe.'`) — escape (`\'`) or rephrase to remove the apostrophe.
-   Scan all ~37 files the normalizer touched, not just world.js.
-2. Verify with a **real browser boot** (stop/restart the preview server, hard-navigate, confirm
-   `window.EMHUD` is defined + zero console errors), not just `node --check`.
-3. Bump version to v22→v23 in `src/hud.js` (welcome line) + `index.modular.html` (#hud).
-4. `cp index.modular.html index.html && vercel deploy --prod --yes`.
-5. Then begin the **live-playtest pass** on the deployed link to promote integrated features to "complete."
+**Lesson gating — make the tutorial chain drive gameplay** (`src/gating.js`, new module):
+1. Add a `gating.js` that listens for `em-lesson` / reads `window.EMLESSON` and locks zones, doors, and
+   relevant actions until the current tutorial step's predicate clears, with an OSRS-style nudge message.
+2. Wire it into `main.js` (`initGating()`) and have `interact.js` / `world.js` consult it before allowing a
+   blocked action or transition.
+3. Verify with a **real browser boot** (cache-free copy or deployed URL), confirm `window.EMHUD` defined +
+   zero console errors — `node --check` alone is insufficient.
+4. Bump version in `src/hud.js` + `index.modular.html` (#hud), then
+   `cp index.modular.html index.html && vercel deploy --prod --yes`.
 </content>

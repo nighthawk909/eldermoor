@@ -12,8 +12,8 @@ Outstanding work to 100%. Item-level pass/fail tests in `PARITY_AUDIT.md` (~645 
 ## P1 — combat & skilling depth
 - [x] Ranged combat (bow+arrows, projectile, Ranged+HP XP) — integrated v24, playtest pending.
 - [x] Magic cast (combat spell → mob, consume runes, bolt projectile, Magic+HP XP) — integrated v24, playtest pending.
-- [ ] Prayer points pool + activation drain + bury-bones.
-- [ ] Route smithing/cooking through the Make-X interface; per-tick gather rolls + depletion already exist.
+- [x] Prayer points pool + activation drain + bury-bones — integrated v25, playtest pending.
+- [x] Route smithing/cooking through the Make-X interface — integrated v25, playtest pending.
 - [ ] Equipment renders on the 3D avatar.
 
 ## P2 — world build-out (needs assets via build_kit.py)
@@ -25,13 +25,13 @@ Outstanding work to 100%. Item-level pass/fail tests in `PARITY_AUDIT.md` (~645 
 ## P3 — systems
 - [ ] Trading (player-to-player) · multiplayer presence.
 - [ ] Bank PIN/tabs/search/notes/placeholders.
-- [ ] Quest accept/track/complete flow + reward screen.
-- [ ] Real per-zone music + full action-SFX coverage.
+- [~] Quest accept/track/complete flow — accept/complete + QP increment integrated v25; reward screen pending.
+- [~] Audio: action-SFX coverage integrated v25 (`sfx-actions.js`); real per-zone music still pending.
 
 ## P4 — polish / later
 - [ ] Mobile HUD reflow · accessibility (colourblind/text-scale/keyboard nav) · i18n.
 - [ ] World-map POI search; collection log / diaries / GE (future scope).
 - [ ] Perf/LOD (InstancedMesh scatter), camera collision, engine-port bridge.
 
-**Counts:** ~40 features integrated, ~50 remaining (see METRICS.md).
+**Counts:** ~44 features integrated, ~46 remaining (see METRICS.md).
 </content>

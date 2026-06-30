@@ -4,8 +4,8 @@
 For the full narrative handoff see `PROJECT_HANDOFF.md`; phase status in `ROADMAP.md`; item-level tests in
 `PARITY_AUDIT.md`.
 
-- **Live version:** v24 · **Link:** https://eldermoor.vercel.app
-- **Overall:** ~22% (features integrated + boot-verified; **live-playtested separately — see METRICS**).
+- **Live version:** v25 · **Link:** https://eldermoor.vercel.app
+- **Overall:** ~23% (features integrated + boot-verified; **live-playtested separately — see METRICS**).
 - **Client:** modular ES (`src/*.js`, ~37 modules) + `index.modular.html` shell, Three.js r128 (CDN),
   data-driven from `assets/data/*.json`. Deployed on Vercel. `eldermoor_client.html` = frozen v17 rollback.
 
@@ -20,9 +20,14 @@ dialogue runner · NPC speech bubbles · inventory right-click ops · equipment 
 Quests / Settings / Emotes / Music / Friends / Ignore / Account / Logout tabs · skilling engine + fixtures ·
 resource depletion · combat engine (melee + ranged + magic-cast, player HP, death/respawn, retaliate) ·
 attackable rat + Attack · banking · tutorial state machine · character creator + appearance-apply ·
-Make-X interface.
+Make-X interface (wired to smithing/cooking) · prayer points (drain + bury-bones) · quest accept/track/
+complete flow · action SFX coverage (`sfx-actions.js`).
 
 ## Recently resolved
+- **v25:** prayer points/tab (point pool, activation drain, bury-bones), Make-X wired to smithing (anvil) +
+  cooking (range), quest accept → track → complete flow, and action SFX coverage (`sfx-actions.js`); plus a
+  fix un-escaping invalid `\'` string delimiters in `sfx-actions.js` + `skilling.js`. Integrated + cache-free
+  boot-verified; shipped v25 (commit 88eaa61). Live-playtest still pending.
 - **v24:** ranged combat (bow + arrows consume ammo, projectile, max range, melee fallback, Ranged+HP XP) and
   magic-cast on mobs (click combat spell → target a mob, consume runes, bolt projectile, Magic+HP XP) both
   integrated + cache-free boot-verified; shipped v24. Live-playtest still pending (see METRICS / NEXT_TASKS).

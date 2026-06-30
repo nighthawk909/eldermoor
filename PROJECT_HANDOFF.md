@@ -1,9 +1,11 @@
 # PROJECT HANDOFF — Eldermoor
 
-**Version (live):** v25 · **Live link:** https://eldermoor.vercel.app
-**Working copy:** v25 (commit 88eaa61), clean — in sync with live.
-**Overall progress:** ~23% (features integrated + boot-verified; **~6 features live-playtested**).
+**Version (live):** v27 · **Live link:** https://eldermoor.vercel.app
+**Working copy:** v27 (commit e68d1b8); Claude Code config at commit 3a9fe8d. Pushed to `claude/modular-v23`.
+**Overall progress:** ~24% (features integrated + boot-verified; **~6 features live-playtested**).
 **Date:** 2026-06-30.
+**Production note:** v26/v27 are built as Vercel **previews**; production-alias promotion (`vercel --prod`)
+is pending and happens outside the sandbox. Browser playtest of v24–v27 is also pending.
 
 > **Honesty note:** "Completed" below means *integrated into the build + boot-verified in a headless
 > browser (no console errors)*. It does **not** mean manually playtested in the 3D scene — that gate is
@@ -109,12 +111,19 @@ ART_SPEC.md  MODELING_SPEC.md  SKILL.md  README.md
 - **Prayer points (v25):** pool = Prayer level, activation drain, bury-bones for XP.
 - **Quest accept → track → complete flow + QP increment (v25)** (reward screen still pending).
 - **Action SFX coverage (v25):** chop/mine/fish/smith/hit/eat cues via `sfx-actions.js`.
+- **Lesson gating (v26):** `src/gating.js` / `window.EMGATE` — gates skill/combat/bank actions + movement
+  regions by tutorial step with OSRS-style nudges; anti-brick (open while instructors/zones are absent).
+- **Single 0.6s global game tick (v27):** `src/tick.js` / `window.EMTICK` — one shared clock; combat +
+  skilling subscribe to it instead of each running its own `setInterval` (OSRS one-tick model).
 
-**Count:** ~44 feature-level items integrated.
+**Count:** ~46 feature-level items integrated.
+
+**Tooling (not a game feature):** policy-driven Claude Code config (commit 3a9fe8d) — `.claude/settings.json`
++ SessionStart/PreToolUse/PostToolUse/Stop hooks (validated). See CLAUDE.md "EXECUTION POLICY".
 
 ---
 
-## 4. Incomplete / missing features (~46)
+## 4. Incomplete / missing features (~44)
 
 - **Trading** (player-to-player) — not started.
 - **Multiplayer presence** (other players, white dots, PvP-off) — not started.
@@ -169,21 +178,23 @@ ART_SPEC.md  MODELING_SPEC.md  SKILL.md  README.md
 - `BUILD_QUEUE.md` — the fleet FIFO + reviewer re-queue.
 - `ASSET_MANIFEST.md` — every 3D asset needed (zones, buildings, NPCs, fixtures) with status.
 
-Near-term priority order: wire the lesson chain to gate real actions → render worn gear on the avatar →
-bank depth + quest reward screen → build out zones/instructors (assets) → live-playtest the integrated
-features → per-zone music / polish.
+Near-term priority order: **CHECKPOINT (awaiting sprint approval)** → promote v27 to production +
+browser-playtest v24–v27 → render worn gear on the avatar → bank depth + quest reward screen → build out
+zones/instructors (assets, which also activates lesson gating) → per-zone music / polish.
 
 ---
 
 ## 8. Exact next task
 
-**Lesson gating — make the tutorial chain drive gameplay** (`src/gating.js`, new module):
-1. Add a `gating.js` that listens for `em-lesson` / reads `window.EMLESSON` and locks zones, doors, and
-   relevant actions until the current tutorial step's predicate clears, with an OSRS-style nudge message.
-2. Wire it into `main.js` (`initGating()`) and have `interact.js` / `world.js` consult it before allowing a
-   blocked action or transition.
-3. Verify with a **real browser boot** (cache-free copy or deployed URL), confirm `window.EMHUD` defined +
-   zero console errors — `node --check` alone is insufficient.
-4. Bump version in `src/hud.js` + `index.modular.html` (#hud), then
-   `cp index.modular.html index.html && vercel deploy --prod --yes`.
+**Status: CHECKPOINT mode — P0 core plumbing (lesson gating v26, 0.6s tick v27) is committed/pushed.**
+No new coding until the owner approves the next sprint.
+
+Two non-coding gates remain before features can be promoted "done":
+1. **Promote v27 to production** — `cp index.modular.html index.html && vercel deploy --prod --yes`
+   (run outside the sandbox; GitHub pushes here only build previews).
+2. **Browser playtest** v24–v27 on the deployed URL (combat/magic/ranged, prayer, Make-X, quests, SFX,
+   lesson nudges, and that all actions beat on the single 0.6s tick). Demote anything that doesn't fire in 3D.
+
+When the next sprint is approved, the recommended first chunk is **Worn gear on the 3D avatar**
+(`appearance-apply.js`) — isolated, parallelizable, no shared control-flow edits.
 </content>

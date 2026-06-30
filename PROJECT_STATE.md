@@ -4,8 +4,8 @@
 For the full narrative handoff see `PROJECT_HANDOFF.md`; phase status in `ROADMAP.md`; item-level tests in
 `PARITY_AUDIT.md`.
 
-- **Live version:** v25 · **Link:** https://eldermoor.vercel.app
-- **Overall:** ~23% (features integrated + boot-verified; **live-playtested separately — see METRICS**).
+- **Live version:** v27 · **Link:** https://eldermoor.vercel.app
+- **Overall:** ~24% (features integrated + boot-verified; **live-playtested separately — see METRICS**).
 - **Client:** modular ES (`src/*.js`, ~37 modules) + `index.modular.html` shell, Three.js r128 (CDN),
   data-driven from `assets/data/*.json`. Deployed on Vercel. `eldermoor_client.html` = frozen v17 rollback.
 
@@ -21,9 +21,20 @@ Quests / Settings / Emotes / Music / Friends / Ignore / Account / Logout tabs ·
 resource depletion · combat engine (melee + ranged + magic-cast, player HP, death/respawn, retaliate) ·
 attackable rat + Attack · banking · tutorial state machine · character creator + appearance-apply ·
 Make-X interface (wired to smithing/cooking) · prayer points (drain + bury-bones) · quest accept/track/
-complete flow · action SFX coverage (`sfx-actions.js`).
+complete flow · action SFX coverage (`sfx-actions.js`) · lesson gating (`gating.js`) · single 0.6s global
+game tick (`tick.js`, shared by combat + skilling).
 
 ## Recently resolved
+- **v27:** single authoritative **0.6s global game tick** (`src/tick.js`, `window.EMTICK`): combat and
+  skilling dropped their two independent `setInterval`/`setTimeout` clocks and now subscribe to one shared
+  cadence (OSRS one-tick model), with a private-interval fallback if the clock is absent. Verified by a 7/7
+  functional test (shared clock, sub/unsub, teardown). Shipped v27 (commit e68d1b8). Live-playtest pending.
+- **Tooling:** policy-driven **Claude Code configuration** installed (commit 3a9fe8d) — `.claude/settings.json`
+  + SessionStart / PreToolUse / PostToolUse / Stop hooks, all validated against simulated payloads, plus a
+  CLAUDE.md EXECUTION POLICY section. Converts prompt-driven behaviour to enforced policy.
+- **v26:** lesson gating (`src/gating.js`, `window.EMGATE`) — gates skill/combat/bank actions + movement
+  regions by tutorial step with OSRS-style nudges; anti-brick (open while instructors/zones absent). Shipped
+  v26 (commit 11484f9). Live-playtest pending.
 - **v25:** prayer points/tab (point pool, activation drain, bury-bones), Make-X wired to smithing (anvil) +
   cooking (range), quest accept → track → complete flow, and action SFX coverage (`sfx-actions.js`); plus a
   fix un-escaping invalid `\'` string delimiters in `sfx-actions.js` + `skilling.js`. Integrated + cache-free

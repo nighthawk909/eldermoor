@@ -6,8 +6,12 @@ Outstanding work to 100%. Item-level pass/fail tests in `PARITY_AUDIT.md` (~645 
 ## P0 — promote integrated → done
 - [ ] **Live-playtest pass** on the deployed link for every "integrated + boot-verified" feature; demote any
       that doesn't actually fire in 3D. *(the gate blocking ~all features from "complete")*
-- [ ] Wire the tutorial lesson chain to **gate real actions** (lock doors/zones until the step is done).
-- [ ] Fixed ~0.6s game tick for actions/combat.
+- [ ] **Production promotion** of v27 to the eldermoor.vercel.app production alias (`vercel --prod`, done
+      outside the sandbox) — currently the latest push deploys as a preview.
+- [x] Wire the tutorial lesson chain to **gate real actions** — `src/gating.js` (v26): gates skill/combat/bank
+      actions + movement regions by lesson step with OSRS nudge; anti-brick until instructors/zones exist.
+- [x] Fixed ~0.6s game tick for actions/combat — `src/tick.js` (v27): one shared `EMTICK` clock; combat +
+      skilling subscribe to it. Integrated + boot-verified (7/7 functional test); live-playtest pending.
 
 ## P1 — combat & skilling depth
 - [x] Ranged combat (bow+arrows, projectile, Ranged+HP XP) — integrated v24, playtest pending.
@@ -33,5 +37,9 @@ Outstanding work to 100%. Item-level pass/fail tests in `PARITY_AUDIT.md` (~645 
 - [ ] World-map POI search; collection log / diaries / GE (future scope).
 - [ ] Perf/LOD (InstancedMesh scatter), camera collision, engine-port bridge.
 
-**Counts:** ~44 features integrated, ~46 remaining (see METRICS.md).
+**Counts:** ~46 features integrated, ~44 remaining (see METRICS.md).
+
+**Tooling:** policy-driven Claude Code config installed (commit 3a9fe8d) — `.claude/settings.json` +
+SessionStart/PreToolUse/PostToolUse/Stop hooks (validated). Governs session bootstrap, destructive-git
+approval, doc-staleness flagging, and stop-gating.
 </content>

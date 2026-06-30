@@ -1,0 +1,160 @@
+{
+  "updated": 1782853163564,
+  "version": "v36",
+  "note": "Live fleet board. Single-writer: the orchestrator (or tools/progress.js) updates entries; dashboard.html polls this file (and /api/progress when KV is connected). Statuses: queued | building | review | requeue | done | blocked | failed.",
+  "board": [
+    {
+      "id": "1C",
+      "epic": "P0 / Mobile",
+      "title": "Combat smoke: path to mob → attack → death → respawn",
+      "status": "queued",
+      "agent": null,
+      "note": "FAILED v35 owner QA",
+      "ts": 0
+    },
+    {
+      "id": "LP",
+      "epic": "P0 / Mobile",
+      "title": "Landscape panel clipping polish",
+      "status": "queued",
+      "agent": null,
+      "note": "FAILED v35 owner QA",
+      "ts": 0
+    },
+    {
+      "id": "3DP",
+      "epic": "P8 / Creator",
+      "title": "Replace 2D creator preview with live 3D avatar",
+      "status": "queued",
+      "agent": null,
+      "note": "avatar.js already renders in-world",
+      "ts": 0
+    },
+    {
+      "id": "1B",
+      "epic": "P0 / Mobile",
+      "title": "Inventory + Equipment mobile interactions",
+      "status": "queued",
+      "agent": null,
+      "note": "gated by on-device QA",
+      "ts": 0
+    },
+    {
+      "id": "1D",
+      "epic": "P0 / Mobile",
+      "title": "Tutorial progression on mobile",
+      "status": "queued",
+      "agent": null,
+      "note": "",
+      "ts": 0
+    },
+    {
+      "id": "1E",
+      "epic": "P0 / Mobile",
+      "title": "Audio/settings/prayer/save/logout on mobile",
+      "status": "queued",
+      "agent": null,
+      "note": "",
+      "ts": 0
+    },
+    {
+      "id": "C3",
+      "epic": "P2",
+      "title": "Hover affordance: action text + cursor + highlight",
+      "status": "review",
+      "agent": null,
+      "note": "v20 integrated, live playtest pending",
+      "ts": 0
+    },
+    {
+      "id": "C4",
+      "epic": "P3",
+      "title": "Chatbox channel filters + right-click cycle + .sys fix",
+      "status": "queued",
+      "agent": "",
+      "note": "",
+      "ts": 1782853163512
+    },
+    {
+      "id": "C5",
+      "epic": "P3",
+      "title": "Inventory right-click ops + wield/drop/examine",
+      "status": "review",
+      "agent": null,
+      "note": "v20 integrated, live playtest pending",
+      "ts": 0
+    },
+    {
+      "id": "C6",
+      "epic": "P3",
+      "title": "Skills tab: skill-guide panel + XP-to-next tooltip",
+      "status": "queued",
+      "agent": null,
+      "note": "",
+      "ts": 0
+    },
+    {
+      "id": "C7",
+      "epic": "P3",
+      "title": "Minimap: click-to-walk + terrain + typed blips",
+      "status": "queued",
+      "agent": null,
+      "note": "",
+      "ts": 0
+    },
+    {
+      "id": "C8",
+      "epic": "P3",
+      "title": "HUD orbs (HP/Prayer/Run/Spec) + run energy",
+      "status": "review",
+      "agent": "",
+      "note": "v20 integrated, live playtest pending",
+      "ts": 1782853163564
+    },
+    {
+      "id": "C9",
+      "epic": "P3",
+      "title": "Camera: arrow/WASD + MMB drag + FPS-independent follow",
+      "status": "queued",
+      "agent": null,
+      "note": "",
+      "ts": 0
+    },
+    {
+      "id": "C10",
+      "epic": "P3",
+      "title": "Fill empty tabs with real panels (Music remaining)",
+      "status": "review",
+      "agent": null,
+      "note": "v20 most tabs integrated; Music todo",
+      "ts": 0
+    },
+    {
+      "id": "C11",
+      "epic": "P2",
+      "title": "Scenery forgiving-tap: pickAt proximity fallback",
+      "status": "queued",
+      "agent": null,
+      "note": "from QA finding R1",
+      "ts": 0
+    },
+    {
+      "id": "C12",
+      "epic": "P3",
+      "title": "Add Use op to remaining items",
+      "status": "queued",
+      "agent": null,
+      "note": "from QA finding R2",
+      "ts": 0
+    },
+    {
+      "id": "P1",
+      "epic": "P1",
+      "title": "Render-correctness pass (8 fixes, unstarted)",
+      "status": "queued",
+      "agent": null,
+      "note": "cheap, kills worst on-sight glitches",
+      "ts": 0
+    }
+  ]
+}

@@ -18,6 +18,12 @@ re-QA before Milestone 1B.** **v35 resolves the parameterized-model limitation:*
 colours + body type now render on the in-world body via the procedural avatar (`avatar.js`), with worn
 weapon/shield in the hands; a Blender-authored multi-part model can replace it later behind the same data contract.
 
+**Fleet visibility (new):** a **live progress dashboard** now exists — `dashboard.html` polls `progress.json`
+(local single-writer board) every 2s and `/api/progress` (Vercel KV, mirrors `api/qa.js`) when connected, so
+build status is watchable in-session and on any device. Agents/orchestrator report via
+`node tools/progress.js set <id> <status> [note] --agent NAME`. Statuses: queued/building/review/requeue/done/
+blocked/failed. Verified live in the preview (status flip → board updated with no reload). Not yet deployed to prod.
+
 > **Honesty note:** "Completed" below means *integrated into the build + boot-verified in a headless
 > browser (no console errors)*. It does **not** mean manually playtested in the 3D scene — that gate is
 > still pending for almost everything, because this environment can't run live 3D-interaction tests.

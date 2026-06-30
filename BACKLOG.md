@@ -10,6 +10,13 @@ Outstanding work to 100%. Item-level pass/fail tests in `PARITY_AUDIT.md` (~645 
 - [x] QA report auto-delivery — DONE v31: `api/qa.js` (Vercel KV) + QA-panel auto-POST; dev reads GET /api/qa.
       Requires Josh to connect a Vercel KV store once (HUMAN_ACTIONS.md).
 
+## Fleet tooling (supports the parallel build)
+- [x] **Live progress dashboard** — `dashboard.html` polls `progress.json` (local) + `/api/progress` (KV,
+      mirrors `api/qa.js`); `tools/progress.js` is the reporter CLI. Live-verified in preview.
+- [ ] **Deploy the dashboard to prod** (needs Vercel KV connected — same store as QA sync, HUMAN_ACTIONS.md).
+- [ ] **Auto-report from agents** — add a `tools/progress.js set` call to each agent's start/finish so the
+      board updates without the orchestrator hand-writing entries.
+
 ## P0 — Mobile Playability (Sprint 1, ACTIVE — blocks new gameplay)
 - [~] **1A Responsive UI framework** (v28→v29) — orientation, single-panel docking, bottom-sheet dialogue,
       chat collapse, objective auto-hide+persist, ≥44px touch targets, haptics, name entry, FAB removed;

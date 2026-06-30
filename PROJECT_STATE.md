@@ -25,6 +25,11 @@ complete flow · action SFX coverage (`sfx-actions.js`) · lesson gating (`gatin
 game tick (`tick.js`, shared by combat + skilling).
 
 ## Recently resolved
+- **Fleet live-progress dashboard (tooling, not a player feature):** `dashboard.html` + `progress.json`
+  (local single-writer board) + `api/progress.js` (Vercel KV, mirrors `api/qa.js`) + `tools/progress.js`
+  (reporter CLI). Watch the parallel build fleet live in-session (preview) or on any device once KV is
+  connected. Statuses: queued/building/review/requeue/done/blocked/failed. Boot-verified live (status flip
+  reflected on the board with no reload). Not yet deployed to production.
 - **v36 — Worn gear on the avatar (all slots) + QA fixes (from v35 owner QA):** `avatar.js` `renderWorn()`
   now renders EVERY worn slot, not just weapon/shield — weapon (hand), shield (hand), body/armour
   (torso shell + pauldrons), cape (back), gloves (hands), and helm/legs/feet anchors are ready for

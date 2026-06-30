@@ -72,6 +72,12 @@ Source of truth for the wider list: `BACKLOG.md` / `ROADMAP.md` / `PARITY_AUDIT.
 9. **Quest reward screen** (`quests-tab.js`): reward scroll UI on completion.
 10. **Live-playtest harness**: a checklist run on the deployed URL promoting integrated → done.
 
+## Fleet tooling (new — supports the parallel build, not a milestone)
+- [x] **Live progress dashboard** (`dashboard.html` + `progress.json` + `api/progress.js` + `tools/progress.js`):
+      watch every chunk's status (queued→building→review→done…) live in-session or on any device (KV).
+      Agents report with `node tools/progress.js set <id> <status> [note] --agent NAME`.
+      *Open: deploy to prod (needs KV connected) + auto-report wired into agent definitions.*
+
 ## Hard rules for every task
 - Straight ASCII quotes only; escape `'` inside single-quoted strings as `\'`.
 - One file per agent where possible; new modules export `init*()` for `main.js` wiring.

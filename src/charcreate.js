@@ -149,58 +149,76 @@ function injectCSS(){
 }
 #${ROOT_ID} *{ box-sizing:border-box; }
 #${ROOT_ID} .em-cc-panel{
-  width:min(560px, 94vw); max-height:94vh; overflow:auto;
+  width:min(900px, 96vw); max-height:96vh; overflow:auto;
   background:linear-gradient(#3b2f1c,#2a2112);
   border:3px solid #6b5326; border-radius:10px;
   box-shadow:0 10px 40px rgba(0,0,0,.6), inset 0 0 0 1px #0006;
-  padding:18px 20px 16px;
+  padding:14px 20px 16px;
+  display:flex; flex-direction:column; align-items:stretch;
 }
 #${ROOT_ID} .em-cc-title{
-  text-align:center; font-size:22px; font-weight:bold; letter-spacing:.5px;
-  color:#f4d27a; text-shadow:1px 1px 0 #000; margin:0 0 4px;
+  text-align:center; font-size:20px; font-weight:bold; letter-spacing:.5px;
+  color:#f4d27a; text-shadow:1px 1px 0 #000; margin:0 0 2px;
 }
 #${ROOT_ID} .em-cc-sub{
-  text-align:center; font-size:12px; color:#c8b487; margin:0 0 14px;
+  text-align:center; font-size:11px; color:#c8b487; margin:0 0 8px;
+}
+#${ROOT_ID} .em-cc-hero{
+  display:flex; flex-direction:column; align-items:center; margin:0 0 8px;
+}
+#${ROOT_ID} .em-cc-columns{
+  display:grid; grid-template-columns:1fr 1fr; gap:16px;
+  width:100%; margin:0 0 10px;
+}
+#${ROOT_ID} .em-cc-col{
+  display:flex; flex-direction:column; min-width:0;
+  background:#0002; border:1px solid #00000030; border-radius:8px;
+  padding:6px 8px 8px;
+}
+#${ROOT_ID} .em-cc-col-title{
+  text-align:center; font-size:13px; font-weight:bold; letter-spacing:.08em;
+  text-transform:uppercase; color:#f4d27a; text-shadow:1px 1px 0 #000;
+  margin:2px 0 6px; padding-bottom:5px; border-bottom:1px solid #6b532660;
 }
 #${ROOT_ID} .em-cc-row{
   display:flex; align-items:center; gap:8px;
-  padding:6px 8px; margin:4px 0;
+  padding:5px 8px; margin:3px 0;
   background:#0003; border:1px solid #00000040; border-radius:6px;
 }
 #${ROOT_ID} .em-cc-row > .em-cc-lbl{
-  width:108px; flex:0 0 108px; font-size:13px; color:#d9c79a;
+  width:92px; flex:0 0 92px; font-size:12px; color:#d9c79a;
 }
 #${ROOT_ID} .em-cc-cyc{
   display:flex; align-items:center; gap:6px; flex:1 1 auto; min-width:0;
 }
 #${ROOT_ID} .em-cc-val{
-  flex:1 1 auto; text-align:center; font-size:13px; color:#fff;
+  flex:1 1 auto; text-align:center; font-size:12px; color:#fff;
   background:#1c160c; border:1px solid #00000060; border-radius:5px;
   padding:5px 6px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
 #${ROOT_ID} .em-cc-btn{
   cursor:pointer; border:1px solid #6b5326; background:linear-gradient(#5a481f,#3c3015);
-  color:#f4d27a; font-weight:bold; border-radius:5px; padding:5px 10px;
-  font-size:14px; line-height:1; min-width:30px;
+  color:#f4d27a; font-weight:bold; border-radius:5px; padding:4px 9px;
+  font-size:13px; line-height:1; min-width:28px;
 }
 #${ROOT_ID} .em-cc-btn:hover{ background:linear-gradient(#6e5825,#473819); }
 #${ROOT_ID} .em-cc-btn:active{ transform:translateY(1px); }
 #${ROOT_ID} .em-cc-swatches{
-  display:flex; flex-wrap:wrap; gap:6px; flex:1 1 auto;
+  display:flex; flex-wrap:wrap; gap:5px; flex:1 1 auto;
 }
 #${ROOT_ID} .em-cc-sw{
-  width:24px; height:24px; border-radius:5px; cursor:pointer;
+  width:21px; height:21px; border-radius:5px; cursor:pointer;
   border:2px solid #00000080; box-shadow:inset 0 0 0 1px #ffffff20;
 }
 #${ROOT_ID} .em-cc-sw[aria-selected="true"]{
   border-color:#f4d27a; box-shadow:0 0 0 2px #f4d27a55, inset 0 0 0 1px #ffffff40;
 }
 #${ROOT_ID} .em-cc-confirm{
-  display:block; width:100%; margin-top:16px;
+  display:block; width:min(360px, 100%); margin:8px auto 0;
   cursor:pointer; border:2px solid #2e7d32;
   background:linear-gradient(#3e9b43,#2c6e30); color:#fff;
   font-weight:bold; font-size:16px; letter-spacing:.5px;
-  border-radius:7px; padding:11px; text-shadow:1px 1px 0 #0008;
+  border-radius:7px; padding:10px; text-shadow:1px 1px 0 #0008;
 }
 #${ROOT_ID} .em-cc-confirm:hover{ background:linear-gradient(#46ad4b,#327a37); }
 #${ROOT_ID} .em-cc-confirm:active{ transform:translateY(1px); }
@@ -208,26 +226,34 @@ function injectCSS(){
   text-align:center; color:#c8b487; font-size:13px; padding:30px 10px;
 }
 #${ROOT_ID} .em-cc-name{
-  width:100%; margin:2px 0 6px; padding:11px 12px; font-size:16px;
+  width:min(360px, 100%); margin:6px auto 0; padding:9px 12px; font-size:15px;
   color:#fff; background:#1c160c; border:2px solid #6b5326; border-radius:6px;
-  font-family:inherit; min-height:44px;
+  font-family:inherit; min-height:38px; display:block;
 }
 #${ROOT_ID} .em-cc-name:focus{ outline:none; border-color:#f4d27a; }
 #${ROOT_ID} .em-cc-name.em-bad{ border-color:#c0473a; }
 #${ROOT_ID} .em-cc-err{
-  min-height:15px; margin:-2px 0 6px; font-size:12px; color:#e88; text-align:center;
+  min-height:14px; margin:2px 0 0; font-size:11px; color:#e88; text-align:center;
 }
 #${ROOT_ID} .em-cc-hint{
-  margin:4px 0 2px; font-size:11px; color:#9a8c6c; text-align:center; letter-spacing:.02em;
+  margin:2px 0 0; font-size:10px; color:#9a8c6c; text-align:center; letter-spacing:.02em;
 }
 #${ROOT_ID} .em-cc-hint.em-bad{ color:#e0a23a; }
 #${ROOT_ID} .em-cc-preview{
-  position:sticky; top:0; z-index:3; display:flex; justify-content:center; align-items:flex-end;
+  display:flex; justify-content:center; align-items:flex-end;
   background:linear-gradient(#2a2112,#16110a); border:1px solid #6b5326; border-radius:8px;
-  padding:6px; margin:0 0 10px;
+  padding:4px; margin:0;
 }
-#${ROOT_ID} .em-cc-preview svg{ width:118px; height:196px; max-height:32vh; display:block; }
-#${ROOT_ID} .em-cc-preview canvas{ width:100%; height:240px; max-height:34vh; display:block; border-radius:6px; }
+#${ROOT_ID} .em-cc-preview svg{ width:96px; height:160px; max-height:22vh; display:block; }
+#${ROOT_ID} .em-cc-preview canvas{ width:100%; height:188px; max-height:24vh; display:block; border-radius:6px; }
+
+/* Narrow / mobile: stack to one column and allow scrolling. */
+@media (max-width:720px), (max-height:680px){
+  #${ROOT_ID} .em-cc-panel{ max-height:94vh; overflow:auto; }
+  #${ROOT_ID} .em-cc-columns{ grid-template-columns:1fr; }
+  #${ROOT_ID} .em-cc-preview canvas{ height:220px; max-height:30vh; }
+  #${ROOT_ID} .em-cc-preview svg{ height:190px; max-height:30vh; }
+}
 `;
   document.head.appendChild(st);
 }
@@ -453,13 +479,18 @@ function buildPanel(data, onConfirm){
 
   const sub = document.createElement('p');
   sub.className = 'em-cc-sub';
-  sub.textContent = 'Name your adventurer and choose a look, then confirm to enter Eldermoor.';
+  sub.textContent = 'Choose a look, then confirm to enter Eldermoor.';
   panel.appendChild(sub);
 
-  // Live preview (sticky) — updates as parts/colours change.
+  // ---- Hero block: centered 3D preview + name field directly under it. ----
+  const hero = document.createElement('div');
+  hero.className = 'em-cc-hero';
+  panel.appendChild(hero);
+
+  // Live preview — updates as parts/colours change.
   const preview = document.createElement('div');
   preview.className = 'em-cc-preview';
-  panel.appendChild(preview);
+  hero.appendChild(preview);
   const redraw = () => drawPreview(preview, sel);
   redraw();
 
@@ -483,22 +514,43 @@ function buildPanel(data, onConfirm){
     errEl.textContent = '';
     updHint();
   });
-  panel.appendChild(nameInput);
+  hero.appendChild(nameInput);
 
   const hintEl = document.createElement('div');
   hintEl.className = 'em-cc-hint';
-  panel.appendChild(hintEl);
+  hero.appendChild(hintEl);
 
   const errEl = document.createElement('div');
   errEl.className = 'em-cc-err';
-  panel.appendChild(errEl);
+  hero.appendChild(errEl);
   updHint();
 
-  // Part cyclers (head/torso/arms/hands/legs/feet).
+  // ---- Two-column row: LEFT = Design (part cyclers), RIGHT = Colour. ----
+  const columns = document.createElement('div');
+  columns.className = 'em-cc-columns';
+  panel.appendChild(columns);
+
+  const designCol = document.createElement('div');
+  designCol.className = 'em-cc-col em-cc-col-design';
+  const designTitle = document.createElement('div');
+  designTitle.className = 'em-cc-col-title';
+  designTitle.textContent = 'Design';
+  designCol.appendChild(designTitle);
+  columns.appendChild(designCol);
+
+  const colourCol = document.createElement('div');
+  colourCol.className = 'em-cc-col em-cc-col-colour';
+  const colourTitle = document.createElement('div');
+  colourTitle.className = 'em-cc-col-title';
+  colourTitle.textContent = 'Colour';
+  colourCol.appendChild(colourTitle);
+  columns.appendChild(colourCol);
+
+  // Part cyclers (head/torso/arms/hands/legs/feet) -> Design column.
   for(const key of PART_KEYS){
     const list = Array.isArray(data.parts[key]) ? data.parts[key] : [];
     if(!list.length) continue;
-    panel.appendChild(buildCycler(
+    designCol.appendChild(buildCycler(
       PART_LABELS[key],
       list,
       sel.parts[key],
@@ -508,22 +560,10 @@ function buildPanel(data, onConfirm){
     ));
   }
 
-  // Colour swatch rows.
-  for(const key of COLOUR_KEYS){
-    const list = Array.isArray(data.colours[key]) ? data.colours[key] : [];
-    if(!list.length) continue;
-    panel.appendChild(buildSwatches(
-      COLOUR_LABELS[key],
-      list,
-      sel.colours[key],
-      v => { sel.colours[key] = v; redraw(); }
-    ));
-  }
-
-  // Body type cycler.
+  // Body type cycler -> Design column (it's a body-shape choice, not a colour).
   const bodyTypes = Array.isArray(data.bodyTypes) ? data.bodyTypes : [];
   if(bodyTypes.length){
-    panel.appendChild(buildCycler(
+    designCol.appendChild(buildCycler(
       'Body type',
       bodyTypes,
       sel.bodyType,
@@ -533,10 +573,23 @@ function buildPanel(data, onConfirm){
     ));
   }
 
-  // Pronoun cycler.
+  // Colour swatch rows -> Colour column.
+  for(const key of COLOUR_KEYS){
+    const list = Array.isArray(data.colours[key]) ? data.colours[key] : [];
+    if(!list.length) continue;
+    colourCol.appendChild(buildSwatches(
+      COLOUR_LABELS[key],
+      list,
+      sel.colours[key],
+      v => { sel.colours[key] = v; redraw(); }
+    ));
+  }
+
+  // Pronoun cycler -> Colour column (per spec: "Gender/pronoun control" sits
+  // alongside the colour swatches).
   const pronouns = Array.isArray(data.pronouns) ? data.pronouns : [];
   if(pronouns.length){
-    panel.appendChild(buildCycler(
+    colourCol.appendChild(buildCycler(
       'Pronouns',
       pronouns,
       sel.pronoun,
@@ -546,7 +599,7 @@ function buildPanel(data, onConfirm){
     ));
   }
 
-  // Confirm.
+  // Confirm — single prominent button, centered at the bottom.
   const confirm = document.createElement('button');
   confirm.className = 'em-cc-confirm';
   confirm.type = 'button';

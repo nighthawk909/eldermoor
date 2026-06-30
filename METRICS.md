@@ -43,9 +43,13 @@ _Snapshot 2026-06-30. Honest counts; integrated ≠ playtested._
 - Build waves run via parallel subagents (Sonnet = feature code, Haiku = docs/QA/data, Opus = orchestrate
   + integrate). Per-agent model set via the Agent tool `model` param (runtime model not independently
   verifiable from the session).
-- **Live fleet visibility:** `dashboard.html` (polls `progress.json` + `/api/progress`) shows each chunk's
-  status in real time; agents report via `node tools/progress.js set <id> <status>`. In-session, the
+- **Live fleet visibility:** `dashboard.html` is now a KANBAN (To Do / Building / Review / Shipped / Done),
+  polling the prod KV endpoint; agents report via `node tools/progress.js set <id> <status>`. New `shipped`
+  status = boot-verified + deployed, awaiting human playtest (distinct from `done`). In-session, the
   Workflow tool's `/workflows` view is the zero-setup live tree.
+- **v37 P1 render wave:** explicit material roles, terrain map-null, water renderOrder, roof wiring (dormant
+  until a roofed asset), sky tone-map, asymptotic altar-glow, loader counter — shipped via the parallel fleet
+  (builder-A/B/C + orchestrator), boot-verified clean. `[~]` pending Josh's visual playtest.
 - Every integration gated by: `node --check` → real-browser boot (cache-free copy / deployed URL) → deploy.
 
 ## Known risk

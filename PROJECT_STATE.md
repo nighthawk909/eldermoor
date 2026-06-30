@@ -25,6 +25,18 @@ complete flow · action SFX coverage (`sfx-actions.js`) · lesson gating (`gatin
 game tick (`tick.js`, shared by combat + skilling).
 
 ## Recently resolved
+- **P1 render-correctness wave (shipped, boot-verified + deployed; live playtest pending):** the parallel
+  fleet (builder-A on engine.js, builder-B on npc.js, builder-C on meshes/loader, + orchestrator wiring in
+  player.js) landed all 8 P1 fixes — explicit material-role map (P1.5), terrain map-null (P1.1), water
+  renderOrder (P1.2), roof register + `isInsideAnyRoof` + z-offset wired in player.js (P1.6, dormant until a
+  roofed building exists), sky `toneMapped` + asymptotic altar-glow `decayExp` (P1.7), loader counts
+  content-data + 20s backstop (P1.8); P1.3 (nameplates) and P1.4 (flat-shading) verified already-correct
+  no-ops. QA'd (P1.6/P1.7 REQUEUE resolved by the orchestrator wiring — QA raced the edit). Boot-verified
+  clean (zero console errors on the rebooted deployed build).
+- **Kanban dashboard + `shipped` status:** `dashboard.html` rebuilt as a kanban (To Do / Building / Review /
+  Shipped / Done) with a bottleneck highlight, an honest banner naming the real gate (human playtest), and a
+  "Needs my eyes" filter. New `shipped` status = boot-verified + deployed, awaiting human playtest (distinct
+  from `done` = playtest-confirmed) — so forward progress is visible instead of piling at "review".
 - **Fleet live-progress dashboard (tooling, not a player feature):** `dashboard.html` + `progress.json`
   (local single-writer board) + `api/progress.js` (Vercel KV, mirrors `api/qa.js`) + `tools/progress.js`
   (reporter CLI). Watch the parallel build fleet live in-session (preview) or on any device once KV is

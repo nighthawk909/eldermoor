@@ -1,5 +1,5 @@
 {
-  "updated": 1782853163564,
+  "updated": 1782854754715,
   "version": "v36",
   "note": "Live fleet board. Single-writer: the orchestrator (or tools/progress.js) updates entries; dashboard.html polls this file (and /api/progress when KV is connected). Statuses: queued | building | review | requeue | done | blocked | failed.",
   "board": [
@@ -61,10 +61,10 @@
       "id": "C3",
       "epic": "P2",
       "title": "Hover affordance: action text + cursor + highlight",
-      "status": "review",
-      "agent": null,
-      "note": "v20 integrated, live playtest pending",
-      "ts": 0
+      "status": "shipped",
+      "agent": "",
+      "note": "v20 integrated + deployed; awaiting your playtest",
+      "ts": 1782854753825
     },
     {
       "id": "C4",
@@ -79,10 +79,10 @@
       "id": "C5",
       "epic": "P3",
       "title": "Inventory right-click ops + wield/drop/examine",
-      "status": "review",
-      "agent": null,
-      "note": "v20 integrated, live playtest pending",
-      "ts": 0
+      "status": "shipped",
+      "agent": "",
+      "note": "v20 integrated + deployed; awaiting your playtest",
+      "ts": 1782854754138
     },
     {
       "id": "C6",
@@ -106,10 +106,10 @@
       "id": "C8",
       "epic": "P3",
       "title": "HUD orbs (HP/Prayer/Run/Spec) + run energy",
-      "status": "review",
+      "status": "shipped",
       "agent": "",
-      "note": "v20 integrated, live playtest pending",
-      "ts": 1782853163564
+      "note": "v20 integrated + deployed; awaiting your playtest",
+      "ts": 1782854754424
     },
     {
       "id": "C9",
@@ -124,10 +124,10 @@
       "id": "C10",
       "epic": "P3",
       "title": "Fill empty tabs with real panels (Music remaining)",
-      "status": "review",
-      "agent": null,
-      "note": "v20 most tabs integrated; Music todo",
-      "ts": 0
+      "status": "shipped",
+      "agent": "",
+      "note": "v20 integrated + deployed; awaiting your playtest",
+      "ts": 1782854754715
     },
     {
       "id": "C11",
@@ -147,13 +147,77 @@
       "note": "from QA finding R2",
       "ts": 0
     },
-    { "id": "P1.5", "epic": "P1 / render (Batch A engine.js)", "title": "Explicit per-mesh material roles (replace substring matching)", "status": "queued", "agent": null, "note": "engine.js 73-83; do first", "ts": 0 },
-    { "id": "P1.1", "epic": "P1 / render (Batch A engine.js)", "title": "Terrain: null m.map so vertex colours don't multiply a texture", "status": "queued", "agent": null, "note": "engine.js ~74", "ts": 0 },
-    { "id": "P1.2", "epic": "P1 / render (Batch A engine.js)", "title": "Water: depthWrite=false + renderOrder (stop holes in floor)", "status": "queued", "agent": null, "note": "engine.js ~83", "ts": 0 },
-    { "id": "P1.6", "epic": "P1 / render (Batch A engine.js)", "title": "Seal interiors: roof hides on entry + kill z-fight gap", "status": "queued", "agent": null, "note": "engine.js 109-121 (helpers unused)", "ts": 0 },
-    { "id": "P1.7", "epic": "P1 / render (Batch A engine.js)", "title": "Sky tone-map fix + altar-glow decay fix", "status": "queued", "agent": null, "note": "engine.js 32-38, player.js 122", "ts": 0 },
-    { "id": "P1.3", "epic": "P1 / render (Batch B npc.js)", "title": "Nameplates: drop depthTest:false (names show through walls)", "status": "queued", "agent": null, "note": "npc.js 24, 58", "ts": 0 },
-    { "id": "P1.4", "epic": "P1 / render (Batch C meshes)", "title": "Stop flatShading player/NPC meshes (keep smooth normals)", "status": "queued", "agent": null, "note": "avatar.js 33, loaders.js 65/79, world.js 269-290", "ts": 0 },
-    { "id": "P1.8", "epic": "P1 / render (Batch C meshes)", "title": "Loader: count ALL async loads so the fade waits", "status": "queued", "agent": null, "note": "loaders.js 16-21", "ts": 0 }
+    {
+      "id": "P1.5",
+      "epic": "P1 / render (Batch A engine.js)",
+      "title": "Explicit per-mesh material roles (replace substring matching)",
+      "status": "shipped",
+      "agent": "builder-A",
+      "note": "material-role map; boot-verified",
+      "ts": 1782854750826
+    },
+    {
+      "id": "P1.1",
+      "epic": "P1 / render (Batch A engine.js)",
+      "title": "Terrain: null m.map so vertex colours don't multiply a texture",
+      "status": "shipped",
+      "agent": "builder-A",
+      "note": "terrain map nulled; boot-verified",
+      "ts": 1782854751164
+    },
+    {
+      "id": "P1.2",
+      "epic": "P1 / render (Batch A engine.js)",
+      "title": "Water: depthWrite=false + renderOrder (stop holes in floor)",
+      "status": "shipped",
+      "agent": "builder-A",
+      "note": "water renderOrder; boot-verified",
+      "ts": 1782854751462
+    },
+    {
+      "id": "P1.6",
+      "epic": "P1 / render (Batch A engine.js)",
+      "title": "Seal interiors: roof hides on entry + kill z-fight gap",
+      "status": "shipped",
+      "agent": "orchestrator",
+      "note": "wired in player.js; dormant until a roofed building exists",
+      "ts": 1782854751749
+    },
+    {
+      "id": "P1.7",
+      "epic": "P1 / render (Batch A engine.js)",
+      "title": "Sky tone-map fix + altar-glow decay fix",
+      "status": "shipped",
+      "agent": "orchestrator",
+      "note": "sky toneMapped + decayExp glow; boot-verified",
+      "ts": 1782854752506
+    },
+    {
+      "id": "P1.3",
+      "epic": "P1 / render (Batch B npc.js)",
+      "title": "Nameplates: drop depthTest:false (names show through walls)",
+      "status": "shipped",
+      "agent": "builder-B",
+      "note": "already correct in npc.js (no change)",
+      "ts": 1782854752864
+    },
+    {
+      "id": "P1.4",
+      "epic": "P1 / render (Batch C meshes)",
+      "title": "Stop flatShading player/NPC meshes (keep smooth normals)",
+      "status": "shipped",
+      "agent": "builder-C",
+      "note": "no-op verified (imported meshes keep normals)",
+      "ts": 1782854753163
+    },
+    {
+      "id": "P1.8",
+      "epic": "P1 / render (Batch C meshes)",
+      "title": "Loader: count ALL async loads so the fade waits",
+      "status": "shipped",
+      "agent": "builder-C",
+      "note": "loader counts content-data + 20s backstop; boot-verified",
+      "ts": 1782854753504
+    }
   ]
 }

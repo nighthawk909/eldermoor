@@ -73,10 +73,17 @@ Source of truth for the wider list: `BACKLOG.md` / `ROADMAP.md` / `PARITY_AUDIT.
 10. **Live-playtest harness**: a checklist run on the deployed URL promoting integrated → done.
 
 ## Fleet tooling (new — supports the parallel build, not a milestone)
-- [x] **Live progress dashboard** (`dashboard.html` + `progress.json` + `api/progress.js` + `tools/progress.js`):
-      watch every chunk's status (queued→building→review→done…) live in-session or on any device (KV).
-      Agents report with `node tools/progress.js set <id> <status> [note] --agent NAME`.
-      *Open: deploy to prod (needs KV connected) + auto-report wired into agent definitions.*
+- [x] **Live KANBAN dashboard** (`dashboard.html` + `progress.json` + `api/progress.js` + `tools/progress.js`):
+      columns To Do / Building / Review / Shipped / Done, deployed to prod (KV connected), phone-visible at
+      https://eldermoor.vercel.app/dashboard.html . New `shipped` status = boot-verified + deployed, awaiting
+      your playtest. Agents report with `node tools/progress.js set <id> <status> [note] --agent NAME`.
+      *Open: auto-report wired into agent definitions so the board self-populates.*
+
+## P1 render-correctness wave — SHIPPED (awaiting your playtest)
+- [~] All 8 P1 fixes shipped + boot-verified + deployed (see ROADMAP P1). **Your call:** playtest the
+      deployed link and confirm the chapel scene looks right (sky gradient, no water holes, terrain/floor
+      seam, altar glow fade) → then I promote them to `done`. P1.6 roof is wired but dormant (no roofed
+      building asset exists yet).
 
 ## Hard rules for every task
 - Straight ASCII quotes only; escape `'` inside single-quoted strings as `\'`.

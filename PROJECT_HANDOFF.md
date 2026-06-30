@@ -18,7 +18,14 @@ re-QA before Milestone 1B.** **v35 resolves the parameterized-model limitation:*
 colours + body type now render on the in-world body via the procedural avatar (`avatar.js`), with worn
 weapon/shield in the hands; a Blender-authored multi-part model can replace it later behind the same data contract.
 
-**Fleet visibility (new):** a **live progress dashboard** now exists — `dashboard.html` polls `progress.json`
+**P1 render-correctness wave (shipped, boot-verified, deployed; playtest pending):** all 8 P1 fixes landed
+via the parallel fleet (engine.js material-roles/terrain/water/roof/sky, player.js glow+roof wiring,
+loaders.js load-counter; npc.js + flat-shading verified no-ops). Boot-verified clean on the deployed build.
+Marked `shipped` on the board (awaiting Josh's on-device playtest = the gate to `done`).
+
+**Fleet visibility (new):** a **live KANBAN dashboard** now exists — `dashboard.html` (To Do / Building /
+Review / Shipped / Done) polls the prod KV endpoint, names the real bottleneck (human playtest), and has a
+"Needs my eyes" filter. New `shipped` status = boot-verified + deployed, awaiting playtest. It also polls `progress.json`
 (local single-writer board) every 2s and `/api/progress` (Vercel KV, mirrors `api/qa.js`) when connected, so
 build status is watchable in-session and on any device. Agents/orchestrator report via
 `node tools/progress.js set <id> <status> [note] --agent NAME`. Statuses: queued/building/review/requeue/done/

@@ -102,16 +102,20 @@ The monolith must become a real, gated, persistent client.
 - [x] **P0.6 Pathfinding + collision.** A\* + static/dynamic colliders from JSON sidecars. *(done; stuck-to-NPC bug fixed v15.)*
 - [ ] **P0.7 Pathfinding scale-safety.** Fix the `ci*1000+cj` key aliasing + `WALK` bounds guard before any "massive world." (PARITY_AUDIT BUG+6, BUG+7)
 
-## P1 — Render-correctness pass `[ ]` (do FIRST — cheap, kills the worst on-sight glitch)
+## P1 — Render-correctness pass `[~]` (shipped v37 wave — boot-verified + deployed; **live playtest pending**)
 
-- [ ] **P1.1** Terrain branch must null `m.map` so vertex colours don't multiply a stray texture. (REND+2)
-- [ ] **P1.2** Water `depthWrite=false`/sorted so it doesn't punch holes in the floor. (REND+3)
-- [ ] **P1.3** Nameplates must NOT use `depthTest:false` — names render through walls today. (PERF+3)
-- [ ] **P1.4** Don't `flatShading` player/NPC meshes (flattens authored smooth normals). (REND+5)
-- [ ] **P1.5** Replace substring material matching with explicit per-mesh material roles. (RM3, REND+2/+3)
-- [ ] **P1.6** Seal interiors: real roof that hides on entry; kill the terrain/floor z-fight gap. (RM1, RM2, RM4, REND+4)
-- [ ] **P1.7** Sky vertex-colour tone-map fix + altar-glow decay fix. (REND+1, BUG+13)
-- [ ] **P1.8** Loader: count all async loads (don't fade at 2) to stop scenery/NPC pop-in. (BUG+18)
+> Shipped 2026-06-30 via the parallel fleet (builder-A/B/C + orchestrator wiring), boot-verified clean
+> (zero console errors on the deployed build). `[~]` not `[x]`: render-correctness is visual, so final
+> DoD needs Josh's on-device playtest (the "Shipped" column on the kanban dashboard).
+
+- [~] **P1.1** Terrain role nulls `m.map`/emissive/ao/rough/metal so vertex colours don't multiply a texture. (engine.js) (REND+2)
+- [~] **P1.2** Water gets `renderOrder` (band 10) over terrain (band 0); keeps `depthWrite=false`. (engine.js) (REND+3)
+- [~] **P1.3** Nameplates — verified already correct (`depthTest:true`, no `depthTest:false`); if still through-walls, cause is elsewhere. (npc.js, no change) (PERF+3)
+- [~] **P1.4** Imported glTF player/NPC meshes keep authored normals (`flat=false`); procedural primitives stay faceted by design. (verified no-op) (REND+5)
+- [~] **P1.5** Explicit `materialRole()` map replaces substring matching (8 roles, first-match-wins). (engine.js) (RM3, REND+2/+3)
+- [~] **P1.6** Roof auto-registers via `dressMaterials`; `updateRoofs(isInsideAnyRoof(pos))` wired in player.js; terrain `-0.01` z-offset. *Dormant until a roofed building asset exists (chapel/world.glb has no roof mesh).* (RM1, RM2, RM4, REND+4)
+- [~] **P1.7** Sky no longer `toneMapped:false` (runs ACES like the scene); altar glow decays via `decayExp()` (asymptotic) in player.js. (REND+1, BUG+13)
+- [~] **P1.8** Loader counts the content-data fetch + `clearOverlay()` + 20s safety backstop (no early fade, can't hang). (loaders.js) (BUG+18)
 
 ## P2 — Interaction layer `[~]`
 

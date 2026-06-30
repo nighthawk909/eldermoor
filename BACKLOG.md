@@ -11,11 +11,14 @@ Outstanding work to 100%. Item-level pass/fail tests in `PARITY_AUDIT.md` (~645 
       Requires Josh to connect a Vercel KV store once (HUMAN_ACTIONS.md).
 
 ## Fleet tooling (supports the parallel build)
-- [x] **Live progress dashboard** — `dashboard.html` polls `progress.json` (local) + `/api/progress` (KV,
-      mirrors `api/qa.js`); `tools/progress.js` is the reporter CLI. Live-verified in preview.
-- [ ] **Deploy the dashboard to prod** (needs Vercel KV connected — same store as QA sync, HUMAN_ACTIONS.md).
+- [x] **Live KANBAN dashboard** — `dashboard.html` (To Do/Building/Review/Shipped/Done), KV-backed, DEPLOYED
+      to https://eldermoor.vercel.app/dashboard.html (KV was already connected). `tools/progress.js` reporter
+      CLI; new `shipped` status = boot-verified + deployed, awaiting human playtest.
 - [ ] **Auto-report from agents** — add a `tools/progress.js set` call to each agent's start/finish so the
       board updates without the orchestrator hand-writing entries.
+- [ ] **Auto-promote review→shipped** — a deterministic boot-verify step (no console errors + logic asserts)
+      that machine-promotes chunks to `shipped`, leaving only the visual `shipped→done` for Josh (closes the
+      perceived bottleneck for non-visual work).
 
 ## P0 — Mobile Playability (Sprint 1, ACTIVE — blocks new gameplay)
 - [~] **1A Responsive UI framework** (v28→v29) — orientation, single-panel docking, bottom-sheet dialogue,

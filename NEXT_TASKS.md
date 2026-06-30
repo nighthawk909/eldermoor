@@ -16,8 +16,18 @@ Source of truth for the wider list: `BACKLOG.md` / `ROADMAP.md` / `PARITY_AUDIT.
       skilling subscribe to it. (7/7 functional test.)
       All v24–v27 integrated + boot-verified; **live-playtest pending** for the lot.
 - [x] **Claude Code policy config** (commit 3a9fe8d) — settings + Session/Pre/Post/Stop hooks, validated.
+- [x] **Mobile Sprint 1A — responsive UI framework** (v28, `src/mobile-ui.js` + `emotes.js`/`charcreate.js`):
+      orientation detection, single-panel docking, bottom-sheet dialogue, chat collapse, objective auto-hide,
+      ≥44px touch targets, haptics, character name entry, stray emote FAB removed. 19/19 headless UI test.
+      **Awaiting Josh's on-device QA before Milestone 1B.**
 
-## Next 10 (assignable now, mostly distinct files)
+## Mobile Sprint 1 — remaining milestones (sequential, each gated by on-device QA)
+- **1B** Inventory + Equipment mobile interactions (tap/long-press use/wield/drop on touch).
+- **1C** Combat loop end-to-end on mobile (path → attack → hits → death → respawn).
+- **1D** Tutorial progression (lesson gating active, objectives, NPC dialogue flow).
+- **1E** Audio, settings, prayer toggles, save/load, logout.
+
+## Next 10 (deferred until Mobile Sprint 1 passes)
 1. **Worn gear on avatar** (`appearance-apply.js` or new): attach/colour wielded weapon + armour on the model.
 2. **Bank depth** (`bank.js`): tabs, search, withdraw-as-note, placeholders.
 3. **Spawn house zone** (`build_kit.py` + manifest): first enclosed room + the Guide instructor placed.

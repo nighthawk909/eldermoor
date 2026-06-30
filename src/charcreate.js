@@ -114,11 +114,22 @@ function defaultSelection(data){
   const pronouns  = Array.isArray(data.pronouns)  ? data.pronouns  : [];
   return {
     version: data.version || 1,
+    name: '',
     parts,
     colours,
     bodyType: bodyTypes.length ? bodyTypes[0] : null,
     pronoun:  pronouns.length  ? pronouns[0].id : null,
   };
+}
+
+/* ------------------------------------------------ name validation */
+// Tutorial-Island display name: 1-12 chars, letters/digits/single spaces.
+function validateName(raw){
+  const collapsed = String(raw == null ? '' : raw).replace(/\s+/g, ' ').trim();
+  if(!collapsed)               return { ok:false, value:'', error:'Enter a name.' };
+  if(collapsed.length > 12)    return { ok:false, value:collapsed, error:'Max 12 characters.' };
+  if(!/^[A-Za-z0-9 ]+$/.test(collapsed)) return { ok:false, value:collapsed, error:'Letters, numbers and spaces only.' };
+  return { ok:true, value:collapsed, error:'' };
 }
 
 /* --------------------------------------------------------- CSS inject */
@@ -193,6 +204,16 @@ function injectCSS(){
 #${ROOT_ID} .em-cc-confirm:active{ transform:translateY(1px); }
 #${ROOT_ID} .em-cc-empty{
   text-align:center; color:#c8b487; font-size:13px; padding:30px 10px;
+}
+#${ROOT_ID} .em-cc-name{
+  width:100%; margin:2px 0 6px; padding:11px 12px; font-size:16px;
+  color:#fff; background:#1c160c; border:2px solid #6b5326; border-radius:6px;
+  font-family:inherit; min-height:44px;
+}
+#${ROOT_ID} .em-cc-name:focus{ outline:none; border-color:#f4d27a; }
+#${ROOT_ID} .em-cc-name.em-bad{ border-color:#c0473a; }
+#${ROOT_ID} .em-cc-err{
+  min-height:15px; margin:-2px 0 6px; font-size:12px; color:#e88; text-align:center;
 }
 `;
   document.head.appendChild(st);
@@ -310,8 +331,28 @@ function buildPanel(data, onConfirm){
 
   const sub = document.createElement('p');
   sub.className = 'em-cc-sub';
-  sub.textContent = 'Choose your look, then confirm to enter Eldermoor.';
+  sub.textContent = 'Name your adventurer and choose a look, then confirm to enter Eldermoor.';
   panel.appendChild(sub);
+
+  // Name entry (validated on Confirm).
+  const nameInput = document.createElement('input');
+  nameInput.className = 'em-cc-name';
+  nameInput.type = 'text';
+  nameInput.maxLength = 12;
+  nameInput.placeholder = 'Character name';
+  nameInput.setAttribute('aria-label', 'Character name');
+  nameInput.autocomplete = 'off';
+  nameInput.spellcheck = false;
+  nameInput.addEventListener('input', () => {
+    sel.name = nameInput.value;
+    nameInput.classList.remove('em-bad');
+    errEl.textContent = '';
+  });
+  panel.appendChild(nameInput);
+
+  const errEl = document.createElement('div');
+  errEl.className = 'em-cc-err';
+  panel.appendChild(errEl);
 
   // Part cyclers (head/torso/arms/hands/legs/feet).
   for(const key of PART_KEYS){
@@ -370,7 +411,19 @@ function buildPanel(data, onConfirm){
   confirm.className = 'em-cc-confirm';
   confirm.type = 'button';
   confirm.textContent = 'Confirm';
-  confirm.addEventListener('click', () => onConfirm(sel));
+  confirm.addEventListener('click', () => {
+    const v = validateName(sel.name);
+    if(!v.ok){
+      nameInput.classList.add('em-bad');
+      errEl.textContent = v.error;
+      nameInput.focus();
+      if(window.EMHAPTIC && window.EMHAPTIC.error) window.EMHAPTIC.error();
+      return;
+    }
+    sel.name = v.value;                 // store the normalised name
+    if(window.EMHAPTIC && window.EMHAPTIC.success) window.EMHAPTIC.success();
+    onConfirm(sel);
+  });
   panel.appendChild(confirm);
 
   root.appendChild(panel);
@@ -413,6 +466,7 @@ function open(){
   const commit = (sel) => {
     const appearance = {
       version:  sel.version,
+      name:     sel.name,
       parts:    Object.assign({}, sel.parts),
       colours:  Object.assign({}, sel.colours),
       bodyType: sel.bodyType,
@@ -420,6 +474,9 @@ function open(){
       createdAt: Date.now(),
     };
     writeSaved(appearance);
+    // also persist the name on its own key + global for HUD/dialogue convenience
+    try { window.localStorage.setItem('eldermoor:name', sel.name); } catch(e){ /* ignore */ }
+    try { window.EMNAME = sel.name; } catch(e){ /* ignore */ }
     try { window.EMAPPEARANCE = appearance; } catch(e){ /* ignore */ }
     try {
       window.dispatchEvent(new CustomEvent('em-appearance', { detail: appearance }));
@@ -442,6 +499,7 @@ export function initCharCreate(){
   const saved = readSaved();
   if(saved){
     try { window.EMAPPEARANCE = saved; } catch(e){ /* ignore */ }
+    try { if(saved.name) window.EMNAME = saved.name; } catch(e){ /* ignore */ }
     return;
   }
 

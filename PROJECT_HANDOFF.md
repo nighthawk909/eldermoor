@@ -1,11 +1,13 @@
 # PROJECT HANDOFF — Eldermoor
 
-**Version (live):** v27 · **Live link:** https://eldermoor.vercel.app
-**Working copy:** v27 (commit e68d1b8); Claude Code config at commit 3a9fe8d. Pushed to `claude/modular-v23`.
+**Version (live):** v28 · **Live link:** https://eldermoor.vercel.app
+**Working copy:** v28 (Mobile Sprint 1A) on `claude/modular-v23`.
 **Overall progress:** ~24% (features integrated + boot-verified; **~6 features live-playtested**).
 **Date:** 2026-06-30.
-**Production note:** v26/v27 are built as Vercel **previews**; production-alias promotion (`vercel --prod`)
-is pending and happens outside the sandbox. Browser playtest of v24–v27 is also pending.
+**Production note:** v26–v28 build as Vercel **previews**; production-alias promotion (`vercel --prod`)
+is done outside the sandbox. On-device QA of v24–v28 is pending (see HUMAN_ACTIONS.md).
+**Active sprint:** Mobile Playability (P0). Milestone 1A (responsive UI framework) shipped to preview,
+boot-verified by a 19/19 headless UI test; **awaiting Josh's on-device QA before Milestone 1B.**
 
 > **Honesty note:** "Completed" below means *integrated into the build + boot-verified in a headless
 > browser (no console errors)*. It does **not** mean manually playtested in the 3D scene — that gate is
@@ -186,8 +188,21 @@ zones/instructors (assets, which also activates lesson gating) → per-zone musi
 
 ## 8. Exact next task
 
-**Status: CHECKPOINT mode — P0 core plumbing (lesson gating v26, 0.6s tick v27) is committed/pushed.**
-No new coding until the owner approves the next sprint.
+**Status: Mobile Sprint 1 — Milestone 1A shipped to preview; awaiting on-device QA.**
+Next milestone (1B) does NOT start until Josh approves 1A on a real phone.
+
+**1A delivered (v28):** `src/mobile-ui.js` (`window.EMUI`/`window.EMHAPTIC`) — orientation detection,
+single-panel docking, bottom-sheet dialogue, chat collapse, objective auto-hide, ≥44px touch targets,
+haptics; stray emote FAB removed (`emotes.js`); character name entry + validation (`charcreate.js`);
+`viewport-fit=cover`. Boot-verified by a headless-Chromium UI harness (19/19). Gameplay untouched.
+
+**When 1A is approved, Milestone 1B = Inventory + Equipment mobile interactions** (tap/long-press
+use/wield/wear/drop/examine on touch; proper touch targets in the inv/equip panels). Single-agent
+(shared HUD panel render).
+
+--- prior checkpoint context retained below ---
+
+**P0 core plumbing (lesson gating v26, 0.6s tick v27) is committed/pushed.**
 
 Two non-coding gates remain before features can be promoted "done":
 1. **Promote v27 to production** — `cp index.modular.html index.html && vercel deploy --prod --yes`

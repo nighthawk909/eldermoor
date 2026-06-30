@@ -4,7 +4,7 @@
 For the full narrative handoff see `PROJECT_HANDOFF.md`; phase status in `ROADMAP.md`; item-level tests in
 `PARITY_AUDIT.md`.
 
-- **Live version:** v27 · **Link:** https://eldermoor.vercel.app
+- **Live version:** v28 · **Link:** https://eldermoor.vercel.app
 - **Overall:** ~24% (features integrated + boot-verified; **live-playtested separately — see METRICS**).
 - **Client:** modular ES (`src/*.js`, ~37 modules) + `index.modular.html` shell, Three.js r128 (CDN),
   data-driven from `assets/data/*.json`. Deployed on Vercel. `eldermoor_client.html` = frozen v17 rollback.
@@ -25,6 +25,15 @@ complete flow · action SFX coverage (`sfx-actions.js`) · lesson gating (`gatin
 game tick (`tick.js`, shared by combat + skilling).
 
 ## Recently resolved
+- **v28 — Mobile Sprint 1, Milestone 1A (responsive UI framework):** new `src/mobile-ui.js`
+  (`window.EMUI` + `window.EMHAPTIC`). Live portrait/landscape orientation detection (body
+  `em-portrait`/`em-landscape`, no reload); fluid panel/tab/chat layout that stacks without overlap;
+  ≥44px touch targets; dialogue restyled as a docked bottom sheet; single active panel (tab panel ↔
+  dialogue mutually exclusive, chat yields); collapsible chat; auto-hiding objective banner; stray
+  floating emote FAB removed (`emotes.js`); character **name entry** + validation in the creator
+  (`charcreate.js`, saved to `eldermoor:name`/`window.EMNAME`); `viewport-fit=cover` for safe areas;
+  haptic framework. Boot-verified by a 19/19 headless-Chromium UI test. **Pending Josh's on-device QA.**
+  Gameplay (combat/skills/quests/banking/audio) intentionally untouched (later milestones).
 - **v27:** single authoritative **0.6s global game tick** (`src/tick.js`, `window.EMTICK`): combat and
   skilling dropped their two independent `setInterval`/`setTimeout` clocks and now subscribe to one shared
   cadence (OSRS one-tick model), with a private-interval fallback if the clock is absent. Verified by a 7/7

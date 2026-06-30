@@ -107,16 +107,12 @@ export function initEmotes(){
   ov.querySelector('.x').onclick = closeOverlay;
   ov.onclick = (e) => { if(e.target === ov) closeOverlay(); };   // click backdrop to dismiss
 
-  const fab = document.createElement('button');
-  fab.id = 'emem-fab'; fab.type = 'button'; fab.textContent = '😀';
-  fab.title = 'Emotes'; fab.setAttribute('aria-label', 'Emotes');
-  fab.onclick = () => {
-    // The HUD has no 'emotes' tab button, so EMHUD.show would only swap the
-    // panel without a visible tab. Use the self-contained overlay so the grid
-    // is always reachable; fall back to nothing else needed.
-    openOverlay();
-  };
-  document.body.appendChild(fab);
+  /* NOTE (Milestone 1A): the floating 😀 FAB was removed — it duplicated the
+     Emotes HUD tab and floated over gameplay on mobile. Emotes are reached via
+     the Emotes tab (window.EMTABS['emotes']). The overlay (#emem-ov) is kept as
+     a programmatic fallback reachable through window.EMEMOTE, but no stray
+     button is mounted. */
+  void openOverlay;   // retained API; not bound to a floating button anymore
 
   /* -------------------------------------------------- player-rig animation */
   // A live emote is a small timed pose offset applied to a rig. We read

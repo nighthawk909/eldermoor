@@ -3,6 +3,15 @@
 Outstanding work to 100%. Item-level pass/fail tests in `PARITY_AUDIT.md` (~645 items); phase status in
 `ROADMAP.md`. This is the prioritized feature backlog.
 
+## P0 — Mobile Playability (Sprint 1, ACTIVE — blocks new gameplay)
+- [x] **1A Responsive UI framework** (v28) — portrait/landscape orientation, single-panel docking,
+      bottom-sheet dialogue, chat collapse, objective auto-hide, ≥44px touch targets, haptics, character
+      name entry, stray emote FAB removed. Boot-verified (19/19 headless UI test); **awaiting on-device QA.**
+- [ ] **1B** Inventory + Equipment mobile interactions.
+- [ ] **1C** Combat loop end-to-end on mobile.
+- [ ] **1D** Tutorial progression on mobile.
+- [ ] **1E** Audio, settings, prayer, save/load, logout on mobile.
+
 ## P0 — promote integrated → done
 - [ ] **Live-playtest pass** on the deployed link for every "integrated + boot-verified" feature; demote any
       that doesn't actually fire in 3D. *(the gate blocking ~all features from "complete")*

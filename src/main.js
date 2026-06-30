@@ -45,6 +45,7 @@ import { initMakeInterface } from './make-interface.js';
 import { initSfxActions } from './sfx-actions.js';
 import { initGating } from './gating.js';
 import { initTick } from './tick.js';
+import { initMobileUI } from './mobile-ui.js';
 
 /* --- shared globals the feature modules read (player pos/rig/move, walk, scene) --- */
 window.EMPLAYERPOS = pos;          // live Vector3 (mutated in place) → {x,z} reads stay current
@@ -60,6 +61,7 @@ initProxies();
 startLoading();
 initInput();
 initHud();                          // window.EMHUD now exists for the feature modules
+initMobileUI();                     // responsive layout/orientation/haptics over the HUD (Milestone 1A)
 
 /* bring up the feature modules (order-robust - they poll for deps if absent) */
 [ initTick, initTooltip, initOrbs, initXpCounter, initWorldMap, initEmotes, initSave, initAudio,

@@ -1,5 +1,5 @@
 {
-  "updated": 1782862762975,
+  "updated": 1782863083478,
   "version": "v41",
   "note": "Live fleet board. Reflects v36 owner QA + browser screenshots. Character art (studio + in-world avatar/creator) owned by a separate chat. Statuses: queued | building | review | requeue | shipped | done | blocked | failed.",
   "board": [
@@ -403,10 +403,10 @@
       "id": "P2-INTERACT",
       "epic": "P2 Interaction",
       "title": "P2-INTERACT",
-      "status": "building",
+      "status": "shipped",
       "agent": "builder-interact",
-      "note": "Reading interact.js + PARITY_AUDIT for OW items",
-      "ts": 1782862710968
+      "note": "examine-all + nearest-pick + cant-reach + occlusion + red Cancel (interact.js); v45",
+      "ts": 1782863083478
     },
     {
       "id": "SOCIAL-TABS",
@@ -416,6 +416,15 @@
       "agent": "builder-social",
       "note": "already implemented + verified (Friends/Ignore/Account functional, persisted); live",
       "ts": 1782862762975
+    },
+    {
+      "id": "CREATOR-3D",
+      "epic": "Character",
+      "title": "CREATOR-3D",
+      "status": "shipped",
+      "agent": "orchestrator",
+      "note": "creator preview is now a live rotating 3D avatar (canvas 300x300, not SVG); v45 boot-verified",
+      "ts": 1782863083133
     }
   ]
 }

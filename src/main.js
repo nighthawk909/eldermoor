@@ -6,7 +6,7 @@
    with top-level side effects beyond engine.js\'s scene/material setup.
    ===================================================================== */
 import { renderer, scene, camera } from './engine.js';
-import { pos, simStep, toggleRun, rig, move } from './player.js';
+import { pos, simStep, toggleRun, rig, move, player } from './player.js';
 import { NPCS, initProxies } from './npc.js';
 import { nextDlg } from './dialogue.js';
 import { walkTo } from './interact.js';
@@ -48,12 +48,14 @@ import { initTick } from './tick.js';
 import { initMobileUI } from './mobile-ui.js';
 import { initDevTest } from './devtest.js';
 import { initQaPanel } from './qa-panel.js';
+import { initAvatar } from './avatar.js';
 
 /* --- shared globals the feature modules read (player pos/rig/move, walk, scene) --- */
 window.EMPLAYERPOS = pos;          // live Vector3 (mutated in place) → {x,z} reads stay current
 window.EMRIG       = rig;          // limb pivots (emotes)
 window.EMMOVE      = move;         // movement state (emotes interrupt)
 window.EMSCENE     = scene;        // combat hitsplats/HP-bar sprites
+window.EMPLAYER    = player;       // player group — avatar.js builds into it
 window.EMTOGGLERUN = toggleRun;    // run orb click
 window.EMWALK      = (x,z) => walkTo({x,z});   // minimap-nav / em-walk
 
@@ -71,7 +73,7 @@ initMobileUI();                     // responsive layout/orientation/haptics ove
   initQuestsTab, initSettingsTab, initInvOps, initMinimapNav,
   initLessons, initGating, initCharCreate, initMusicTab, initSocial, initSkillGuide, initMinimapRender,
   initBank, initLogoutTab, initAppearanceApply, initMakeInterface, initSfxActions,
-  initDevTest, initQaPanel
+  initDevTest, initQaPanel, initAvatar
 ].forEach(fn => { try { fn(); } catch(e){ console.warn('[em] init failed:', fn.name, e); } });
 
 /* minimap click-to-walk fallback (when EMWALK isn\'t reached directly) */

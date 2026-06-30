@@ -4,12 +4,12 @@ _Snapshot 2026-06-30. Honest counts; integrated ≠ playtested._
 
 ## Headline
 - **Overall:** ~24% complete (integrated + boot-verified).
-- **Live version:** v34.
+- **Live version:** v35.
 
 ## Features
 | State | Count | Definition |
 |---|---|---|
-| Integrated + boot-verified | ~46 | code merged into the build, boots clean (zero console errors) |
+| Integrated + boot-verified | ~47 | code merged into the build, boots clean (zero console errors) |
 | **Live-playtested** | **~6** | actually clicked-through in a foreground browser (walking, camera, HUD chrome, chat, inventory render, stats) |
 | Remaining | ~44 | not started or data-only |
 | **Total target** | ~90 | feature-level rollup of the ~645 PARITY_AUDIT items |

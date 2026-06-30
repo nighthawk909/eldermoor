@@ -21,8 +21,9 @@ Source of truth for the wider list: `BACKLOG.md` / `ROADMAP.md` / `PARITY_AUDIT.
       stray emote FAB removed, character name entry; **v29 QA fixes:** dedicated landscape layout, top-right HUD
       cluster de-overlap, responsive panel sizing (no clip), inventory long-press context menu on mobile
       (tap/long-press/Examine/Drop). 26/26 headless UI test. **Awaiting Josh's on-device QA before 1B.**
-      *Open: character-creator part SHAPES don't change the static model (colour-only) — needs a parameterized
-      player model (modeling milestone); options/skirts/footwear themselves are present + persisted.*
+      *RESOLVED v35: character-creator part SHAPES now render on the in-world body via the procedural
+      avatar (`avatar.js`). A higher-fidelity Blender-authored multi-part model can replace it later behind
+      the same data contract (BACKLOG).*
 
 ## Test infrastructure (v30, owner-requested — supports the QA loop, not a milestone)
 - [x] **Dev test character** (`devtest.js`): all skills 99 + combat kit each load (idempotent; toggle EMDEV).
@@ -35,6 +36,10 @@ Source of truth for the wider list: `BACKLOG.md` / `ROADMAP.md` / `PARITY_AUDIT.
 - [x] **v34 mobile 1A QA round 3**: inventory tap action, equip-slot display fix, compact dialogue dock,
       objective recall pill, collapsible tabs, landscape tab-bar fix. (Deferred: equip-on-avatar+eat anim=1B;
       combat anim/respawn=1C; QA live-sync=connect Vercel KV.)
+- [x] **v35 parameterized player avatar** (`avatar.js`): character-creator parts + colours + body type now
+      render on the in-world 3D body (was colour-only); limb pivots drive the walk cycle; worn weapon/shield
+      show in the hands; `bury` op added. Fixed a glb-vs-avatar render race (loaders.js re-asserts the avatar
+      after `player.glb` loads). Agent-QA'd before owner QA + 10/10 THREE-stub logic test. **Awaiting on-device QA.**
 
 ## Mobile Sprint 1 — remaining milestones (sequential, each gated by on-device QA)
 - **1B** Inventory + Equipment mobile interactions (tap/long-press use/wield/drop on touch).

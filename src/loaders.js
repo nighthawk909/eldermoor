@@ -64,6 +64,12 @@ export function startLoading(){
   loader.load('assets/player.glb', g => {
     dressMaterials(g.scene, false); player.add(g.scene);
     ['legL','legR','armL','armR'].forEach(n => { const o = g.scene.getObjectByName(n); if(o) rig[n] = o; });
+    // The parameterized avatar (avatar.js) may already have built into the player group
+    // and registered its own limb pivots BEFORE this async glb load resolves. Adding the
+    // glb scene now would render it on top of the avatar, and the rig writes above would
+    // steal the walk animation from the avatar pivots. Let the avatar re-assert last:
+    // it re-hides every non-avatar child (incl. this glb) and reclaims rig.legL/R/armL/R.
+    try { if(window.EMAVATAR && window.EMAVATAR.rebuild) window.EMAVATAR.rebuild(); } catch(_){}
     maybeReady();
   }, undefined, err => { document.getElementById('load').textContent = 'Failed to load player.glb - ' + err; });
 

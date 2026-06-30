@@ -101,7 +101,14 @@ export function initInvOps(){
       h.addChat(ctx.def.examine || ('It\'s a ' + ctx.name + '.'));
       return;
     }
-    // Unhandled verbs (Bury / Read / Empty / Open ...) - acknowledge in chat
+    if(v === 'bury'){
+      removeOne(h, idx);
+      if(typeof h.addXp === 'function') h.addXp('Prayer', 5);   // OSRS-ish bones Prayer XP
+      h.addChat('You dig a hole and bury the ' + ctx.name + '.', '', true);
+      refresh(h);
+      return;
+    }
+    // Unhandled verbs (Read / Empty / Open ...) - acknowledge in chat
     // so the interaction is never silent. The HUD\'s left-click handles op0;
     // here we just narrate so the menu always responds.
     h.addChat(cap(verb) + ' ' + ctx.name + '.');

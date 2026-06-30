@@ -1,7 +1,7 @@
 # PROJECT HANDOFF — Eldermoor
 
-**Version (live):** v34 · **Live link:** https://eldermoor.vercel.app
-**Working copy:** v34 (Mobile 1A QA round 3 + test infra + QA sync) on `claude/modular-v23`.
+**Version (live):** v35 · **Live link:** https://eldermoor.vercel.app
+**Working copy:** v35 (parameterized player avatar + Mobile 1A QA round 3 + test infra + QA sync) on `claude/modular-v23`.
 **Test tools (v30):** dev test character (`devtest.js`, all-99 + combat kit each load) and an in-game QA
 panel (`qa-panel.js` + `assets/data/qa.json`) — tester checks Pass/Fail/Skip + notes per item and sends back
 ONE Copy/Share/Download report. Refresh `qa.json` every release. v31 adds the FIRST backend — `api/qa.js` + Vercel KV — so the QA
@@ -14,7 +14,9 @@ is done outside the sandbox. On-device QA of v24–v28 is pending (see HUMAN_ACT
 **Active sprint:** Mobile Playability (P0). Milestone 1A — v28 shipped, failed Josh's QA; **v29 addresses
 the QA items** (landscape layout, top-right HUD de-overlap, responsive panel sizing, inventory long-press
 context menu, objective persistence). Boot-verified by a 26/26 headless UI test; **awaiting Josh's on-device
-re-QA before Milestone 1B.** Open limitation: creator part SHAPES need a parameterized model (colour-only now).
+re-QA before Milestone 1B.** **v35 resolves the parameterized-model limitation:** creator part shapes +
+colours + body type now render on the in-world body via the procedural avatar (`avatar.js`), with worn
+weapon/shield in the hands; a Blender-authored multi-part model can replace it later behind the same data contract.
 
 > **Honesty note:** "Completed" below means *integrated into the build + boot-verified in a headless
 > browser (no console errors)*. It does **not** mean manually playtested in the 3D scene — that gate is

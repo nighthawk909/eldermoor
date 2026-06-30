@@ -15,16 +15,18 @@ Outstanding work to 100%. Item-level pass/fail tests in `PARITY_AUDIT.md` (~645 
       chat collapse, objective auto-hide+persist, ≥44px touch targets, haptics, name entry, FAB removed;
       v29 QA fixes: dedicated landscape layout, top-right HUD cluster de-overlap, responsive panel sizing
       (no clip), inventory long-press context menu. Boot-verified (26/26 headless UI test); **re-QA on device.**
-- [ ] **Parameterized player model (avatar customization made fully visible).** The character creator
-      already SAVES every selection (parts + colours + name) in `eldermoor:appearance` (decision (a),
-      kept). Today the single static glTF only reflects **colours** via `appearance-apply.js`. Build a
-      parameterized/multi-part player model so the saved selections become visible without changing the
-      save format: **hair, beard, head/face, torso (incl. robe/dress), arms, hands, legs (incl. skirts),
-      footwear (boots/shoes/sandals)**, body type, plus colour tinting per part. Approach: author
-      part meshes in Blender (`build_eldermoor.py`/kit) exported as togglable sub-meshes or a small set of
-      swappable glTFs keyed by the existing part ids; `appearance-apply.js` shows/hides + tints by id.
-      Constraint: **must read the current save shape as-is** (no migration). Keep ALL customization options
-      that are part of the long-term vision — do not trim the creator to match current model limits.
+- [x] **Parameterized player model (avatar customization made fully visible).** — DONE v35 via a
+      **procedural** avatar (`avatar.js`): builds the in-world body from THREE primitives off
+      `eldermoor:appearance` (parts + colours + body type) so every saved selection shows — hair, beard,
+      head, torso (incl. robe/dress), arms, hands, legs (incl. skirts), footwear (boots/shoes/sandals),
+      body type, per-part colour. Limb pivots drive the existing walk cycle; worn weapon/shield render in
+      the hands; static `player.glb` hidden. **Save format read as-is (no migration).** Agent-QA'd + a
+      glb-vs-avatar render race fixed (loaders.js re-asserts after `player.glb` loads).
+- [ ] **Blender high-fidelity parameterized model (replace the procedural avatar).** Author the part
+      meshes in Blender (`build_eldermoor.py`/kit) at the MODELING_SPEC bar, exported as togglable
+      sub-meshes or swappable glTFs keyed by the existing part ids, dropped in behind the SAME data
+      contract `avatar.js` already uses (`eldermoor:appearance` + `EMEQUIP.worn`). No save migration.
+      Keep ALL customization options — do not trim the creator to match model limits.
 - [x] **Character-creator live preview** — DONE v33: a 2D SVG paper-doll in the creator updates live on every
       part/colour toggle (reflects part shapes + colours). Future: an in-world/3D preview once the
       parameterized player model exists (above).

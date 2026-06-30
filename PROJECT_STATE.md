@@ -4,7 +4,7 @@
 For the full narrative handoff see `PROJECT_HANDOFF.md`; phase status in `ROADMAP.md`; item-level tests in
 `PARITY_AUDIT.md`.
 
-- **Live version:** v34 · **Link:** https://eldermoor.vercel.app
+- **Live version:** v35 · **Link:** https://eldermoor.vercel.app
 - **Overall:** ~24% (features integrated + boot-verified; **live-playtested separately — see METRICS**).
 - **Client:** modular ES (`src/*.js`, ~37 modules) + `index.modular.html` shell, Three.js r128 (CDN),
   data-driven from `assets/data/*.json`. Deployed on Vercel. `eldermoor_client.html` = frozen v17 rollback.
@@ -25,6 +25,15 @@ complete flow · action SFX coverage (`sfx-actions.js`) · lesson gating (`gatin
 game tick (`tick.js`, shared by combat + skilling).
 
 ## Recently resolved
+- **v35 — Parameterized player avatar (`avatar.js`):** the character-creator picks now appear on the
+  in-world 3D body. A procedural humanoid is built from THREE primitives off `window.EMAPPEARANCE`
+  (parts + colours + body type): head/hair/beard/hood, torso (tunic/robe/jerkin/yoke), arms
+  (sleeved/bare/wrapped), hands (bare/gloves/bracers), legs (trousers/skirt/breeches), feet
+  (boots/shoes/sandals). Limb pivots register onto `window.EMRIG` so the existing `player.js` walk
+  cycle animates them; the static `player.glb` is hidden while the avatar is active. Worn weapon/shield
+  from `EMEQUIP.worn` render in the hands. Save format unchanged. **loaders.js re-asserts the avatar
+  after `player.glb` loads** (fixes a glb-vs-avatar render race — QA blocker). `bury` op added
+  (removes bones + Prayer XP). Agent-QA'd (PARTIAL→fixed) + 10/10 THREE-stub logic test before owner QA.
 - **v34 — Mobile 1A QA round 3 (from in-game QA report):** inventory **tap** now performs the default
   action (Wield equips, Eat eats, Examine prints) instead of doing nothing; equipping no longer **bugs the
   equipment slot** (equipment-tab handles the {id,count} worn shape); **dialogue** is now a compact bottom

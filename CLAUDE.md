@@ -25,6 +25,10 @@ that a feature "works".
   control-flow file.
 - `[HOOK-assist]` The **Stop hook** refuses to end the session while there are uncommitted
   changes, unpushed commits, or stale docs, and re-injects "continue with the next task".
+- `[POLICY]` **Agent QA before owner QA (always).** Before asking Josh to test a build, run the
+  `eldermoor-qa` agent over the change to review the code (syntax/JSON validity first, then a static
+  correctness pass against the feature's intent). Fix what it finds, re-verify, THEN hand it to Josh.
+  Never send the owner a build that hasn't been agent-reviewed + boot-verified first.
 - `[POLICY]` **Auto-backlog, don't interrupt.** Anything outside the current milestone that is
   non-blocking is recorded in `BACKLOG.md` automatically — do not ask the owner about it. Only
   interrupt the owner for decisions that: change architecture, create incompatible save data,

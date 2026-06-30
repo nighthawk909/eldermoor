@@ -271,6 +271,30 @@ export function initMagicTab(){
   let _lastState = null;
   function _rerender(){ if(_lastPanel) renderInto(_lastPanel, _lastState); }
 
+  /* ------------------------------------------------- canonical mob resolver -
+     ROOT-CAUSE FIX (casting no-op): interact.js's raycast picker hands every
+     click a fresh PLAIN-OBJECT CLONE of the mob ({id,name,x,z,talkRange,kind} -
+     see world.js placeMob(): proxy.userData.mob is a literal copy, not a
+     reference to the persistent node). That clone carries no .hp/.maxHp/.group/
+     .mesh, so mutating clone.hp here never touched the real creature - its HP
+     bar never moved, and the spell appeared to do nothing. combat.js solves
+     this for melee via an internal resolveCanonicalMob() that matches the
+     click clone back to window.EMMOB.nodes by id+position; that resolver is a
+     private closure (not exported on EMCOMBAT), so we mirror the same
+     id+position match here against the same public window.EMMOB.nodes list
+     documented for npc.js/world.js, giving magic the SAME persistent instance
+     melee already fights (shared HP, HP bar, death/respawn, drop table). */
+  function resolveCanonicalMob(mob){
+    if(!mob) return mob;
+    if(mob._inst || mob.group || mob.mesh) return mob;   // already a real instance
+    const nodes = (typeof window !== 'undefined' && window.EMMOB && Array.isArray(window.EMMOB.nodes))
+      ? window.EMMOB.nodes : null;
+    if(!nodes || !nodes.length) return mob;
+    const found = nodes.find(n => n.id === mob.id &&
+      Math.abs(n.x - mob.x) < 0.01 && Math.abs(n.z - mob.z) < 0.01);
+    return found || mob;
+  }
+
   /* ------------------------------------------------ magic projectile (bolt) */
   // A coloured orb that arcs from the player to the mob, then calls onArrive().
   // Falls back to immediate delivery when THREE / scene are unavailable.
@@ -289,9 +313,9 @@ export function initMagicTab(){
       return;
     }
 
-    // anchor helpers (mirrors combat.js mobAnchor)
+    // anchor helpers (mirrors combat.js mobAnchor, incl. world.js's _inst shape)
     function mobAnchorLocal(m){
-      const o = m.group || m.mesh || (m.position ? m : null);
+      const o = m.group || m.mesh || m._inst || (m.position ? m : null);
       if(o && o.position) return { x:o.position.x, y:(o.position.y||0)+1.8, z:o.position.z };
       return { x:m.x||0, y:1.8, z:m.z||0 };
     }
@@ -390,7 +414,11 @@ export function initMagicTab(){
   /* ------------------------------------------------ execute the cast -------- */
   // Called once a mob target has been selected. Consumes runes, fires the bolt,
   // then on landing applies damage + hitsplat + XP via EMCOMBAT helpers.
-  function executeCast(sp, mob){
+  function executeCast(sp, rawMob){
+    // ROOT-CAUSE FIX: resolve the picker's throwaway clone to the persistent
+    // EMMOB node BEFORE touching .hp, so damage lands on the same instance
+    // melee/HP-bar/death/respawn already track (see resolveCanonicalMob above).
+    const mob     = resolveCanonicalMob(rawMob);
     const magLvl  = magicLevel(null);
     const maxHit  = magicMaxHit(magLvl);
     const dmg     = Math.floor(Math.random() * (maxHit + 1));
@@ -406,30 +434,39 @@ export function initMagicTab(){
     // consume runes now (before bolt lands - OSRS behaviour)
     consumeRunes(sp);
 
-    // stash the mob on the pending cast for fireMagicBolt to anchor the sprite
+    // stash the (canonical) mob on the pending cast for fireMagicBolt to anchor
+    // the sprite - it now has a real .group/.mesh/._inst once combat.js has
+    // hydrated it, so the projectile flies to its actual on-screen position.
     if(pendingCast) pendingCast._mob = mob;
 
     fireMagicBolt(colour, function(){
-      // bolt landed - apply damage
-      if(dmg > 0){
-        // reduce mob HP directly (mirrors combat.js approach)
-        if(mob.hp == null) mob.hp = mob.maxHp || 1;
-        mob.hp = Math.max(0, mob.hp - dmg);
+      if(mob.dead){
+        // target died/despawned while the bolt was in flight - no-op cleanly
+        // rather than reviving it via a stray EMCOMBAT.attack() call.
+        if(h && typeof h.addChat === 'function')
+          h.addChat('The ' + (mob.name || 'creature') + ' is already dead.', '', true);
+        return;
       }
+      // hydrate hp/maxHp the same way combat.js does on first engagement, so a
+      // mob that has never been melee\'d still takes a sane first magic hit.
+      if(mob.maxHp == null) mob.maxHp = 1;
+      if(mob.hp == null) mob.hp = mob.maxHp;
+
+      // bolt landed - apply damage directly to the canonical mob's HP pool
+      if(dmg > 0) mob.hp = Math.max(0, mob.hp - dmg);
+
       // show hitsplat: try EMCOMBAT internal or fall back to a local canvas splat
       applyHitsplat(mob, dmg);
       // award magic XP
       awardMagicXp(dmg);
-      // trigger mob death path if HP hit zero (uses EMCOMBAT.attack to engage
-      // so the existing kill/respawn/drop logic fires)
-      if(mob.hp <= 0){
-        // kill flow lives inside combat\'s attack loop; the cheapest honest hook
-        // is to set hp=0 and then start an attack so the first tick fires killMob.
-        if(ec && typeof ec.attack === 'function') ec.attack(mob);
-      } else if(dmg > 0){
-        // mob is still alive: keep the retaliation chain going via EMCOMBAT.attack
-        if(ec && typeof ec.attack === 'function') ec.attack(mob);
-      }
+
+      // Engage via EMCOMBAT.attack() once so the HP bar (re)shows over the
+      // mob and, when hp has hit 0, the next tick's death check fires the
+      // real kill/bones-drop/respawn flow (EMCOMBAT exposes no standalone
+      // "show HP bar" / "kill" hook - attack() is the only public entry that
+      // drives both, same tradeoff combat.js's own ranged path documents).
+      if(ec && typeof ec.attack === 'function') ec.attack(mob);
+
       // chat feedback on zero hit
       if(dmg === 0 && h && typeof h.addChat === 'function'){
         h.addChat(sp.name + ' splashes! (0 damage)', '', true);
@@ -447,8 +484,8 @@ export function initMagicTab(){
       : null;
     if(!THREE || !scene) return;
 
-    // anchor
-    const o = mob.group || mob.mesh || (mob.position ? mob : null);
+    // anchor (incl. world.js's _inst shape for canonical mob nodes)
+    const o = mob.group || mob.mesh || mob._inst || (mob.position ? mob : null);
     const ax = o && o.position ? o.position.x : (mob.x || 0);
     const ay = (o && o.position ? o.position.y : 0) + 1.8;
     const az = o && o.position ? o.position.z : (mob.z || 0);

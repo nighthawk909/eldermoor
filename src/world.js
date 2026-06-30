@@ -379,7 +379,7 @@ export function placeMob(id, x, z, name){
   );
   proxy.position.set(x, 0.7, z);
   const node = { id, name:label, x, z, talkRange:1.4, kind:'mob', _inst:inst, _proxy:proxy };
-  proxy.userData.mob = { id, name:label, x, z, talkRange:1.4, kind:'mob' };
+  proxy.userData.mob = node;   // hand the CANONICAL node to the picker (was a throwaway clone -> broke combat+magic HP/death)
   MOB_NODES.push(node);
   scene.add(proxy);
   clickTargets.push(proxy);

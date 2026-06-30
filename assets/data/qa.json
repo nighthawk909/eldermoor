@@ -1,6 +1,6 @@
 {
-  "version": "v45",
-  "title": "v45 — 3D character creator preview + interaction parity",
+  "version": "v46",
+  "title": "v46 — combat/magic/prayer/chat actually work + 2-col creator",
   "items": [
     {
       "id": "login",

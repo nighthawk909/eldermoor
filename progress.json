@@ -1,5 +1,5 @@
 {
-  "updated": 1782863522455,
+  "updated": 1782863615218,
   "version": "v41",
   "note": "Live fleet board. Reflects v36 owner QA + browser screenshots. Character art (studio + in-world avatar/creator) owned by a separate chat. Statuses: queued | building | review | requeue | shipped | done | blocked | failed.",
   "board": [
@@ -394,10 +394,10 @@
       "id": "AUDIT-RECONCILE",
       "epic": "Audit",
       "title": "AUDIT-RECONCILE",
-      "status": "building",
+      "status": "review",
       "agent": "auditor",
-      "note": "reconcile PARITY_AUDIT vs v37-v44 shipped work -> true remaining count + top clusters",
-      "ts": 1782862683684
+      "note": "306 partial / 0 fully-open (456 checkbox lines: 150 done, 306 partial)",
+      "ts": 1782863615218
     },
     {
       "id": "P2-INTERACT",
@@ -430,10 +430,10 @@
       "id": "ASSETS-REAL",
       "epic": "Character Art",
       "title": "ASSETS-REAL",
-      "status": "building",
+      "status": "review",
       "agent": "researcher",
-      "note": "downloading...",
-      "ts": 1782863394784
+      "note": "5 rigged CC0 KayKit chars (Knight/Mage/Rogue/Rogue_Hooded/Barbarian, 75 anims, handslot.r/l sockets) + 14 gear meshes (sword/dagger/axe/shields/staff/wand/crossbow/quiver/spellbook) + RobotExpressive fallback in assets/ext/. ASSET_LICENSES.md written.",
+      "ts": 1782863595583
     },
     {
       "id": "HUD-FIX",
@@ -475,10 +475,10 @@
       "id": "CREATOR-LAYOUT",
       "epic": "Character",
       "title": "CREATOR-LAYOUT",
-      "status": "building",
+      "status": "review",
       "agent": "builder-creator",
-      "note": "Reformatting char creator to two-column OSRS layout with centered preview, no scroll on desktop",
-      "ts": 1782863508822
+      "note": "Reformatted to OSRS two-column layout: header, centered 3D preview hero with name field, Design column (left: Head/Torso/Arms/Hands/Legs/Feet/Body type cyclers) + Colour column (right: swatches + Pronouns), single centered Confirm button. Panel widened to 900px, desktop fits without scroll via media query fallback to single-column scroll under 720px width or 680px height. node --check passed.",
+      "ts": 1782863583326
     }
   ]
 }

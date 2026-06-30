@@ -43,6 +43,16 @@ automatically; otherwise use **Copy report** and paste it back once.
 
 ---
 
+### Reconciliation status (fork retired)
+- **Done:** the divergent fork `claude/opus-wave-v26` was deleted (its unique code — worn-render +
+  bank-depth — was salvaged first to `salvage/opus-wave-v26/`, commit `a5eade0`). Canonical line is the
+  single source: `claude/modular-v23` (v31); prod alias = v31; nothing lost.
+- **Still yours to do:** wind down / stop the **"Game UI/UX audit"** Claude session. Deleting the branch
+  doesn't stop that session from running `vercel --prod` on its local v26 and re-hijacking
+  `eldermoor.vercel.app`. The reconciliation only fully holds once that session is closed.
+- Older dormant branch `modular-client-v23` (`257b288`) is left as-is (not competing); delete it too if you
+  want a truly single-branch repo.
+
 ### Notes
 - The dev test character (level 99 + combat kit each load) is ON by default;
   disable in the browser console with `EMDEV.setEnabled(false)`.

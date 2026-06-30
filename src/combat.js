@@ -46,6 +46,20 @@ const BONES_ITEM   = 'bones';       // drop id awarded on death (matches items.j
 let CFG = null;
 let initialised = false;
 
+/* subscribe fn to the shared global game tick (window.EMTICK) so combat beats on
+   the same cadence as every other system. Falls back to a private setInterval at
+   the configured rate if the shared clock isn't present, so combat still works
+   even if tick.js failed to load. Returns an unsubscribe function. */
+function onTick(fn) {
+  if (typeof window !== 'undefined' && window.EMTICK && typeof window.EMTICK.subscribe === 'function') {
+    return window.EMTICK.subscribe(fn);
+  }
+  const period = (CFG && CFG.tickMs) || FALLBACK.tickMs;
+  if (typeof setInterval !== 'function') return () => {};
+  const id = setInterval(fn, period);
+  return () => { if (typeof clearInterval === 'function') clearInterval(id); };
+}
+
 /* uniform integer in [0, n] inclusive */
 function rollDamage(maxHit) {
   const m = Math.max(0, maxHit | 0);
@@ -283,7 +297,7 @@ export function initCombat() {
   const state = {
     target: null,        // the mob instance currently being attacked
     bar: null,           // its floating HP bar sprite
-    tickTimer: null,     // setInterval handle for the combat clock
+    tickTimer: null,     // unsubscribe handle for the shared game-tick subscription
     playerCd: 0,         // ticks until the player can swing again
     mobCd: 0,            // ticks until the mob can retaliate
     dying: false,        // true between HP-0 and respawn (suppresses re-engage)
@@ -614,19 +628,16 @@ export function initCombat() {
     chat('You attack the ' + (mob.name || 'creature') + '.');
     ensureHpBar(mob);
 
-    // drive the tick clock at the configured rate (600ms default).
+    // drive the player off the shared global game tick (one cadence for all systems).
     if (state.tickTimer == null) {
-      const period = (CFG && CFG.tickMs) || FALLBACK.tickMs;
-      if (typeof setInterval === 'function') state.tickTimer = setInterval(tick, period);
+      state.tickTimer = onTick(tick);
     }
     tick(); // immediate first evaluation (range gate handles "still walking")
   }
 
   /* disengage: stop the clock, drop the HP bar, forget the target. */
   function stop() {
-    if (state.tickTimer != null && typeof clearInterval === 'function') {
-      clearInterval(state.tickTimer); state.tickTimer = null;
-    }
+    if (state.tickTimer != null) { state.tickTimer(); state.tickTimer = null; }  // unsubscribe from the shared tick
     clearHpBar();
     state.target = null;
     state.playerCd = 0; state.mobCd = 0;

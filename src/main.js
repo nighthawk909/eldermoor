@@ -44,6 +44,7 @@ import { initAppearanceApply } from './appearance-apply.js';
 import { initMakeInterface } from './make-interface.js';
 import { initSfxActions } from './sfx-actions.js';
 import { initGating } from './gating.js';
+import { initTick } from './tick.js';
 
 /* --- shared globals the feature modules read (player pos/rig/move, walk, scene) --- */
 window.EMPLAYERPOS = pos;          // live Vector3 (mutated in place) → {x,z} reads stay current
@@ -61,7 +62,7 @@ initInput();
 initHud();                          // window.EMHUD now exists for the feature modules
 
 /* bring up the feature modules (order-robust - they poll for deps if absent) */
-[ initTooltip, initOrbs, initXpCounter, initWorldMap, initEmotes, initSave, initAudio,
+[ initTick, initTooltip, initOrbs, initXpCounter, initWorldMap, initEmotes, initSave, initAudio,
   initCombat, initSkilling, initEquipment, initEquipTab, initPrayerTab, initMagicTab,
   initQuestsTab, initSettingsTab, initInvOps, initMinimapNav,
   initLessons, initGating, initCharCreate, initMusicTab, initSocial, initSkillGuide, initMinimapRender,

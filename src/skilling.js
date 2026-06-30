@@ -54,6 +54,18 @@ function world(){ return (typeof window !== 'undefined' && window.EMWORLD) || nu
 
 function chat(text){ const h = hud(); if(h && h.addChat) h.addChat(text, '', true); }
 
+/* subscribe fn to the shared global game tick (window.EMTICK) so gather/produce
+   rolls advance on the same cadence as combat. Falls back to a private setInterval
+   at TICK_MS if the shared clock isn't present. Returns an unsubscribe function. */
+function onTick(fn){
+  if(typeof window !== 'undefined' && window.EMTICK && typeof window.EMTICK.subscribe === 'function'){
+    return window.EMTICK.subscribe(fn);
+  }
+  if(typeof setInterval !== 'function') return () => {};
+  const id = setInterval(fn, TICK_MS);
+  return () => { if(typeof clearInterval === 'function') clearInterval(id); };
+}
+
 /* count free inventory slots, honouring stackables already in the bag */
 function bagFull(outputId){
   const h = hud();
@@ -84,7 +96,7 @@ let active = null;          // { verb, recipe, scenery, ctx, timer }
 export function stop(reason){
   if(!active) return;
   const a = active; active = null;
-  if(a.timer){ clearInterval(a.timer); a.timer = null; }
+  if(a.timer){ a.timer(); a.timer = null; }                 // unsubscribe from the shared tick
   if(reason) chat(reason);
 }
 
@@ -158,7 +170,7 @@ function begin(verb, opts){
     active.recipe.oneShot = true;
   }
   chat(active.recipe.start);
-  active.timer = setInterval(tick, TICK_MS);
+  active.timer = onTick(tick);                               // beat on the shared game tick
   return true;
 }
 
@@ -174,7 +186,10 @@ function runProduceQty(verb, qty){
 
   stop(); // cancel any existing action
 
+  // one attempt per shared game tick: gate, roll, grant; on a miss we simply
+  // stay subscribed and retry next tick (matches the prior re-tick-on-miss path).
   function step(){
+    if(!active) return;                                       // stopped between ticks
     if(remaining <= 0){ stop(); return; }
     // gate check before each unit
     if(bagFull(r.output)){ stop('Your inventory is too full to hold any more.'); return; }
@@ -183,42 +198,24 @@ function runProduceQty(verb, qty){
     }
     if(r.consume2 && !r.consume2.every(hasItem)){ stop('You do not have all the materials you need.'); return; }
 
-    // success roll (always succeeds for smith/cook on first tick when chance===1.0,
-    // otherwise we keep rolling until we land - matches OSRS cook burn chance)
-    const rollAndGrant = () => {
-      if(Math.random() >= r.chance) return false; // miss this tick
-      if(verb === 'cook' && r.burnt && Math.random() < 0.20){
-        grantItem(r.burnt);
-        chat('Oops! You accidentally burn the food.');
-      } else {
-        if(r.output) grantItem(r.output);
-        chat(r.success);
-      }
-      grantXp(r.skill, r.xp);
-      return true;
-    };
-
-    // for chance===1.0 verbs (smith) this always lands; for cook (0.70) it may miss
-    // to keep things simple we just re-tick on miss (same as existing oneShot path)
-    if(!rollAndGrant()){
-      // missed tick - schedule another attempt for the same unit
-      active = active || { timer: null };
-      active.timer = setTimeout(step, TICK_MS);
-      return;
+    // success roll (always lands for chance===1.0 verbs like smith; cook can miss/burn)
+    if(Math.random() >= r.chance) return;                    // miss this tick - retry next tick
+    if(verb === 'cook' && r.burnt && Math.random() < 0.20){
+      grantItem(r.burnt);
+      chat('Oops! You accidentally burn the food.');
+    } else {
+      if(r.output) grantItem(r.output);
+      chat(r.success);
     }
+    grantXp(r.skill, r.xp);
 
     remaining--;
-    if(remaining > 0){
-      active = active || { timer: null };
-      active.timer = setTimeout(step, TICK_MS);
-    } else {
-      active = null;
-    }
+    if(remaining <= 0){ stop(); }                            // batch done - unsubscribe
   }
 
   active = { verb, recipe: Object.assign({}, r), scenery: null, ctx: null, timer: null };
   chat(r.start);
-  active.timer = setTimeout(step, TICK_MS);
+  active.timer = onTick(step);                               // beat on the shared game tick
 }
 
 /* Open Make-X for smithing (anvil + bronze-bar -> products).

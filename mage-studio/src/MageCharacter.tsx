@@ -115,23 +115,21 @@ export function MageCharacter({ silhouette = false }: { silhouette?: boolean }) 
         </mesh>
       ))}
 
-      {/* sleeves -> hands (angled out so the arms read; hands lower) */}
+      {/* sleeves: bell cuffs; left hand tucks at the cuff, right hand grips the
+          staff (added inside the staff group below). */}
       <group name="leftSleeve" position={[-0.32, 1.5, 0.04]} rotation={[0, 0, 0.22]}>
         <mesh geometry={g.sleeve}><M color={C.sleeve} sil={sil} /></mesh>
-        <mesh name="leftHand" geometry={g.hand} position={[-0.04, -0.62, 0.05]}>
+        <mesh name="leftHand" geometry={g.hand} position={[-0.02, -0.6, 0.01]}>
           <M color={C.skin} sil={sil} />
         </mesh>
       </group>
-      <group name="rightSleeve" position={[0.32, 1.5, 0.04]} rotation={[0, 0, -0.16]}>
+      <group name="rightSleeve" position={[0.32, 1.5, 0.06]} rotation={[0, 0, -0.34]}>
         <mesh geometry={g.sleeve}><M color={C.sleeve} sil={sil} /></mesh>
-        <mesh name="rightHand" geometry={g.hand} position={[0.1, -0.64, 0.16]}>
-          <M color={C.skin} sil={sil} />
-        </mesh>
       </group>
 
       {/* dark recessed face — centred, set back into the hood opening so it
           reads as a shadowed face, not a window. */}
-      <mesh name="face" geometry={g.torso} scale={[0.54, 0.62, 0.4]} position={[0, 1.52, 0.0]}>
+      <mesh name="face" geometry={g.torso} scale={[0.52, 0.56, 0.4]} position={[0, 1.48, 0.02]}>
         <M color={C.face} sil={sil} />
       </mesh>
 
@@ -143,9 +141,13 @@ export function MageCharacter({ silhouette = false }: { silhouette?: boolean }) 
         <M color={C.hood} sil={sil} />
       </mesh>
 
-      {/* staff held out to the RIGHT side so the crystal clears the face */}
-      <group name="staff" ref={staff} position={[0.62, 0, 0.12]} rotation={[0, 0, -0.06]}>
+      {/* staff held out to the RIGHT side so the crystal clears the face;
+          the right hand grips the shaft at body height. */}
+      <group name="staff" ref={staff} position={[0.54, 0, 0.12]} rotation={[0, 0, -0.06]}>
         <mesh geometry={g.staff}><M color={C.staff} sil={sil} /></mesh>
+        <mesh name="rightHand" geometry={g.hand} scale={1.15} position={[-0.04, 1.05, 0.02]} rotation={[0, 0, 0.3]}>
+          <M color={C.skin} sil={sil} />
+        </mesh>
         <mesh name="crystal" geometry={g.crystal} scale={0.85} position={[0, 2.12, 0]}>
           {sil
             ? <meshBasicMaterial color="#0b0c0e" side={THREE.DoubleSide} />

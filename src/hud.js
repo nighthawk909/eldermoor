@@ -14,7 +14,7 @@ export function initHud(){
   #emmap{position:fixed;right:10px;top:10px;z-index:30;width:108px;height:108px;border-radius:50%;
     border:3px solid #5a4a2a;box-shadow:0 3px 12px #0008,inset 0 0 0 2px #2b2620;overflow:hidden;background:#3f6f3a;}
   #emmap canvas{display:block;width:100%;height:100%;}
-  #emchat{position:fixed;left:8px;bottom:8px;width:min(44vw,360px);height:150px;z-index:30;display:flex;flex-direction:column;
+  #emchat{position:fixed;left:8px;bottom:8px;width:min(44vw,360px);height:178px;z-index:30;display:flex;flex-direction:column;
     background:linear-gradient(#2b2620,#1f1b16);border:2px solid #5a4a2a;border-radius:6px;box-shadow:0 4px 16px #000a;font-family:"Trebuchet MS",sans-serif;}
   #emlog{flex:1;overflow-y:auto;padding:6px 9px;font-size:12.5px;color:#e3d6b8;line-height:1.5;}
   #emlog .sys{color:#e7c64f;} #emlog .who{color:#7fb0e0;}
@@ -27,6 +27,16 @@ export function initHud(){
   #emchch button.mode-off{opacity:.45;text-decoration:line-through;}
   #emchch button.mode-hide{opacity:.25;}
   #emchch button.mode-filtered{font-style:italic;}
+  /* ---- real chat input line: type + Enter or Send, appends to the log under
+     whichever channel is currently active (defaults to Game when "All" is selected) ---- */
+  #emchin{display:flex;gap:4px;padding:4px 6px;border-top:1px solid #4a3a26;background:#241c14;}
+  #emchin input{flex:1;min-width:0;background:#1b1510;color:#f3e9cf;border:1px solid #4a3a26;border-radius:3px;
+    padding:5px 7px;font:12px "Trebuchet MS",sans-serif;outline:none;}
+  #emchin input:focus{border-color:#e7c64f;}
+  #emchin button{flex:0 0 auto;background:#3a2e1f;color:#e7c64f;border:1px solid #5a4a2a;border-radius:3px;
+    padding:5px 11px;font:bold 11px "Trebuchet MS",sans-serif;cursor:pointer;}
+  #emchin button:hover{background:#4a3c28;}
+  #emchin button:disabled{opacity:.4;cursor:default;}
   /* ---- OSRS-style two-row stone tab strip, fixed-docked bottom-right (desktop) ---- */
   #emtabs{position:fixed;right:8px;bottom:8px;z-index:31;display:grid;grid-template-columns:repeat(7,1fr);
     grid-auto-rows:1fr;gap:3px;width:min(80vw,318px);
@@ -35,7 +45,20 @@ export function initHud(){
   #emtabs button{aspect-ratio:1;font-size:16px;background:linear-gradient(#3a2e1f,#241b12);
     border:1px solid #5a4a2a;border-radius:5px;color:#f3e9cf;cursor:pointer;line-height:1;
     box-shadow:inset 0 1px 0 #ffffff10,inset 0 -2px 3px #00000040;}
-  #emtabs button.on{border-color:#e7c64f;background:linear-gradient(#5a4422,#3a2e16);box-shadow:inset 0 0 6px #0006;}
+  #emtabs button.on{border-color:#e7c64f;background:linear-gradient(#5a4422,#3a2e16);box-shadow:inset 0 0 6px #0006,0 0 0 1px #e7c64f88;}
+  /* ---- desktop dock lock: guarantees the tab strip + panel stay bottom-right and
+     NEVER share screen space with the top-left XP counter / QA button. Wide/tall
+     viewports (real desktop windows, incl. ones that read as "landscape" aspect)
+     are pinned here with a specificity (id+2 classes) that outranks any same-load
+     -order #emtabs/#empanel override from other modules keyed only on a body class.
+     Genuinely small/narrow viewports (actual phones) are left to their own
+     orientation-specific stacked layout untouched. ---- */
+  #emtabs.emtabs.emtabs{right:8px;bottom:8px;left:auto;top:auto;}
+  #empanel.empanel.empanel{right:8px;bottom:92px;left:auto;top:auto;}
+  @media (min-width:701px) and (min-height:520px){
+    #emtabs.emtabs.emtabs{right:8px!important;bottom:8px!important;left:auto!important;top:auto!important;}
+    #empanel.empanel.empanel{right:8px!important;bottom:92px!important;left:auto!important;top:auto!important;max-height:52vh!important;}
+  }
   #empanel{position:fixed;right:8px;bottom:92px;z-index:31;width:min(80vw,318px);max-height:52vh;overflow:auto;display:none;
     background:linear-gradient(#4a3c28,#2a2117);border:2px solid #6b5a32;border-radius:7px;padding:9px;
     box-shadow:0 6px 22px #000b,inset 0 1px 0 #ffffff14;font-family:"Trebuchet MS",sans-serif;background-color:#312718;}
@@ -48,9 +71,18 @@ export function initHud(){
     box-shadow:inset 0 1px 0 #ffffff12,inset 0 -2px 4px #00000050;}
   .eminv .s.empty{opacity:.4;cursor:default;}
   .eminv .s .ct{position:absolute;top:1px;right:3px;font-size:10px;color:#8fe08f;font-weight:bold;text-shadow:0 1px 1px #000;}
-  .emsk{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;}
-  .emsk .sk{background:linear-gradient(#332a1c,#241c12);border:1px solid #5a4a2a;border-radius:4px;padding:3px 5px;font-size:11px;display:flex;align-items:center;gap:4px;}
-  .emsk .sk .lv{margin-left:auto;color:#fff;font-weight:bold;}
+  /* OSRS stats panel: 3-column grid that fills the FULL panel width, larger
+     readable rows (icon + name + level), using the available height instead of
+     leaving the panel mostly empty. */
+  #empanel.emp-wide{width:min(86vw,398px);}
+  .emsk{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:100%;}
+  .emsk .sk{background:linear-gradient(#332a1c,#241c12);border:1px solid #5a4a2a;border-radius:6px;padding:9px 8px;
+    font-size:13px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:64px;
+    box-shadow:inset 0 1px 0 #ffffff12,inset 0 -2px 4px #00000050;}
+  .emsk .sk:hover{border-color:#8a7440;}
+  .emsk .sk .ic{font-size:22px;line-height:1;}
+  .emsk .sk .nm{display:none;}
+  .emsk .sk .lv{margin-left:0;color:#fff;font-weight:bold;font-size:14px;}
   .emtot{text-align:center;margin-top:7px;color:#cdbf98;font-size:12px;}
   .emeq{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;justify-items:center;}
   .emeq .s{width:84%;aspect-ratio:1;background:linear-gradient(#332a1c,#241c12);border:1px solid #5a4a2a;border-radius:5px;display:flex;
@@ -76,10 +108,11 @@ export function initHud(){
     <div id="emobj"><span class="lab">Objective</span><span id="emobjtx">Explore the chapel grounds</span></div>
     <div id="emmap"><canvas width="108" height="108"></canvas></div>
     <div id="emchat"><div id="emlog"></div>
+      <div id="emchin"><input id="emchintx" type="text" maxlength="160" placeholder="Press Enter to chat..." autocomplete="off"/><button id="emchinbtn" type="button">Send</button></div>
       <div id="emchch">${[['all','All'],['game','Game'],['public','Public'],['private','Private'],['clan','Clan'],['trade','Trade']]
         .map(([ch,lab])=>`<button data-ch="${ch}" data-lab="${lab}" class="${ch==='all'?'':'ch-'+ch}">${lab}</button>`).join('')}</div></div>
-    <div id="empanel"></div>
-    <div id="emtabs">${TABS.map(t=>`<button data-t="${t[0]}" title="${t[2]}">${t[1]}</button>`).join('')}</div>
+    <div id="empanel" class="empanel"></div>
+    <div id="emtabs" class="emtabs">${TABS.map(t=>`<button data-t="${t[0]}" title="${t[2]}">${t[1]}</button>`).join('')}</div>
     <div id="emxp" class="ui"></div>`);
 
   let SK=null, IT={}, ready=false;
@@ -93,6 +126,7 @@ export function initHud(){
 
   function render(){
     if(!ready) return;
+    panel.classList.toggle('emp-wide', curTab==='stats'); // stats grid needs the wider panel; others keep default width
     if(window.EMTABS && typeof window.EMTABS[curTab]==='function'){ window.EMTABS[curTab](panel, EMHUD_STATE); return; }
     if(curTab==='inv'){
       panel.innerHTML='<h4>Inventory</h4><div class="eminv"></div>';
@@ -106,7 +140,7 @@ export function initHud(){
       panel.innerHTML='<h4>Skills</h4><div class="emsk"></div><div class="emtot"></div>';
       const g=panel.querySelector('.emsk');
       SK.skills.forEach(s=>{ const lv=levelFromXp(skillXp[s.id]||0);
-        g.insertAdjacentHTML('beforeend', `<div class="sk" data-sk="${s.id}" style="cursor:pointer" title="${s.name}: ${Math.floor(skillXp[s.id]||0)} xp — click for the skill guide"><span>${s.icon}</span><span class="lv">${lv}</span></div>`); });
+        g.insertAdjacentHTML('beforeend', `<div class="sk" data-sk="${s.id}" style="cursor:pointer" title="${s.name}: ${Math.floor(skillXp[s.id]||0)} xp — click for the skill guide"><span class="ic">${s.icon}</span><span class="lv">${lv}</span></div>`); });
       g.querySelectorAll('[data-sk]').forEach(c=>c.onclick=()=>{ if(window.EMSKILLGUIDE) EMSKILLGUIDE.open(c.dataset.sk); });
       panel.querySelector('.emtot').textContent='Total level: '+totalLevel();
     } else if(curTab==='equip'){
@@ -213,6 +247,31 @@ export function initHud(){
   };
   // shared state object passed to external EMTABS renderers (read access to HUD internals)
   const EMHUD_STATE = window.EMHUD;
+
+  /* ---- chat input: a real text field that actually sends. Enter or the Send
+     button appends the typed line to the log under the channel the player is
+     currently viewing (defaults to 'game' when the 'All' filter is active, same
+     default addChat already uses for player-authored lines without an explicit
+     channel). Empty/whitespace-only input is ignored; the field is cleared and
+     refocused after sending so the player can keep typing. ---- */
+  const chatInput = document.getElementById('emchintx');
+  const chatSendBtn = document.getElementById('emchinbtn');
+  function sendChatInput(){
+    const raw = chatInput.value;
+    const text = raw.trim();
+    chatInput.value='';
+    if(!text) { chatInput.focus(); return; }
+    const channel = (activeCh && activeCh!=='all') ? activeCh : 'public';
+    const name = (window.EMPLAYERNAME || (window.EMHUD && EMHUD.playerName) || 'You');
+    EMHUD.addChat(text, name, {channel});
+    chatInput.focus();
+  }
+  if(chatInput && chatSendBtn){
+    chatSendBtn.onclick = sendChatInput;
+    chatInput.addEventListener('keydown', (e)=>{
+      if(e.key==='Enter'){ e.preventDefault(); sendChatInput(); }
+    });
+  }
 
   /* minimap */
   const mc=document.querySelector('#emmap canvas'), mx=mc.getContext('2d');

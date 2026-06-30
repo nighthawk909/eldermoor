@@ -1,6 +1,6 @@
 {
-  "version": "v39",
-  "title": "v39 — QA-fix wave 2 (combat loop, skill guide, tutorial, zone music, runes)",
+  "version": "v40",
+  "title": "v40 — boot hotfix (world.js SPAWN TDZ) + QA-fix wave 2",
   "items": [
     {
       "id": "login",

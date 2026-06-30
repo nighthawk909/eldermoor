@@ -137,7 +137,11 @@ export function planPath(tx,tz){            // new player command → fresh path
    death/respawn (CBT death model) can return the player here without hand-coding
    a duplicate coordinate. Defaults to the player module's built-in fallback spawn
    until applyColliders() runs. */
-export const SPAWN = { x: pos.x, z: pos.z, ry: player.rotation.y };
+// NOTE: literal defaults — must NOT read pos/player at module top level. world.js and
+// player.js import each other; evaluating this before player.js finishes init throws a TDZ
+// ("Cannot access 'pos' before initialization") that bricks the entire boot. These match
+// player.js's fallback spawn and are overwritten from the colliders JSON in applyColliders().
+export const SPAWN = { x: 0, z: 8.5, ry: Math.PI };
 
 /* reset the player to the world spawn point (used by applyColliders on load AND by
    combat.js on player death/respawn - same honest "teleport home" semantics both times). */

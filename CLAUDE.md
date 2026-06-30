@@ -4,6 +4,78 @@ Durable project context for Claude Code. Read this first every session.
 
 ---
 
+## EXECUTION POLICY (policy-driven mode)
+
+This section converts ad-hoc prompting into standing policy. Some of it is **enforced by
+Claude Code hooks** (`.claude/settings.json` + `.claude/hooks/*.sh`); the rest is **behavioural
+policy Claude follows** because it cannot be enforced by a deterministic shell hook. Each item
+is tagged `[HOOK]` (mechanically enforced) or `[POLICY]` (Claude must self-apply). Honesty about
+the boundary is deliberate: hooks gate/inject/flag — they cannot think, write prose, or know
+that a feature "works".
+
+### Project execution
+- `[POLICY]` Continue until the assigned task is **fully complete** (see Quality Rules). Never
+  stop because a logical *subtask* finished.
+- `[POLICY]` When a task completes, automatically pick up the **next highest-priority task** from
+  `NEXT_TASKS.md` → `BACKLOG.md` unless blocked.
+- `[POLICY]` **Single-agent** for shared control-flow + integration work (anything touching
+  `main.js`, `world.js`, `interact.js`, `hud.js`, `combat.js`, `skilling.js`, or the deploy path).
+- `[POLICY]` **Multi-agent (10–20)** only for *isolated, non-overlapping* work (separate data
+  files, separate feature modules with no shared-file edits). Never parallelize edits to the same
+  control-flow file.
+- `[HOOK-assist]` The **Stop hook** refuses to end the session while there are uncommitted
+  changes, unpushed commits, or stale docs, and re-injects "continue with the next task".
+
+### Session start  `[HOOK]` (`session-start.sh`)
+On every session the SessionStart hook prints, into context: current **branch**, **latest commit**,
+upstream ahead/behind, worktree cleanliness, **local client version**, presence of the six context
+docs, and a best-effort **production version** check. `[POLICY]` Then read
+`PROJECT_STATE.md`, `BACKLOG.md`, `ARCHITECTURE.md`, `NEXT_TASKS.md`, `METRICS.md`,
+`PROJECT_HANDOFF.md` and restore full context **before any coding**.
+
+### After implementation  `[HOOK]` (`post-tool-use.sh`) + `[POLICY]`
+When any `src/**`, `index.html`, `index.modular.html`, or `*.js` file is edited, the PostToolUse
+hook raises `.claude/state/docs-dirty` and reminds you. `[POLICY]` Before the work unit ends,
+update **all six** of PROJECT_STATE / BACKLOG / NEXT_TASKS / METRICS / PROJECT_HANDOFF (and
+ARCHITECTURE when structure changes) to the new state, keep them synchronized, then clear the flag:
+`rm .claude/state/docs-dirty`. (A hook cannot write the prose; it can only flag staleness.)
+
+### Stop conditions  `[HOOK]` (`stop.sh`)
+Stopping is **blocked** while any of these objectively-detectable conditions hold: uncommitted
+changes · unpushed commits · `docs-dirty` flag · `boot-pending` flag · `deploy-pending` flag.
+`[POLICY]` The semantic conditions a hook can't verify — *feature incomplete, boot not verified,
+playtest not done when required, deployment not promoted, higher-priority work remaining* — you
+must self-enforce; record the verifiable ones as flag files so the hook can hold the line:
+`touch .claude/state/boot-pending` / `deploy-pending`, and remove them when satisfied.
+If blocked from stopping: resolve the condition and **continue with the next highest-priority
+task automatically**. Only request human input for **destructive git** (`[HOOK]` PreToolUse asks)
+or a **genuine design decision**.
+
+### Output style  `[POLICY]` (not hook-enforceable)
+Think silently. Read files / inspect code silently. Do not narrate, explain reasoning, announce
+reads, announce plans, or send progress updates while actively working. Respond **only** when: a
+milestone is complete, a blocker needs my decision, or a destructive git action needs approval.
+Status updates must be **under 75 words** in exactly this format:
+
+```
+Version:
+Commit:
+Pushed:
+Deployed:
+Feature:
+Playable impact:
+Blocker:
+```
+
+### Quality Rules  `[POLICY]`
+Never report a feature complete unless it is: **implemented · integrated · boot-verified ·
+playtested (when required) · committed · pushed · deployed · reflected in all six docs.** If the
+sandbox network policy blocks browser boot / production reachability, say so explicitly and use
+the project boot-verify method (deterministic logic test + deployed-URL verification) rather than
+silently downgrading — and leave `boot-pending` / `deploy-pending` set until truly satisfied.
+
+---
+
 ## 0. Operating law (NON-NEGOTIABLE)
 
 These override convenience, speed, and token cost. If a step would violate one, stop.

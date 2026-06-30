@@ -16,3 +16,6 @@ Thumbs.db
 
 .vercel
 .env*.local
+
+# Claude Code hook runtime flags (local only)
+.claude/state/

@@ -1,5 +1,5 @@
 {
-  "updated": 1782862335176,
+  "updated": 1782862732292,
   "version": "v41",
   "note": "Live fleet board. Reflects v36 owner QA + browser screenshots. Character art (studio + in-world avatar/creator) owned by a separate chat. Statuses: queued | building | review | requeue | shipped | done | blocked | failed.",
   "board": [
@@ -295,19 +295,19 @@
       "id": "P7-LESSONS",
       "epic": "P7 Lessons",
       "title": "Full L0-L17 gated lesson chain in lessons.json",
-      "status": "review",
-      "agent": "builder-lessons2",
-      "note": "L0-L17 verified already-wired (halric/maeve/...); L6 fixed to has:bread",
-      "ts": 1782860770318
+      "status": "shipped",
+      "agent": "fleet",
+      "note": "deployed in v41-v44 (walkable island); awaiting your playtest",
+      "ts": 1782862682174
     },
     {
       "id": "P7-DIALOGUE",
       "epic": "P7 Lessons",
       "title": "Instructor dialogue trees L0-L17 in dialogue.json",
-      "status": "review",
-      "agent": "builder-story",
-      "note": "11 instructor trees, dual-keyed (slug + role id), fire complete:L1-L17",
-      "ts": 1782860861432
+      "status": "shipped",
+      "agent": "fleet",
+      "note": "deployed in v41-v44 (walkable island); awaiting your playtest",
+      "ts": 1782862682510
     },
     {
       "id": "P4-ZONES",
@@ -322,28 +322,28 @@
       "id": "P4-QUESTS",
       "epic": "P3 Quests",
       "title": "Flesh out quests.json + 2 starter quests",
-      "status": "review",
-      "agent": "builder-quests",
-      "note": "2 starter quests (cooks-errand, goblin-in-the-cellar); QP 6->8",
-      "ts": 1782860769518
+      "status": "shipped",
+      "agent": "fleet",
+      "note": "deployed in v41-v44 (walkable island); awaiting your playtest",
+      "ts": 1782862682801
     },
     {
       "id": "P4-EXAMINE",
       "epic": "P2 Interaction",
       "title": "Examine text for new items+scenery in examine.json",
-      "status": "review",
-      "agent": "builder-examine",
-      "note": "67 examine lines (tiers+dock)",
-      "ts": 1782860770017
+      "status": "shipped",
+      "agent": "fleet",
+      "note": "deployed in v41-v44 (walkable island); awaiting your playtest",
+      "ts": 1782862683090
     },
     {
       "id": "P4-ASSETS",
       "epic": "P4 World",
       "title": "New zone fixtures/props in build_kit.py",
-      "status": "review",
-      "agent": "builder-modeler",
-      "note": "8 fixture builders (range/furnace/anvil/bank/altar/ladder/signpost/dock); needs Blender export to glb",
-      "ts": 1782860834426
+      "status": "shipped",
+      "agent": "fleet",
+      "note": "deployed in v41-v44 (walkable island); awaiting your playtest",
+      "ts": 1782862683385
     },
     {
       "id": "ZONE-RENDER",
@@ -389,6 +389,33 @@
       "agent": "orchestrator",
       "note": "4 props modelled+exported+wired; zero placeholders; v44 clean-origin boot (scene 523)",
       "ts": 1782862335176
+    },
+    {
+      "id": "AUDIT-RECONCILE",
+      "epic": "Audit",
+      "title": "AUDIT-RECONCILE",
+      "status": "building",
+      "agent": "auditor",
+      "note": "reconcile PARITY_AUDIT vs v37-v44 shipped work -> true remaining count + top clusters",
+      "ts": 1782862683684
+    },
+    {
+      "id": "P2-INTERACT",
+      "epic": "P2 Interaction",
+      "title": "P2-INTERACT",
+      "status": "building",
+      "agent": "builder-interact",
+      "note": "Reading interact.js + PARITY_AUDIT for OW items",
+      "ts": 1782862710968
+    },
+    {
+      "id": "SOCIAL-TABS",
+      "epic": "P3 HUD",
+      "title": "SOCIAL-TABS",
+      "status": "review",
+      "agent": "builder-social",
+      "note": "src/social.js already fully implemented all 3 tabs (Friends/Ignore/Account) with EMTABS contract, localStorage persistence (eldermoor:friends, eldermoor:ignore), OSRS brown-stone CSS. Verified syntax ok, no edits needed.",
+      "ts": 1782862732292
     }
   ]
 }

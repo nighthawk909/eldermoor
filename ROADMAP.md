@@ -1,5 +1,7 @@
 # ROADMAP.md — Eldermoor: the one master plan
 
+> **v51 (2026-06-30) — polish batch.** levelup.js (new, wired): OSRS level-up popup + jingle, polls EMHUD levels. sfx-actions.js: full procedural SFX coverage for chop/mine/fish/fire/smith/smelt/cook/hit/block/eat/bury/drop/take/equip/bank/prayer/cast/UI/level-up (fixed a dead rawBeep that reached a non-existent EMAUDIO._ctx; own mixer/mute-aware Web Audio bus). items.json: value/weight/highalch/lowalch/examine across all 110 items. Boot-verified. Deployed v51.
+
 > **v50 (2026-06-30) — tutorial chain wired end-to-end.** Fixed the L0-L17 completion breaks found by direct trace: combat.js now dispatches em-flag killed:<mob> (+ _ranged) on kill (giant-rat->giant_rat) for L11/L12; magic-tab.js dispatches cast:<spell> and L16 predicate aligned to the real spell id (gale_bolt = Wind Strike); skilling.js mine now yields BOTH copper-ore AND tin-ore (random) so L8 (has:tin-ore&has:copper-ore) + smelting are reachable. All lesson item ids verified present. Boot-verified clean. Deployed v50.
 
 > **v49 (2026-06-30) — Use-on.** inventory-ops.js: OSRS Use flow (arm Use on a bag item -> tap another item OR a world fixture). Data-driven recipes in assets/data/useon.json: flour+water->dough, tinderbox+logs->fire (lit:fire flag for L3), raw-shrimp on fire/range->cooked, ore on furnace->bronze-bar, bar on anvil->bronze-dagger; fixture recipes route through window.EMSKILL (no dup). Boot-verified. Deployed v49.

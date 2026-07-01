@@ -1,5 +1,5 @@
 {
-  "updated": 1782874344897,
+  "updated": 1782874940593,
   "version": "v41",
   "note": "Live fleet board. Reflects v36 owner QA + browser screenshots. Character art (studio + in-world avatar/creator) owned by a separate chat. Statuses: queued | building | review | requeue | shipped | done | blocked | failed.",
   "board": [
@@ -538,28 +538,28 @@
       "id": "SFX-COVERAGE",
       "epic": "Audio",
       "title": "SFX-COVERAGE",
-      "status": "building",
+      "status": "shipped",
       "agent": "builder-sfx",
-      "note": "Reading sfx-actions.js, audio.js, skilling.js, combat.js, hud.js to plan coverage",
-      "ts": 1782874329552
+      "note": "full action/combat/UI/skill SFX (fixed dead helper); v51",
+      "ts": 1782874939853
     },
     {
       "id": "ITEM-DEPTH",
       "epic": "Items",
       "title": "ITEM-DEPTH",
-      "status": "building",
+      "status": "shipped",
       "agent": "builder-items3",
-      "note": "item value/weight/high-low-alch/noted flags completeness (items.json)",
-      "ts": 1782874298122
+      "note": "110 items value/weight/alch/examine; v51",
+      "ts": 1782874940593
     },
     {
       "id": "LEVELUP-FX",
       "epic": "HUD",
       "title": "LEVELUP-FX",
-      "status": "building",
+      "status": "shipped",
       "agent": "builder-levelup",
-      "note": "Reading hud.js/audio.js to find XP/level hooks",
-      "ts": 1782874344897
+      "note": "level-up popup + jingle (levelup.js, wired); v51",
+      "ts": 1782874938871
     }
   ]
 }

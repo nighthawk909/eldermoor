@@ -35,7 +35,7 @@ const RECIPE = {
            start:'You swing your pickaxe at the rock.', success:'You manage to mine some ore.' },
   fish:  { skill:'Fishing', xp:30, chance:0.32, output:'raw-shrimp',
            start:'You cast out your net...', success:'You catch some shrimp.' },
-  light: { skill:'Firemaking', xp:40, chance:0.45, output:null, consume:'logs',
+  light: { skill:'Firemaking', xp:40, chance:0.45, output:null, consume:'logs', flag:'lit:fire',
            start:'You attempt to light the logs.', success:'The fire catches and the logs begin to burn.' },
   cook:  { skill:'Cooking', xp:30, chance:0.70, output:'cooked-shrimp', burnt:'burnt-shrimp',
            start:'You cook the food on the fire.', success:'You cook the food. It smells great.' },
@@ -208,6 +208,8 @@ function runProduceQty(verb, qty){
       chat(r.success);
     }
     grantXp(r.skill, r.xp);
+    // tutorial hook: satisfy lesson predicates on real skill success (e.g. lit:fire for Firemaking L3)
+    if(r.flag){ try { window.dispatchEvent(new CustomEvent('em-flag', { detail: r.flag })); } catch(e){ /* non-fatal */ } }
 
     remaining--;
     if(remaining <= 0){ stop(); }                            // batch done - unsubscribe

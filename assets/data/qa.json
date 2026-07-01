@@ -1,6 +1,6 @@
 {
-  "version": "v55",
-  "title": "v55 — quest journal polish + rich tooltips",
+  "version": "v56",
+  "title": "v56 — firemaking dispatches lit:fire (QA sweep fix)",
   "items": [
     {
       "id": "login",

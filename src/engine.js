@@ -24,7 +24,7 @@ export function decayExp(value, dt, rate=3.0, floor=0.01){
 }
 
 export const canvas = document.getElementById('c');
-export const renderer = new THREE.WebGLRenderer({canvas, antialias:true});
+export const renderer = new THREE.WebGLRenderer({canvas, antialias:true, preserveDrawingBuffer:true});
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.outputEncoding = THREE.sRGBEncoding;

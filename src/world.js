@@ -5,7 +5,7 @@
    planPath and helpers), applyColliders, and the kit-piece library
    (PIECES / place / instanceManifest / scenery descriptors).
    ===================================================================== */
-import { scene, dressMaterials } from './engine.js';
+import { scene, dressMaterials, TEX } from './engine.js';
 import { clickTargets } from './interact.js';
 import { move, pos, player } from './player.js';
 
@@ -303,7 +303,26 @@ const MANIFEST_FIX = { fishing_spot:'fishing-spot', fire_ring:'fire', cooking_ra
 // marker types that now have a Blender-authored kit mesh -> place the real prop
 const MARKER_PIECE = { ladder_down:'ladder', ladder_up:'ladder', altar:'altar', signpost:'signpost', dock_planks:'dock',
   rat_pen_gate:'rat_pen_gate', target_butt:'target_butt', rune_rack:'rune_rack', boat:'boat' };
+/* Big grass island floor covering the whole walkable area. The world.glb ships
+   only the chapel-grounds terrain; the multi-zone island (out to the north dock)
+   otherwise sat over the 360x360 ocean plane -> "everything is blue". This lays a
+   tiled-grass ground UNDER the existing terrain/floors/pond (y below them) but
+   ABOVE the ocean, so the island reads as land while the ocean still frames it. */
+let _islandGround = null;
+function addIslandGround(){
+  if(_islandGround || typeof THREE === 'undefined') return;
+  const w = 80, d = 100, cx = 0, cz = 37;     // covers x[-40,40], z[-13,87] (BOUND + margin)
+  const tex = TEX && TEX.grass ? TEX.grass.clone() : null;
+  if(tex){ tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(w/3, d/3); tex.needsUpdate = true; }
+  const mat = new THREE.MeshStandardMaterial({ color:0x5f8f3f, map:tex, flatShading:false });
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, d, 1, 1), mat);
+  mesh.rotation.x = -Math.PI/2;
+  mesh.position.set(cx, -0.12, cz);           // below chapel terrain(-0.01)/pond(-0.07), above ocean(-0.45)
+  mesh.renderOrder = 0;
+  scene.add(mesh); _islandGround = mesh;
+}
 export function instanceManifest(data){
+  addIslandGround();                                                                   // land under the whole island (kills the all-water look)
   (data.objects || []).forEach(o => place(o.type, o.x, o.z, o.rot||0, o.scale||1));   // explicit placements
   (data.scatter || []).forEach(s => {                                                  // procedural fill
     if(!PIECES[s.type] || !PIECES[s.type].tpl) return;

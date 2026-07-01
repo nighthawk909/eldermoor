@@ -1,5 +1,7 @@
 # NEXT_TASKS.md — Eldermoor
 
+> **v56 (2026-07-01) — QA sweep + fix.** Full static defect sweep of the v37-v55 body: 49/49 src syntax-clean, 15/15 JSON valid, no monkey-patch double-wraps, no rAF leaks, canonical-mob resolvers agree, all lesson-predicate ids aligned (docs/QA_SWEEP.md). One real fix: skilling.js firemaking success now dispatches em-flag lit:fire so L3 completes on the action (not the 15s anti-brick grace). Orphaned em-settings-change event noted as backlog (harmless). Boot-verified. Deployed v56.
+
 > **v55 (2026-07-01) — quest journal + tooltip depth.** quests-tab.js: locked-quest greying + missing-req tooltip/banner + disabled Start + brown-stone styling (state colouring/grouping/QP total already present). tooltip.js: rich item hovers (name/verb/slot/equip bonuses/value/examine) + world-target tooltips mirroring the hover label, XSS-safe, skipped on touch. Boot-verified. Deployed v55.
 
 > **v54 (2026-07-01) — run animation.** player.js drives the avatar Running_A clip when run energy is on + moving (was always the walk clip). Boot-verified. Deployed v54.

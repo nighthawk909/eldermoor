@@ -1,5 +1,5 @@
 {
-  "updated": 1782881341002,
+  "updated": 1782881678555,
   "version": "v41",
   "note": "Live fleet board. Reflects v36 owner QA + browser screenshots. Character art (studio + in-world avatar/creator) owned by a separate chat. Statuses: queued | building | review | requeue | shipped | done | blocked | failed.",
   "board": [
@@ -592,19 +592,19 @@
       "id": "QUEST-JOURNAL",
       "epic": "P3 Quests",
       "title": "QUEST-JOURNAL",
-      "status": "building",
+      "status": "shipped",
       "agent": "builder-qj",
-      "note": "Adding req greyout, hover tooltips, OSRS brown-stone styling polish",
-      "ts": 1782881337597
+      "note": "req-greying + locked banner + brown-stone; v55",
+      "ts": 1782881677586
     },
     {
       "id": "TOOLTIP-DEPTH",
       "epic": "P3 HUD",
       "title": "TOOLTIP-DEPTH",
-      "status": "building",
+      "status": "shipped",
       "agent": "builder-tip",
-      "note": "Reading tooltip.js, hud.js, equipment.js, items.json, interact.js for data access patterns",
-      "ts": 1782881341002
+      "note": "rich item + world-target tooltips (XSS-safe, touch-aware); v55",
+      "ts": 1782881678555
     }
   ]
 }

@@ -1,5 +1,5 @@
 {
-  "updated": 1782864874346,
+  "updated": 1782865348804,
   "version": "v41",
   "note": "Live fleet board. Reflects v36 owner QA + browser screenshots. Character art (studio + in-world avatar/creator) owned by a separate chat. Statuses: queued | building | review | requeue | shipped | done | blocked | failed.",
   "board": [
@@ -515,6 +515,15 @@
       "agent": "builder-chat",
       "note": "coloured/categorised + timestamps + PM + filters + scrollback + XSS-safe; v48",
       "ts": 1782864874346
+    },
+    {
+      "id": "USE-ON",
+      "epic": "Interaction",
+      "title": "USE-ON",
+      "status": "shipped",
+      "agent": "builder-useon",
+      "note": "item-on-item + item-on-fixture recipes (fire/cook/smelt/smith/dough); routes through EMSKILL; v49",
+      "ts": 1782865348804
     }
   ]
 }

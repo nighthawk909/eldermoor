@@ -49,6 +49,12 @@ const CLIP_ALIASES = {
   death:  ['Death_A', 'Death_B'],
   hit:    ['Hit_A', 'Hit_B'],
   block:  ['Block', 'Blocking'],
+  /* SKILLING-ANIM: a work-swing loop used for chop/mine/smith (and reused for
+     fish/cook - KayKit ships no dedicated fishing/cooking clip, so the same
+     repeating hand-swing reads as "working" for all gather/produce verbs).
+     Looped (unlike the one-shot attack/cast/hit clips below) since a skilling
+     action runs for many ticks, not a single swing. */
+  gather: ['1H_Melee_Attack_Chop', '2H_Melee_Attack_Slice', '1H_Melee_Attack_Slice_Diagonal', 'Unarmed_Melee_Attack_Punch_A'],
 };
 /* gear id/slot -> KayKit gear .gltf filename (closest visual match). */
 const GEAR_FILES = {
@@ -285,7 +291,7 @@ export function initAvatar(){
     });
   }
 
-  /* crossfade to a named state (idle/walk/run/attack/cast/death/hit/block).
+  /* crossfade to a named state (idle/walk/run/attack/cast/death/hit/block/gather).
      Falls back to idle if the requested state has no resolved clip; no-ops
      entirely if no glb avatar is active. oneShot states (attack/cast/hit)
      auto-return to idle/walk via the mixer 'finished' listener. */
@@ -300,6 +306,32 @@ export function initAvatar(){
     action.reset().fadeIn(fade).play();
     glb.activeName = actName;
     return true;
+  }
+
+  /* SKILLING-ANIM: is a gather/produce action currently ticking?
+     Reads the already-published, read-only window.EMSKILL.isActive() (see
+     skilling.js initSkilling()) - no patching, no invasive hook, just a
+     boolean poll of a public accessor that already exists for this purpose. */
+  function skillingActive(){
+    try { return !!(window.EMSKILL && window.EMSKILL.isActive && window.EMSKILL.isActive()); }
+    catch(e){ return false; }
+  }
+
+  /* setState() is called every frame by player.js with 'walk'/'idle' (plus
+     rising-edge 'attack'/'death'). player.js has no knowledge of skilling
+     (it only owns movement/combat), so we intercept its low-priority
+     walk/idle requests here and substitute the looping 'gather' clip while
+     a skill action is actively ticking AND the player isn't walking (a step
+     away should read as the player abandoning the action, matching OSRS).
+     'attack'/'cast'/'death'/'hit'/'block' always pass through untouched -
+     they already win by construction (player.js only calls them on rising
+     edges and they auto-settle back to idle/walk via bindMixerFinished). */
+  function setState(name, fadeS){
+    if((name === 'walk' || name === 'idle') && glb && glb.actions.gather){
+      const moving = window.EMMOVE && window.EMMOVE.moving;
+      if(!moving && skillingActive()) return playState('gather', fadeS);
+    }
+    return playState(name, fadeS);
   }
   let _mixerFinishedBound = false;
   function bindMixerFinished(){
@@ -528,7 +560,9 @@ export function initAvatar(){
     rebuild, renderWorn, buildBody, current(){ return current; },
     /* REAL-AVATAR state API: driven by player.js each frame. */
     update,                 // update(dt) - ticks the AnimationMixer; no-op if no glb avatar loaded
-    setState: playState,    // setState('idle'|'walk'|'run'|'attack'|'cast'|'death'|'hit'|'block', fadeSeconds?)
+    setState,                // setState('idle'|'walk'|'run'|'attack'|'cast'|'death'|'hit'|'block'|'gather', fadeSeconds?)
+                              // (walk/idle requests are transparently upgraded to 'gather' while a skill
+                              // action is actively ticking and the player isn't moving - see setState() above)
     usingGlb,                // true once the rigged glTF avatar has replaced the procedural body
   };
   return window.EMAVATAR;

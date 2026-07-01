@@ -1,5 +1,5 @@
 {
-  "updated": 1782863814664,
+  "updated": 1782864444606,
   "version": "v41",
   "note": "Live fleet board. Reflects v36 owner QA + browser screenshots. Character art (studio + in-world avatar/creator) owned by a separate chat. Statuses: queued | building | review | requeue | shipped | done | blocked | failed.",
   "board": [
@@ -479,6 +479,15 @@
       "agent": "fleet",
       "note": "OSRS 2-column no-scroll; v46 boot-verified",
       "ts": 1782863814325
+    },
+    {
+      "id": "REAL-AVATAR",
+      "epic": "Character Art",
+      "title": "REAL-AVATAR",
+      "status": "shipped",
+      "agent": "builder-avatar",
+      "note": "KayKit rigged glb avatar loads+animates+gear-sockets; usingGlb verified true; v47",
+      "ts": 1782864444606
     }
   ]
 }

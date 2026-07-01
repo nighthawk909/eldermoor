@@ -148,6 +148,20 @@ export function initQuestsTab(){
     return { met: null, label: String(txt) };
   }
 
+  // Evaluate every requirement on a quest at once -> { locked, missing:[label,...] }.
+  // locked=true when at least one requirement evaluates met===false (explicitly
+  // unmet). Requirements that can't be determined (met===null) do NOT lock the
+  // quest out (avoids greying everything out when HUD state isn't ready yet).
+  function evalRequirements(x, state){
+    const reqs = Array.isArray(x && x.requirements) ? x.requirements : [];
+    const missing = [];
+    reqs.forEach(r => {
+      const ev = evalRequirement(r, state);
+      if(ev.met === false) missing.push(ev.label);
+    });
+    return { locked: missing.length > 0, missing };
+  }
+
   /* --------------------------------------------------------- chat helper */
   function chatMsg(text){
     try {
@@ -245,21 +259,35 @@ export function initQuestsTab(){
 
   /* --------------------------------------------------------- one-time styles */
   const css = `
-  .emq-wrap{font-family:"Trebuchet MS",sans-serif;color:#e3d6b8;}
+  .emq-wrap{font-family:"Trebuchet MS",sans-serif;color:#e3d6b8;
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(120,96,60,.18), transparent 65%),
+      linear-gradient(180deg,#2b2318,#231b12 55%,#1c1610 100%);
+    border:1px solid #4a3f2a;border-radius:6px;padding:9px 10px 10px;
+    box-shadow:inset 0 0 0 1px #14100a, inset 0 1px 0 rgba(255,255,255,.04), 0 2px 6px rgba(0,0,0,.35);}
   .emq-loading{color:#9a8c6c;font-size:12px;padding:8px 2px;}
-  .emq-pts{font-size:13px;font-weight:bold;color:#d14b3a;margin:0 0 8px;letter-spacing:.02em;}
+  .emq-pts{font-size:13px;font-weight:bold;color:#e3d6b8;margin:0 0 9px;letter-spacing:.02em;
+    text-align:center;padding:5px 8px;border:1px solid #4a3f2a;border-radius:5px;
+    background:linear-gradient(180deg,#332a1c,#241d13);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.05), inset 0 -1px 0 rgba(0,0,0,.3);}
+  .emq-pts .amt{color:#d8b25a;}
   .emq-grp{margin:0 0 9px;}
   .emq-grp h5{margin:0 0 3px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
     color:#cdbf98;border-bottom:1px solid #4a3f2a;padding-bottom:2px;display:flex;align-items:center;}
   .emq-grp h5 .ct{margin-left:auto;color:#9a8c6c;font-weight:normal;letter-spacing:0;}
   .emq-list{list-style:none;margin:0;padding:0;}
   .emq-list li{padding:3px 4px;border-radius:4px;cursor:pointer;font-size:12.5px;line-height:1.25;
-    display:flex;align-items:center;gap:5px;}
-  .emq-list li:hover{background:#3a3122;}
+    display:flex;align-items:center;gap:5px;border:1px solid transparent;}
+  .emq-list li:hover{background:#3a3122;border-color:#5a4a2a;}
   .emq-list li .nm.ns{color:#d14b3a;}   /* not started - red    */
   .emq-list li .nm.ip{color:#e7c64f;}   /* in progress - yellow */
   .emq-list li .nm.cp{color:#5fc14b;}   /* complete    - green  */
   .emq-list li .qp{margin-left:auto;color:#9a8c6c;font-size:10px;white-space:nowrap;}
+  .emq-list li.locked{cursor:help;opacity:.55;filter:grayscale(.6);}
+  .emq-list li.locked:hover{background:#2e281c;border-color:#4a3f2a;}
+  .emq-list li.locked .nm{color:#8a7d64 !important;}
+  .emq-list li .lock-ic{margin-left:auto;font-size:10px;color:#9a8c6c;line-height:1;}
+  .emq-list li.locked .qp{margin-left:4px;}
   .emq-empty{color:#9a8c6c;font-size:12px;padding:6px 2px;}
 
   /* ---- detail subpanel ---- */
@@ -270,6 +298,8 @@ export function initQuestsTab(){
   .emq-detail .title.ns{color:#d14b3a;} .emq-detail .title.ip{color:#e7c64f;} .emq-detail .title.cp{color:#5fc14b;}
   .emq-detail .meta{font-size:10px;color:#9a8c6c;margin:0 0 8px;text-transform:capitalize;}
   .emq-detail .desc{font-size:12px;line-height:1.4;color:#d8cba8;margin:0 0 9px;font-style:italic;}
+  .emq-locked-note{font-size:11px;color:#d14b3a;background:rgba(90,20,20,.22);
+    border:1px solid #6a2a2a;border-radius:5px;padding:5px 8px;margin:0 0 9px;line-height:1.35;}
   .emq-detail h6{margin:9px 0 3px;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;
     color:#cdbf98;}
   .emq-detail ul{list-style:none;margin:0;padding:0 0 0 2px;}
@@ -283,6 +313,9 @@ export function initQuestsTab(){
     color:#c8f0b8;font-size:12px;font-weight:bold;cursor:pointer;border-radius:6px;
     padding:6px 18px;font-family:"Trebuchet MS",sans-serif;letter-spacing:.04em;}
   .emq-start-btn:hover{background:#3a7a36;border-color:#7acc64;}
+  .emq-start-btn.disabled,.emq-start-btn[disabled]{background:#3a3122;border-color:#5a4a2a;
+    color:#8a7d64;cursor:not-allowed;}
+  .emq-start-btn.disabled:hover,.emq-start-btn[disabled]:hover{background:#3a3122;border-color:#5a4a2a;}
 
   /* ---- reward scroll overlay (OSRS-style quest-complete scroll) ---- */
   #emq-reward-overlay{position:fixed;inset:0;background:rgba(10,6,2,.78);
@@ -370,7 +403,7 @@ export function initQuestsTab(){
     });
 
     let html = '<div class="emq-wrap">';
-    html += '<div class="emq-pts">Quest Points: ' + earned + ' / ' + total + '</div>';
+    html += '<div class="emq-pts">Quest Points: <span class="amt">' + earned + ' / ' + total + '</span></div>';
 
     GROUPS.forEach(g => {
       const items = buckets[g.id];
@@ -382,8 +415,21 @@ export function initQuestsTab(){
       items.forEach(x => {
         const cls = STATE_CLASS[x.state] || 'ns';
         const qp = (Number(x.questPoints) || 0);
-        html += '<li data-id="' + esc(x.id) + '">'
+        // Grey out quests whose requirements aren't met yet (only meaningful
+        // before the quest is started - a locked in-progress/complete quest
+        // shouldn't happen, but we still only grey not_started rows so an
+        // in-progress quest never visually regresses).
+        const reqCheck = evalRequirements(x, state);
+        const locked = x.state === 'not_started' && reqCheck.locked;
+        const title = locked
+          ? 'Requires: ' + reqCheck.missing.join(', ')
+          : '';
+        html += '<li data-id="' + esc(x.id) + '"'
+          + (locked ? ' class="locked"' : '')
+          + (title ? ' title="' + esc(title) + '"' : '')
+          + '>'
           + '<span class="nm ' + cls + '">' + esc(x.name || x.id) + '</span>'
+          + (locked ? '<span class="lock-ic" title="' + esc(title) + '">&#128274;</span>' : '')
           + (qp ? '<span class="qp">' + qp + ' QP</span>' : '')
           + '</li>';
       });
@@ -419,6 +465,14 @@ export function initQuestsTab(){
 
     if(x.description) html += '<div class="desc">' + esc(x.description) + '</div>';
 
+    // Locked notice - only meaningful before the quest has been started.
+    const reqCheck = evalRequirements(x, state);
+    const locked = x.state === 'not_started' && reqCheck.locked;
+    if(locked){
+      html += '<div class="emq-locked-note">&#128274; Requirements not met: '
+        + esc(reqCheck.missing.join(', ')) + '</div>';
+    }
+
     // Requirements - coloured met/unmet (or neutral when undeterminable).
     html += '<h6>Requirements</h6>';
     const reqs = Array.isArray(x.requirements) ? x.requirements : [];
@@ -452,9 +506,12 @@ export function initQuestsTab(){
       html += '<ul>' + rewards.map(r => '<li>' + esc(r) + '</li>').join('') + '</ul>';
     }
 
-    // "Start quest" button - only shown for not_started quests.
+    // "Start quest" button - only shown for not_started quests. Disabled
+    // (visually + functionally) when requirements aren't met yet.
     if(x.state === 'not_started'){
-      html += '<button class="emq-start-btn" type="button" data-start-id="' + esc(x.id) + '">'
+      html += '<button class="emq-start-btn' + (locked ? ' disabled' : '') + '" type="button"'
+        + (locked ? ' disabled title="' + esc('Requirements not met: ' + reqCheck.missing.join(', ')) + '"' : '')
+        + ' data-start-id="' + esc(x.id) + '">'
         + 'Start quest'
         + '</button>';
     }

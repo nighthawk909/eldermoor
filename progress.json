@@ -1,5 +1,5 @@
 {
-  "updated": 1782877195053,
+  "updated": 1782877447479,
   "version": "v41",
   "note": "Live fleet board. Reflects v36 owner QA + browser screenshots. Character art (studio + in-world avatar/creator) owned by a separate chat. Statuses: queued | building | review | requeue | shipped | done | blocked | failed.",
   "board": [
@@ -574,19 +574,19 @@
       "id": "SKILLING-ANIM",
       "epic": "Animation",
       "title": "SKILLING-ANIM",
-      "status": "building",
+      "status": "shipped",
       "agent": "builder-skillanim",
-      "note": "Reading avatar.js/skilling.js to wire gather animation",
-      "ts": 1782877195053
+      "note": "player gather animation while skilling; v53",
+      "ts": 1782877446460
     },
     {
       "id": "ZONE-CONTENT",
       "epic": "P4 World",
       "title": "ZONE-CONTENT",
-      "status": "building",
+      "status": "shipped",
       "agent": "builder-zonecontent",
-      "note": "per-zone teaching signposts + labels + a few props (world.manifest.json)",
-      "ts": 1782877170284
+      "note": "signposts + props across 9 zones (scene 524->562); v53",
+      "ts": 1782877447479
     }
   ]
 }

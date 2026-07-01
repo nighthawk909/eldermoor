@@ -1,5 +1,7 @@
 # PROJECT HANDOFF — Eldermoor
 
+> **v57 (2026-07-01) — dev kit slimmed (smoke-test finding).** A scripted functional smoke test (driving the live APIs: giveItem/addXp/EMLESSON/em-flag/combat/skill/ground/bank/equip/devtools) confirmed all subsystems respond, and surfaced that the dev test character filled all 28 bag slots -> could not gather during tutorial testing. devtest.js KIT slimmed to essentials (worn combat kit + 1 bow + full runes + core tools + food); extra gear tiers/tools now spawnable via the dev toolbox. Verified: bag 25/28, 3 free, giveItem(logs) works. Boot-verified. Deployed v57.
+
 > **v56 (2026-07-01) — QA sweep + fix.** Full static defect sweep of the v37-v55 body: 49/49 src syntax-clean, 15/15 JSON valid, no monkey-patch double-wraps, no rAF leaks, canonical-mob resolvers agree, all lesson-predicate ids aligned (docs/QA_SWEEP.md). One real fix: skilling.js firemaking success now dispatches em-flag lit:fire so L3 completes on the action (not the 15s anti-brick grace). Orphaned em-settings-change event noted as backlog (harmless). Boot-verified. Deployed v56.
 
 > **v55 (2026-07-01) — quest journal + tooltip depth.** quests-tab.js: locked-quest greying + missing-req tooltip/banner + disabled Start + brown-stone styling (state colouring/grouping/QP total already present). tooltip.js: rich item hovers (name/verb/slot/equip bonuses/value/examine) + world-target tooltips mirroring the hover label, XSS-safe, skipped on touch. Boot-verified. Deployed v55.

@@ -1,5 +1,5 @@
 {
-  "updated": 1782865348804,
+  "updated": 1782865382640,
   "version": "v41",
   "note": "Live fleet board. Reflects v36 owner QA + browser screenshots. Character art (studio + in-world avatar/creator) owned by a separate chat. Statuses: queued | building | review | requeue | shipped | done | blocked | failed.",
   "board": [
@@ -524,6 +524,15 @@
       "agent": "builder-useon",
       "note": "item-on-item + item-on-fixture recipes (fire/cook/smelt/smith/dough); routes through EMSKILL; v49",
       "ts": 1782865348804
+    },
+    {
+      "id": "TUTORIAL-TRACE",
+      "epic": "P7 Lessons",
+      "title": "TUTORIAL-TRACE",
+      "status": "building",
+      "agent": "qa-tutorial",
+      "note": "static end-to-end trace of L0-L17: does each teach->predicate->grant->advance chain across the built mechanics?",
+      "ts": 1782865382640
     }
   ]
 }

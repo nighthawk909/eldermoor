@@ -29,31 +29,14 @@ const KIT = [
   // ----- melee weapons / armour (one of every tier currently in items.json,
   //       plus higher-tier ids reserved for when those land) -----
   { id: 'bronze-sword',   qty: 1,     equip: true },
-  { id: 'iron-sword',     qty: 1 },
-  { id: 'steel-sword',    qty: 1 },
-  { id: 'mithril-sword',  qty: 1 },
-  { id: 'bronze-dagger',  qty: 1 },
-  { id: 'iron-dagger',    qty: 1 },
-  { id: 'steel-dagger',   qty: 1 },
   { id: 'wooden-shield',  qty: 1,     equip: true },
-  { id: 'bronze-shield',  qty: 1 },
-  { id: 'iron-shield',    qty: 1 },
-  { id: 'steel-shield',   qty: 1 },
   { id: 'leather-body',   qty: 1,     equip: true },
-  { id: 'hard-leather-body', qty: 1 },
-  { id: 'iron-body',      qty: 1 },
-  { id: 'steel-body',     qty: 1 },
   { id: 'leather-gloves', qty: 1,     equip: true },
-  { id: 'leather-boots',  qty: 1 },
-  { id: 'leather-cowl',   qty: 1 },
   { id: 'tutorial-cape',  qty: 1,     equip: true },
+  // (extra gear tiers spawnable via the dev toolbox to keep bag slots free)
   // ----- ranged -----
   { id: 'shortbow',       qty: 1 },
-  { id: 'oak-shortbow',   qty: 1 },
-  { id: 'longbow',        qty: 1 },
   { id: 'bronze-arrows',  qty: 1000 },
-  { id: 'iron-arrows',    qty: 1000 },
-  { id: 'steel-arrows',   qty: 1000 },
   // ----- runes: full catalogue (magic-tab.js RUNES), large stacks so every
   //       spell can be cast repeatedly -----
   { id: 'air-rune',       qty: 5000 },
@@ -70,17 +53,11 @@ const KIT = [
   { id: 'bronze-axe',          qty: 1 },
   { id: 'bronze-pickaxe',      qty: 1 },
   { id: 'small-fishing-net',   qty: 1 },
-  { id: 'fishing-rod',         qty: 1 },
   { id: 'tinderbox',           qty: 1 },
-  { id: 'hammer',               qty: 1 },
-  { id: 'needle',               qty: 1 },
-  { id: 'thread',               qty: 20 },
-  { id: 'chisel',               qty: 1 },
-  { id: 'spade',                qty: 1 },
-  { id: 'knife',                qty: 1 },
+  { id: 'hammer',              qty: 1 },
+  // (needle/thread/chisel/spade/knife/fishing-rod spawnable via dev toolbox)
   // ----- food -----
   { id: 'cooked-shrimp',  qty: 20 },
-  { id: 'bread',          qty: 20 },
   // ----- misc / currency -----
   { id: 'bones',          qty: 20 },
   { id: 'coins',          qty: 10000 },

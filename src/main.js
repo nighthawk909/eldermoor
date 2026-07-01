@@ -52,6 +52,7 @@ import { initAvatar } from './avatar.js';
 import { initLogin } from './login.js';
 import { initDevtools } from './devtools.js';
 import { initGround } from './grounditems.js';
+import { initLevelUp } from './levelup.js';
 
 /* --- shared globals the feature modules read (player pos/rig/move, walk, scene) --- */
 window.EMPLAYERPOS = pos;          // live Vector3 (mutated in place) → {x,z} reads stay current
@@ -76,7 +77,7 @@ initMobileUI();                     // responsive layout/orientation/haptics ove
   initQuestsTab, initSettingsTab, initInvOps, initMinimapNav,
   initLessons, initGating, initCharCreate, initMusicTab, initSocial, initSkillGuide, initMinimapRender,
   initBank, initLogoutTab, initAppearanceApply, initMakeInterface, initSfxActions,
-  initDevTest, initQaPanel, initDevtools, initGround, initAvatar
+  initDevTest, initQaPanel, initDevtools, initGround, initAvatar, initLevelUp
 ].forEach(fn => { try { fn(); } catch(e){ console.warn('[em] init failed:', fn.name, e); } });
 
 /* minimap click-to-walk fallback (when EMWALK isn\'t reached directly) */

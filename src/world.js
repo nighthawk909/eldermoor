@@ -269,6 +269,11 @@ export function placeFixture(type, x, z){
 function placeHouse(b){
   const w=b.w||8, d=b.d||7, x=b.x, z=b.z, h=3.0, t=0.3, doorw=b.doorw||2;
   const wallMat = new THREE.MeshStandardMaterial({ color:0xcdbf98, flatShading:true });
+  // NOTE (v61 investigation): making these walls solid RECT colliders sealed the indoor
+  // instructors in — at the 0.45 path-grid + RAD inflation, the 2.0 door gap isn't reliably
+  // routable, so A* stopped OUTSIDE the house (verified: 4/6 instructors unreachable). Walls
+  // stay visual-only until the doorway is a proper portal (wider gap / finer grid / explicit
+  // door cells). Tracked in BACKLOG "Solid house walls". Doors (v59) still block their own gap.
   const wall = (cx,cz,ww,dd) => { const m=new THREE.Mesh(new THREE.BoxGeometry(ww,h,dd), wallMat); m.position.set(cx,h/2,cz); scene.add(m); };
   wall(x, z+d/2, w, t);                                   // north wall
   wall(x-w/2, z, t, d);                                   // west wall

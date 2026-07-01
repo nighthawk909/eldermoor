@@ -1,284 +1,1027 @@
 {
   "name": "tutorial_island",
-  "bound": { "x0": -34, "x1": 34, "z0": -8, "z1": 86 },
-  "terrain": { "cell": 2, "tiles": {} },
-  "spawn": { "x": 0.0, "z": 8.5, "rot": 3.142 },
+  "bound": {
+    "x0": -34,
+    "x1": 34,
+    "z0": -8,
+    "z1": 86
+  },
+  "terrain": {
+    "cell": 2,
+    "tiles": {}
+  },
+  "spawn": {
+    "x": 0.0,
+    "z": 8.5,
+    "rot": 3.142
+  },
   "zones": [
     {
       "id": "chapel",
       "label": "Chapel",
-      "center": { "x": 0, "z": 0 },
+      "center": {
+        "x": 0,
+        "z": 0
+      },
       "radius": 14,
       "note": "Existing zone — chapel_grounds. Untouched by this pass."
     },
     {
       "id": "spawn_house",
       "label": "Warden's Lodge",
-      "center": { "x": 0, "z": 22 },
+      "center": {
+        "x": 0,
+        "z": 22
+      },
       "radius": 9,
       "instructor": "warden-halric",
-      "lessons": ["L0", "L1"]
+      "lessons": [
+        "L0",
+        "L1"
+      ]
     },
     {
       "id": "survival",
       "label": "Survival Clearing",
-      "center": { "x": 9, "z": 32 },
+      "center": {
+        "x": 9,
+        "z": 32
+      },
       "radius": 13,
       "instructor": "forester-maeve",
-      "lessons": ["L2", "L3", "L4", "L5"],
+      "lessons": [
+        "L2",
+        "L3",
+        "L4",
+        "L5"
+      ],
       "note": "Shares the existing pond at (9,32,r5.8) from build_kit.py POND constant."
     },
     {
       "id": "cooks_house",
       "label": "Cook's House",
-      "center": { "x": -10, "z": 38 },
+      "center": {
+        "x": -10,
+        "z": 38
+      },
       "radius": 8,
       "instructor": "cook-tobin",
-      "lessons": ["L6"]
+      "lessons": [
+        "L6"
+      ]
     },
     {
       "id": "quest_house",
       "label": "Quest Guide's House",
-      "center": { "x": 10, "z": 46 },
+      "center": {
+        "x": 10,
+        "z": 46
+      },
       "radius": 8,
       "instructor": "loremaster-edda",
-      "lessons": ["L7"]
+      "lessons": [
+        "L7"
+      ]
     },
     {
       "id": "mine",
       "label": "Tutorial Mine",
-      "center": { "x": -16, "z": 50 },
+      "center": {
+        "x": -16,
+        "z": 50
+      },
       "radius": 10,
       "instructor": "pickmaster-doran",
-      "lessons": ["L8", "L9", "L10"],
+      "lessons": [
+        "L8",
+        "L9",
+        "L10"
+      ],
       "note": "Authored at surface coordinates as a walled cave-mouth pocket (sealed sub-level not yet a separate Y-layer); ladder fixtures gate entry/exit per PARITY_AUDIT P4.5."
     },
     {
       "id": "combat_ring",
       "label": "Combat Yard",
-      "center": { "x": 14, "z": 58 },
+      "center": {
+        "x": 14,
+        "z": 58
+      },
       "radius": 10,
       "instructor": "sergeant-vael",
-      "lessons": ["L11", "L12"]
+      "lessons": [
+        "L11",
+        "L12"
+      ]
     },
     {
       "id": "bank",
       "label": "Bank & Poll House",
-      "center": { "x": -14, "z": 62 },
+      "center": {
+        "x": -14,
+        "z": 62
+      },
       "radius": 9,
       "instructor": "teller-wynn",
-      "lessons": ["L13", "L14"],
+      "lessons": [
+        "L13",
+        "L14"
+      ],
       "note": "Steward Brann (account_guide) shares this zone for L14 per lessons.json."
     },
     {
       "id": "wizard_tower",
       "label": "Wizard's Tower",
-      "center": { "x": 10, "z": 70 },
+      "center": {
+        "x": 10,
+        "z": 70
+      },
       "radius": 9,
       "instructor": "magus-sorrel",
-      "lessons": ["L16"]
+      "lessons": [
+        "L16"
+      ]
     },
     {
       "id": "departure_dock",
       "label": "Departure Dock",
-      "center": { "x": 0, "z": 80 },
+      "center": {
+        "x": 0,
+        "z": 80
+      },
       "radius": 10,
       "instructor": "warden-halric-dock",
-      "lessons": ["L17"],
+      "lessons": [
+        "L17"
+      ],
       "note": "Northern shoreline; sits against the world sea plane from build_grounds()."
     }
   ],
   "buildings": [
-    { "type": "chapel", "x": 0, "z": 0, "rot": 0, "zone": "chapel" },
     {
-      "type": "house", "id": "spawn_house", "x": 0, "z": 22, "rot": 0,
-      "w": 10, "d": 8, "doorw": 2.0, "zone": "spawn_house",
+      "type": "chapel",
+      "x": 0,
+      "z": 0,
+      "rot": 0,
+      "zone": "chapel"
+    },
+    {
+      "type": "house",
+      "id": "spawn_house",
+      "x": 0,
+      "z": 22,
+      "rot": 0,
+      "w": 10,
+      "d": 8,
+      "doorw": 2.0,
+      "zone": "spawn_house",
       "note": "Door faces south (toward chapel gate) via build_house default."
     },
     {
-      "type": "house", "id": "cooks_house", "x": -10, "z": 38, "rot": 0,
-      "w": 8, "d": 7, "doorw": 2.0, "zone": "cooks_house"
+      "type": "house",
+      "id": "cooks_house",
+      "x": -10,
+      "z": 38,
+      "rot": 0,
+      "w": 8,
+      "d": 7,
+      "doorw": 2.0,
+      "zone": "cooks_house"
     },
     {
-      "type": "house", "id": "quest_house", "x": 10, "z": 46, "rot": 0,
-      "w": 8, "d": 7, "doorw": 2.0, "zone": "quest_house"
+      "type": "house",
+      "id": "quest_house",
+      "x": 10,
+      "z": 46,
+      "rot": 0,
+      "w": 8,
+      "d": 7,
+      "doorw": 2.0,
+      "zone": "quest_house"
     },
     {
-      "type": "house", "id": "bank_house", "x": -14, "z": 62, "rot": 0,
-      "w": 11, "d": 8, "doorw": 2.4, "zone": "bank",
+      "type": "house",
+      "id": "bank_house",
+      "x": -14,
+      "z": 62,
+      "rot": 0,
+      "w": 11,
+      "d": 8,
+      "doorw": 2.4,
+      "zone": "bank",
       "note": "Reused as the bank/poll hall (no dedicated bank kit-piece yet)."
     },
     {
-      "type": "house", "id": "wizard_tower_house", "x": 10, "z": 70, "rot": 0,
-      "w": 8, "d": 8, "doorw": 2.0, "zone": "wizard_tower",
+      "type": "house",
+      "id": "wizard_tower_house",
+      "x": 10,
+      "z": 70,
+      "rot": 0,
+      "w": 8,
+      "d": 8,
+      "doorw": 2.0,
+      "zone": "wizard_tower",
       "note": "Placeholder cube tower using build_house; modeler should add a round/turret tower kit-piece (MISSING: kit-piece 'tower')."
     }
   ],
   "objects": [
-    { "type": "tree", "x": 5.4,  "z": 12.4, "rot": 0.0, "scale": 1.05 },
-    { "type": "tree", "x": -5.4, "z": 12.6, "rot": 1.2, "scale": 0.95 },
-
-    { "type": "signpost", "x": -5.5, "z": 17.5, "rot": 1.8, "scale": 1.0, "zone": "spawn_house",
-      "label": "Warden's Lodge", "note": "Entrance marker south of the lodge, clear of the x=0 path." },
-    { "type": "bush", "x": -6.5, "z": 24.5, "rot": 0.6, "scale": 1.0, "zone": "spawn_house",
-      "note": "Small dooryard hedge, west side of the lodge, clear of the path." },
-    { "type": "tree", "x": 6.2, "z": 25.5, "rot": 2.4, "scale": 1.0, "zone": "spawn_house",
-      "note": "Shade tree east of the lodge dooryard, clear of the path." },
-
-    { "type": "signpost", "x": 2.5, "z": 24.5, "rot": 2.2, "scale": 1.0, "zone": "survival",
-      "label": "Survival Clearing", "note": "Entrance marker where the path bends toward the pond." },
-    { "type": "tree", "x": 4.5, "z": 27, "rot": 0.4, "scale": 1.1, "zone": "survival" },
-    { "type": "tree", "x": 6.0, "z": 24.5, "rot": 1.6, "scale": 0.9, "zone": "survival", "note": "Choppable lesson tree for L2." },
-    { "type": "tree", "x": 14.5, "z": 26.5, "rot": 2.1, "scale": 1.0, "zone": "survival" },
-    { "type": "fishing_spot", "x": 9.0, "z": 27.0, "rot": 0.0, "scale": 1.0, "zone": "survival",
-      "note": "MISSING kit-piece: no fishing-spot mesh in build_kit.py yet — placed as a marker at the pond's north shore (POND=(9,32,5.8)); modeler should add a ripple/spot prop." },
-    { "type": "fire_ring", "x": 9.0, "z": 36.5, "rot": 0.0, "scale": 1.0, "zone": "survival",
-      "note": "MISSING kit-piece: no fire/firepit mesh in build_kit.py yet — placed as a marker on the pond's south shore clear of trees (L3 'no fire under tree' rule, PARITY_AUDIT ROOM2); modeler should add a stone fire-ring + flame prop." },
-    { "type": "rock", "x": 16, "z": 32, "rot": 0.5, "scale": 1.1, "zone": "survival" },
-    { "type": "bush", "x": 2, "z": 30, "rot": 0.8, "scale": 1.0, "zone": "survival" },
-    { "type": "tree", "x": 18, "z": 29, "rot": 1.3, "scale": 1.0, "zone": "survival",
-      "note": "Extra tree cluster, far east edge of the clearing, clear of the pond and paths." },
-    { "type": "tree", "x": 19.5, "z": 31.5, "rot": 0.2, "scale": 0.9, "zone": "survival",
-      "note": "Extra tree cluster, far east edge of the clearing." },
-    { "type": "fishing_spot", "x": 3.5, "z": 32.0, "rot": 0.0, "scale": 1.0, "zone": "survival",
-      "note": "Second fishing spot on the pond's west shore for lesson overflow/parallel practice; see fishing_spot note above re: missing dedicated mesh." },
-
-    { "type": "signpost", "x": -4.0, "z": 41.5, "rot": 1.6, "scale": 1.0, "zone": "cooks_house",
-      "label": "Cook's House", "note": "Entrance marker south-east of the cooks_house, clear of the path." },
-    { "type": "cooking_range", "x": -10, "z": 36.2, "rot": 0.0, "scale": 1.0, "zone": "cooks_house",
-      "note": "MISSING kit-piece: no range/stove mesh yet — placed against the cooks_house north interior wall; modeler should add a stone-and-iron range prop distinct from the open fire (PARITY_AUDIT ROOM2/ROOM3)." },
-    { "type": "bush", "x": -13.5, "z": 40.5, "rot": 1.1, "scale": 1.0, "zone": "cooks_house",
-      "note": "Herb bush behind the cooks_house, west side, clear of the path." },
-
-    { "type": "signpost", "x": 15.0, "z": 41.5, "rot": 2.0, "scale": 1.0, "zone": "quest_house",
-      "label": "Quest Guide's House" },
-    { "type": "bush", "x": 6.5, "z": 44.0, "rot": 0.4, "scale": 1.0, "zone": "quest_house",
-      "note": "Dooryard bush west of the quest_house, clear of the path." },
-
-    { "type": "signpost", "x": -20.5, "z": 46.0, "rot": 2.6, "scale": 1.0, "zone": "mine",
-      "label": "Tutorial Mine" },
-    { "type": "ladder_down", "x": -16, "z": 47.5, "rot": 0.0, "scale": 1.0, "zone": "mine",
-      "note": "MISSING kit-piece: no ladder mesh yet (PARITY_AUDIT ROOM4/ROOM5)." },
-    { "type": "rock", "x": -19, "z": 51, "rot": 0.2, "scale": 1.3, "zone": "mine",
-      "note": "Stand-in for the TIN ORE rock (no distinct ore-rock kit-piece yet; reuses build_rock)." },
-    { "type": "rock", "x": -13, "z": 52, "rot": 1.1, "scale": 1.3, "zone": "mine",
-      "note": "Stand-in for the COPPER ORE rock (same caveat)." },
-    { "type": "rock", "x": -21, "z": 53, "rot": 0.7, "scale": 1.2, "zone": "mine",
-      "note": "Extra tin ore rock, west cave wall, clear of the ladder/path — overflow mining node." },
-    { "type": "rock", "x": -9, "z": 54, "rot": 2.0, "scale": 1.2, "zone": "mine",
-      "note": "Extra copper ore rock, east cave wall, clear of the anvil/furnace — overflow mining node." },
-    { "type": "furnace", "x": -16, "z": 54.5, "rot": 0.0, "scale": 1.0, "zone": "mine",
-      "note": "MISSING kit-piece: no furnace mesh yet (PARITY_AUDIT ROOM5)." },
-    { "type": "anvil", "x": -12, "z": 49, "rot": 0.0, "scale": 1.0, "zone": "mine",
-      "note": "MISSING kit-piece: no anvil mesh yet (PARITY_AUDIT ROOM5)." },
-    { "type": "ladder_up", "x": -16, "z": 47.5, "rot": 3.14, "scale": 1.0, "zone": "mine",
-      "note": "Co-located with ladder_down at the same surface mouth (sub-level not yet a separate Y-layer)." },
-
-    { "type": "signpost", "x": 8.0, "z": 51.5, "rot": 1.4, "scale": 1.0, "zone": "combat_ring",
-      "label": "Combat Yard" },
-    { "type": "rat_pen_gate", "x": 14, "z": 51.5, "rot": 0.0, "scale": 1.0, "zone": "combat_ring",
-      "note": "MISSING kit-piece: no fence/gate mesh yet — south entrance to the pen (PARITY_AUDIT ROOM6)." },
-    { "type": "rat_spawn", "x": 12, "z": 58, "rot": 0.0, "scale": 1.0, "zone": "combat_ring",
-      "mob": "rat", "count": 2,
-      "note": "Uses build_rat from build_kit.py; pen fencing itself is the missing piece, not the rat." },
-    { "type": "rat_spawn", "x": 16, "z": 60, "rot": 0.0, "scale": 1.0, "zone": "combat_ring",
-      "mob": "rat", "count": 1 },
-    { "type": "target_butt", "x": 18, "z": 56, "rot": 0.0, "scale": 1.0, "zone": "combat_ring",
-      "note": "MISSING kit-piece: ranged-practice target/hay butt not in build_kit.py yet." },
-
-    { "type": "signpost", "x": -19.5, "z": 56.5, "rot": 2.3, "scale": 1.0, "zone": "bank",
-      "label": "Bank & Poll House" },
-    { "type": "bank_booth", "x": -14, "z": 60.2, "rot": 0.0, "scale": 1.0, "zone": "bank",
-      "note": "MISSING kit-piece: no bank-booth mesh yet (PARITY_AUDIT ROOM7)." },
-    { "type": "poll_booth", "x": -10.5, "z": 60.2, "rot": 0.0, "scale": 1.0, "zone": "bank",
-      "note": "MISSING kit-piece: no poll-booth mesh yet (PARITY_AUDIT ROOM7)." },
-
-    { "type": "signpost", "x": 3.5, "z": 65.0, "rot": 1.1, "scale": 1.0, "zone": "wizard_tower",
-      "label": "Wizard's Tower" },
-    { "type": "altar", "x": 10, "z": 68.2, "rot": 0.0, "scale": 1.0, "zone": "wizard_tower",
-      "note": "Reuses the chapel altar treatment in spirit; build_chapel's altar geometry isn't a standalone kit-piece export yet — modeler should factor one out (MISSING kit-piece 'altar')." },
-    { "type": "rune_rack", "x": 7.5, "z": 67.5, "rot": 0.5, "scale": 1.0, "zone": "wizard_tower",
-      "note": "MISSING kit-piece: no rune-rack/lectern-of-runes mesh yet." },
-    { "type": "rune_rack", "x": 13.0, "z": 66.0, "rot": 1.9, "scale": 1.0, "zone": "wizard_tower",
-      "note": "Second rune rack, east of the tower, for parallel rune-lore practice — clear of the path." },
-    { "type": "practice_chicken", "x": 12.5, "z": 72, "rot": 0.0, "scale": 1.0, "zone": "wizard_tower",
-      "note": "MISSING kit-piece: no chicken mob mesh yet (PARITY_AUDIT ROOM9); build_rat's quadruped factory is the closest reusable base." },
-
-    { "type": "signpost", "x": -4.5, "z": 74.5, "rot": 2.7, "scale": 1.0, "zone": "departure_dock",
-      "label": "To the mainland" },
-    { "type": "dock_planks", "x": 0, "z": 82, "rot": 0.0, "scale": 1.0, "zone": "departure_dock",
-      "note": "MISSING kit-piece: no dock/jetty plank mesh yet (PARITY_AUDIT ROOM10) — placed at the shoreline." },
-    { "type": "boat", "x": 0, "z": 86, "rot": 0.0, "scale": 1.0, "zone": "departure_dock",
-      "note": "MISSING kit-piece: no boat mesh yet." }
+    {
+      "type": "tree",
+      "x": 5.4,
+      "z": 12.4,
+      "rot": 0.0,
+      "scale": 1.05
+    },
+    {
+      "type": "tree",
+      "x": -5.4,
+      "z": 12.6,
+      "rot": 1.2,
+      "scale": 0.95
+    },
+    {
+      "type": "signpost",
+      "x": -5.5,
+      "z": 17.5,
+      "rot": 1.8,
+      "scale": 1.0,
+      "zone": "spawn_house",
+      "label": "Warden's Lodge",
+      "note": "Entrance marker south of the lodge, clear of the x=0 path."
+    },
+    {
+      "type": "bush",
+      "x": -6.5,
+      "z": 24.5,
+      "rot": 0.6,
+      "scale": 1.0,
+      "zone": "spawn_house",
+      "note": "Small dooryard hedge, west side of the lodge, clear of the path."
+    },
+    {
+      "type": "tree",
+      "x": 6.2,
+      "z": 25.5,
+      "rot": 2.4,
+      "scale": 1.0,
+      "zone": "spawn_house",
+      "note": "Shade tree east of the lodge dooryard, clear of the path."
+    },
+    {
+      "type": "signpost",
+      "x": 2.5,
+      "z": 24.5,
+      "rot": 2.2,
+      "scale": 1.0,
+      "zone": "survival",
+      "label": "Survival Clearing",
+      "note": "Entrance marker where the path bends toward the pond."
+    },
+    {
+      "type": "tree",
+      "x": 4.5,
+      "z": 27,
+      "rot": 0.4,
+      "scale": 1.1,
+      "zone": "survival"
+    },
+    {
+      "type": "tree",
+      "x": 6.0,
+      "z": 24.5,
+      "rot": 1.6,
+      "scale": 0.9,
+      "zone": "survival",
+      "note": "Choppable lesson tree for L2."
+    },
+    {
+      "type": "tree",
+      "x": 14.5,
+      "z": 26.5,
+      "rot": 2.1,
+      "scale": 1.0,
+      "zone": "survival"
+    },
+    {
+      "type": "fishing_spot",
+      "x": 9.0,
+      "z": 27.0,
+      "rot": 0.0,
+      "scale": 1.0,
+      "zone": "survival",
+      "note": "MISSING kit-piece: no fishing-spot mesh in build_kit.py yet — placed as a marker at the pond's north shore (POND=(9,32,5.8)); modeler should add a ripple/spot prop."
+    },
+    {
+      "type": "fire_ring",
+      "x": 9.0,
+      "z": 36.5,
+      "rot": 0.0,
+      "scale": 1.0,
+      "zone": "survival",
+      "note": "MISSING kit-piece: no fire/firepit mesh in build_kit.py yet — placed as a marker on the pond's south shore clear of trees (L3 'no fire under tree' rule, PARITY_AUDIT ROOM2); modeler should add a stone fire-ring + flame prop."
+    },
+    {
+      "type": "rock",
+      "x": 16,
+      "z": 32,
+      "rot": 0.5,
+      "scale": 1.1,
+      "zone": "survival"
+    },
+    {
+      "type": "bush",
+      "x": 2,
+      "z": 30,
+      "rot": 0.8,
+      "scale": 1.0,
+      "zone": "survival"
+    },
+    {
+      "type": "tree",
+      "x": 18,
+      "z": 29,
+      "rot": 1.3,
+      "scale": 1.0,
+      "zone": "survival",
+      "note": "Extra tree cluster, far east edge of the clearing, clear of the pond and paths."
+    },
+    {
+      "type": "tree",
+      "x": 19.5,
+      "z": 31.5,
+      "rot": 0.2,
+      "scale": 0.9,
+      "zone": "survival",
+      "note": "Extra tree cluster, far east edge of the clearing."
+    },
+    {
+      "type": "fishing_spot",
+      "x": 3.5,
+      "z": 32.0,
+      "rot": 0.0,
+      "scale": 1.0,
+      "zone": "survival",
+      "note": "Second fishing spot on the pond's west shore for lesson overflow/parallel practice; see fishing_spot note above re: missing dedicated mesh."
+    },
+    {
+      "type": "signpost",
+      "x": -4.0,
+      "z": 41.5,
+      "rot": 1.6,
+      "scale": 1.0,
+      "zone": "cooks_house",
+      "label": "Cook's House",
+      "note": "Entrance marker south-east of the cooks_house, clear of the path."
+    },
+    {
+      "type": "cooking_range",
+      "x": -10,
+      "z": 36.2,
+      "rot": 0.0,
+      "scale": 1.0,
+      "zone": "cooks_house",
+      "note": "MISSING kit-piece: no range/stove mesh yet — placed against the cooks_house north interior wall; modeler should add a stone-and-iron range prop distinct from the open fire (PARITY_AUDIT ROOM2/ROOM3)."
+    },
+    {
+      "type": "bush",
+      "x": -13.5,
+      "z": 40.5,
+      "rot": 1.1,
+      "scale": 1.0,
+      "zone": "cooks_house",
+      "note": "Herb bush behind the cooks_house, west side, clear of the path."
+    },
+    {
+      "type": "signpost",
+      "x": 15.0,
+      "z": 41.5,
+      "rot": 2.0,
+      "scale": 1.0,
+      "zone": "quest_house",
+      "label": "Quest Guide's House"
+    },
+    {
+      "type": "bush",
+      "x": 6.5,
+      "z": 44.0,
+      "rot": 0.4,
+      "scale": 1.0,
+      "zone": "quest_house",
+      "note": "Dooryard bush west of the quest_house, clear of the path."
+    },
+    {
+      "type": "signpost",
+      "x": -20.5,
+      "z": 46.0,
+      "rot": 2.6,
+      "scale": 1.0,
+      "zone": "mine",
+      "label": "Tutorial Mine"
+    },
+    {
+      "type": "ladder_down",
+      "x": -16,
+      "z": 47.5,
+      "rot": 0.0,
+      "scale": 1.0,
+      "zone": "mine",
+      "note": "MISSING kit-piece: no ladder mesh yet (PARITY_AUDIT ROOM4/ROOM5)."
+    },
+    {
+      "type": "rock",
+      "x": -19,
+      "z": 51,
+      "rot": 0.2,
+      "scale": 1.3,
+      "zone": "mine",
+      "note": "Stand-in for the TIN ORE rock (no distinct ore-rock kit-piece yet; reuses build_rock)."
+    },
+    {
+      "type": "rock",
+      "x": -13,
+      "z": 52,
+      "rot": 1.1,
+      "scale": 1.3,
+      "zone": "mine",
+      "note": "Stand-in for the COPPER ORE rock (same caveat)."
+    },
+    {
+      "type": "rock",
+      "x": -21,
+      "z": 53,
+      "rot": 0.7,
+      "scale": 1.2,
+      "zone": "mine",
+      "note": "Extra tin ore rock, west cave wall, clear of the ladder/path — overflow mining node."
+    },
+    {
+      "type": "rock",
+      "x": -9,
+      "z": 54,
+      "rot": 2.0,
+      "scale": 1.2,
+      "zone": "mine",
+      "note": "Extra copper ore rock, east cave wall, clear of the anvil/furnace — overflow mining node."
+    },
+    {
+      "type": "furnace",
+      "x": -16,
+      "z": 54.5,
+      "rot": 0.0,
+      "scale": 1.0,
+      "zone": "mine",
+      "note": "MISSING kit-piece: no furnace mesh yet (PARITY_AUDIT ROOM5)."
+    },
+    {
+      "type": "anvil",
+      "x": -12,
+      "z": 49,
+      "rot": 0.0,
+      "scale": 1.0,
+      "zone": "mine",
+      "note": "MISSING kit-piece: no anvil mesh yet (PARITY_AUDIT ROOM5)."
+    },
+    {
+      "type": "ladder_up",
+      "x": -16,
+      "z": 47.5,
+      "rot": 3.14,
+      "scale": 1.0,
+      "zone": "mine",
+      "note": "Co-located with ladder_down at the same surface mouth (sub-level not yet a separate Y-layer)."
+    },
+    {
+      "type": "signpost",
+      "x": 8.0,
+      "z": 51.5,
+      "rot": 1.4,
+      "scale": 1.0,
+      "zone": "combat_ring",
+      "label": "Combat Yard"
+    },
+    {
+      "type": "rat_pen_gate",
+      "x": 14,
+      "z": 51.5,
+      "rot": 0.0,
+      "scale": 1.0,
+      "zone": "combat_ring",
+      "note": "MISSING kit-piece: no fence/gate mesh yet — south entrance to the pen (PARITY_AUDIT ROOM6)."
+    },
+    {
+      "type": "rat_spawn",
+      "x": 12,
+      "z": 58,
+      "rot": 0.0,
+      "scale": 1.0,
+      "zone": "combat_ring",
+      "mob": "rat",
+      "count": 2,
+      "note": "Uses build_rat from build_kit.py; pen fencing itself is the missing piece, not the rat."
+    },
+    {
+      "type": "rat_spawn",
+      "x": 16,
+      "z": 60,
+      "rot": 0.0,
+      "scale": 1.0,
+      "zone": "combat_ring",
+      "mob": "rat",
+      "count": 1
+    },
+    {
+      "type": "target_butt",
+      "x": 18,
+      "z": 56,
+      "rot": 0.0,
+      "scale": 1.0,
+      "zone": "combat_ring",
+      "note": "MISSING kit-piece: ranged-practice target/hay butt not in build_kit.py yet."
+    },
+    {
+      "type": "signpost",
+      "x": -19.5,
+      "z": 56.5,
+      "rot": 2.3,
+      "scale": 1.0,
+      "zone": "bank",
+      "label": "Bank & Poll House"
+    },
+    {
+      "type": "bank_booth",
+      "x": -14,
+      "z": 60.2,
+      "rot": 0.0,
+      "scale": 1.0,
+      "zone": "bank",
+      "note": "MISSING kit-piece: no bank-booth mesh yet (PARITY_AUDIT ROOM7)."
+    },
+    {
+      "type": "poll_booth",
+      "x": -10.5,
+      "z": 60.2,
+      "rot": 0.0,
+      "scale": 1.0,
+      "zone": "bank",
+      "note": "MISSING kit-piece: no poll-booth mesh yet (PARITY_AUDIT ROOM7)."
+    },
+    {
+      "type": "signpost",
+      "x": 3.5,
+      "z": 65.0,
+      "rot": 1.1,
+      "scale": 1.0,
+      "zone": "wizard_tower",
+      "label": "Wizard's Tower"
+    },
+    {
+      "type": "altar",
+      "x": 10,
+      "z": 68.2,
+      "rot": 0.0,
+      "scale": 1.0,
+      "zone": "wizard_tower",
+      "note": "Reuses the chapel altar treatment in spirit; build_chapel's altar geometry isn't a standalone kit-piece export yet — modeler should factor one out (MISSING kit-piece 'altar')."
+    },
+    {
+      "type": "rune_rack",
+      "x": 7.5,
+      "z": 67.5,
+      "rot": 0.5,
+      "scale": 1.0,
+      "zone": "wizard_tower",
+      "note": "MISSING kit-piece: no rune-rack/lectern-of-runes mesh yet."
+    },
+    {
+      "type": "rune_rack",
+      "x": 13.0,
+      "z": 66.0,
+      "rot": 1.9,
+      "scale": 1.0,
+      "zone": "wizard_tower",
+      "note": "Second rune rack, east of the tower, for parallel rune-lore practice — clear of the path."
+    },
+    {
+      "type": "practice_chicken",
+      "x": 12.5,
+      "z": 72,
+      "rot": 0.0,
+      "scale": 1.0,
+      "zone": "wizard_tower",
+      "note": "MISSING kit-piece: no chicken mob mesh yet (PARITY_AUDIT ROOM9); build_rat's quadruped factory is the closest reusable base."
+    },
+    {
+      "type": "signpost",
+      "x": -4.5,
+      "z": 74.5,
+      "rot": 2.7,
+      "scale": 1.0,
+      "zone": "departure_dock",
+      "label": "To the mainland"
+    },
+    {
+      "type": "dock_planks",
+      "x": 0,
+      "z": 82,
+      "rot": 0.0,
+      "scale": 1.0,
+      "zone": "departure_dock",
+      "note": "MISSING kit-piece: no dock/jetty plank mesh yet (PARITY_AUDIT ROOM10) — placed at the shoreline."
+    },
+    {
+      "type": "boat",
+      "x": 0,
+      "z": 86,
+      "rot": 0.0,
+      "scale": 1.0,
+      "zone": "departure_dock",
+      "note": "MISSING kit-piece: no boat mesh yet."
+    }
   ],
   "npcs": [
-    { "type": "monklike", "id": "brother_aldric", "name": "Brother Aldric", "role": "Prayer Instructor",
-      "x": 1.4, "z": 1.4, "rot": 0.0, "wander": 0, "zone": "chapel",
-      "note": "Existing chapel monk (built in-Python by build_npc_monk). Listed here for manifest completeness only — geometry unchanged." },
-
-    { "type": "guide", "id": "warden_halric", "name": "Warden Halric", "role": "Tutorial Guide",
-      "x": 0, "z": 20.5, "rot": 3.142, "wander": 1.5, "zone": "spawn_house",
-      "dialogue": "warden-halric", "lessons": ["L0", "L1"] },
-
-    { "type": "survival", "id": "survival_expert", "name": "Forester Maeve", "role": "Survival Expert",
-      "x": 6.0, "z": 28.5, "rot": 1.0, "wander": 3.0, "zone": "survival",
-      "dialogue": "forester-maeve", "lessons": ["L2", "L3", "L4", "L5"] },
-
-    { "type": "chef", "id": "master_chef", "name": "Cook Tobin", "role": "Master Chef",
-      "x": -10, "z": 39.5, "rot": 3.142, "wander": 1.5, "zone": "cooks_house",
-      "dialogue": "cook-tobin", "lessons": ["L6"] },
-
-    { "type": "quest", "id": "quest_guide", "name": "Loremaster Edda", "role": "Quest Guide",
-      "x": 10, "z": 47.5, "rot": 3.142, "wander": 1.5, "zone": "quest_house",
-      "dialogue": "loremaster-edda", "lessons": ["L7"] },
-
-    { "type": "miner", "id": "mining_instructor", "name": "Pickmaster Doran", "role": "Mining Instructor",
-      "x": -16, "z": 49.5, "rot": 1.6, "wander": 2.5, "zone": "mine",
-      "dialogue": "pickmaster-doran", "lessons": ["L8", "L9", "L10"] },
-
-    { "type": "guard", "id": "combat_instructor", "name": "Sergeant Vael", "role": "Combat Instructor",
-      "x": 14, "z": 53.5, "rot": 0.0, "wander": 2.5, "zone": "combat_ring",
-      "dialogue": "sergeant-vael", "lessons": ["L11", "L12"] },
-
-    { "type": "banker", "id": "banker", "name": "Teller Wynn", "role": "Banker",
-      "x": -14, "z": 60.0, "rot": 3.142, "wander": 1.5, "zone": "bank",
-      "dialogue": "teller-wynn", "lessons": ["L13"] },
-
-    { "type": "account", "id": "account_guide", "name": "Steward Brann", "role": "Account Guide",
-      "x": -11.5, "z": 60.0, "rot": 3.142, "wander": 1.5, "zone": "bank",
-      "dialogue": "steward-brann", "lessons": ["L14"] },
-
-    { "type": "wizard", "id": "magic_instructor", "name": "Magus Sorrel", "role": "Magic Instructor",
-      "x": 10, "z": 68.5, "rot": 3.142, "wander": 2.0, "zone": "wizard_tower",
-      "dialogue": "magus-sorrel", "lessons": ["L16"] },
-
-    { "type": "guide", "id": "departure_guide", "name": "Warden Halric", "role": "Departure Guide",
-      "x": 0, "z": 79.0, "rot": 3.142, "wander": 1.5, "zone": "departure_dock",
-      "dialogue": "warden-halric-dock", "lessons": ["L17"],
-      "note": "Same warden id/dialogue-tree family as spawn_house's Halric, OSRS-style bookend; distinct dialogue node 'warden-halric-dock' per dialogue.json." }
+    {
+      "type": "monklike",
+      "id": "brother_aldric",
+      "name": "Brother Aldric",
+      "role": "Prayer Instructor",
+      "x": 1.4,
+      "z": 1.4,
+      "rot": 0.0,
+      "wander": 0,
+      "zone": "chapel",
+      "note": "Existing chapel monk (built in-Python by build_npc_monk). Listed here for manifest completeness only — geometry unchanged."
+    },
+    {
+      "type": "guide",
+      "id": "warden_halric",
+      "name": "Warden Halric",
+      "role": "Tutorial Guide",
+      "x": 0,
+      "z": 20.5,
+      "rot": 3.142,
+      "wander": 1.5,
+      "zone": "spawn_house",
+      "dialogue": "warden-halric",
+      "lessons": [
+        "L0",
+        "L1"
+      ]
+    },
+    {
+      "type": "survival",
+      "id": "survival_expert",
+      "name": "Forester Maeve",
+      "role": "Survival Expert",
+      "x": 6.0,
+      "z": 28.5,
+      "rot": 1.0,
+      "wander": 3.0,
+      "zone": "survival",
+      "dialogue": "forester-maeve",
+      "lessons": [
+        "L2",
+        "L3",
+        "L4",
+        "L5"
+      ]
+    },
+    {
+      "type": "chef",
+      "id": "master_chef",
+      "name": "Cook Tobin",
+      "role": "Master Chef",
+      "x": -10,
+      "z": 39.5,
+      "rot": 3.142,
+      "wander": 1.5,
+      "zone": "cooks_house",
+      "dialogue": "cook-tobin",
+      "lessons": [
+        "L6"
+      ]
+    },
+    {
+      "type": "quest",
+      "id": "quest_guide",
+      "name": "Loremaster Edda",
+      "role": "Quest Guide",
+      "x": 5.5,
+      "z": 43.0,
+      "rot": 3.142,
+      "wander": 1.5,
+      "zone": "quest_house",
+      "dialogue": "loremaster-edda",
+      "lessons": [
+        "L7"
+      ],
+      "note": "v61: moved off station-fixture collider so the instructor is pathable/talkable (was enclosed)."
+    },
+    {
+      "type": "miner",
+      "id": "mining_instructor",
+      "name": "Pickmaster Doran",
+      "role": "Mining Instructor",
+      "x": -16,
+      "z": 49.5,
+      "rot": 1.6,
+      "wander": 2.5,
+      "zone": "mine",
+      "dialogue": "pickmaster-doran",
+      "lessons": [
+        "L8",
+        "L9",
+        "L10"
+      ]
+    },
+    {
+      "type": "guard",
+      "id": "combat_instructor",
+      "name": "Sergeant Vael",
+      "role": "Combat Instructor",
+      "x": 14,
+      "z": 53.5,
+      "rot": 0.0,
+      "wander": 2.5,
+      "zone": "combat_ring",
+      "dialogue": "sergeant-vael",
+      "lessons": [
+        "L11",
+        "L12"
+      ]
+    },
+    {
+      "type": "banker",
+      "id": "banker",
+      "name": "Teller Wynn",
+      "role": "Banker",
+      "x": -14.0,
+      "z": 57.5,
+      "rot": 3.142,
+      "wander": 1.5,
+      "zone": "bank",
+      "dialogue": "teller-wynn",
+      "lessons": [
+        "L13"
+      ],
+      "note": "v61: moved off station-fixture collider so the instructor is pathable/talkable (was enclosed)."
+    },
+    {
+      "type": "account",
+      "id": "account_guide",
+      "name": "Steward Brann",
+      "role": "Account Guide",
+      "x": -11.5,
+      "z": 57.5,
+      "rot": 3.142,
+      "wander": 1.5,
+      "zone": "bank",
+      "dialogue": "steward-brann",
+      "lessons": [
+        "L14"
+      ],
+      "note": "v61: moved off station-fixture collider so the instructor is pathable/talkable (was enclosed)."
+    },
+    {
+      "type": "wizard",
+      "id": "magic_instructor",
+      "name": "Magus Sorrel",
+      "role": "Magic Instructor",
+      "x": 7.0,
+      "z": 65.5,
+      "rot": 3.142,
+      "wander": 2.0,
+      "zone": "wizard_tower",
+      "dialogue": "magus-sorrel",
+      "lessons": [
+        "L16"
+      ],
+      "note": "v61: moved off station-fixture collider so the instructor is pathable/talkable (was enclosed)."
+    },
+    {
+      "type": "guide",
+      "id": "departure_guide",
+      "name": "Warden Halric",
+      "role": "Departure Guide",
+      "x": 0,
+      "z": 79.0,
+      "rot": 3.142,
+      "wander": 1.5,
+      "zone": "departure_dock",
+      "dialogue": "warden-halric-dock",
+      "lessons": [
+        "L17"
+      ],
+      "note": "Same warden id/dialogue-tree family as spawn_house's Halric, OSRS-style bookend; distinct dialogue node 'warden-halric-dock' per dialogue.json."
+    }
   ],
   "paths": [
-    { "points": [[0, 5], [0, 14], [0, 22], [0, 27]], "width": 3, "tile": "dirt" },
-    { "points": [[0, 27], [9, 32]], "width": 2.4, "tile": "dirt" },
-    { "points": [[9, 32], [-10, 38]], "width": 2.4, "tile": "dirt" },
-    { "points": [[-10, 38], [10, 46]], "width": 2.4, "tile": "dirt" },
-    { "points": [[10, 46], [-16, 50]], "width": 2.4, "tile": "dirt" },
-    { "points": [[-16, 50], [14, 58]], "width": 2.4, "tile": "dirt" },
-    { "points": [[14, 58], [-14, 62]], "width": 2.4, "tile": "dirt" },
-    { "points": [[-14, 62], [10, 70]], "width": 2.4, "tile": "dirt" },
-    { "points": [[10, 70], [0, 80]], "width": 2.4, "tile": "dirt" }
+    {
+      "points": [
+        [
+          0,
+          5
+        ],
+        [
+          0,
+          14
+        ],
+        [
+          0,
+          22
+        ],
+        [
+          0,
+          27
+        ]
+      ],
+      "width": 3,
+      "tile": "dirt"
+    },
+    {
+      "points": [
+        [
+          0,
+          27
+        ],
+        [
+          9,
+          32
+        ]
+      ],
+      "width": 2.4,
+      "tile": "dirt"
+    },
+    {
+      "points": [
+        [
+          9,
+          32
+        ],
+        [
+          -10,
+          38
+        ]
+      ],
+      "width": 2.4,
+      "tile": "dirt"
+    },
+    {
+      "points": [
+        [
+          -10,
+          38
+        ],
+        [
+          10,
+          46
+        ]
+      ],
+      "width": 2.4,
+      "tile": "dirt"
+    },
+    {
+      "points": [
+        [
+          10,
+          46
+        ],
+        [
+          -16,
+          50
+        ]
+      ],
+      "width": 2.4,
+      "tile": "dirt"
+    },
+    {
+      "points": [
+        [
+          -16,
+          50
+        ],
+        [
+          14,
+          58
+        ]
+      ],
+      "width": 2.4,
+      "tile": "dirt"
+    },
+    {
+      "points": [
+        [
+          14,
+          58
+        ],
+        [
+          -14,
+          62
+        ]
+      ],
+      "width": 2.4,
+      "tile": "dirt"
+    },
+    {
+      "points": [
+        [
+          -14,
+          62
+        ],
+        [
+          10,
+          70
+        ]
+      ],
+      "width": 2.4,
+      "tile": "dirt"
+    },
+    {
+      "points": [
+        [
+          10,
+          70
+        ],
+        [
+          0,
+          80
+        ]
+      ],
+      "width": 2.4,
+      "tile": "dirt"
+    }
   ],
   "scatter": [
-    { "type": "tree", "x0": -24, "x1": 24, "z0": 17, "z1": 58, "count": 70, "seed": 1337,
-      "sMin": 0.85, "sMax": 1.35, "spacing": 2.3, "exclude": [-2.4, 2.4, 5, 60] },
-    { "type": "bush", "x0": -24, "x1": 24, "z0": 16, "z1": 58, "count": 55, "seed": 4242,
-      "sMin": 0.7, "sMax": 1.25, "spacing": 1.3, "exclude": [-2.4, 2.4, 5, 60] },
-    { "type": "rock", "x0": -24, "x1": 24, "z0": 16, "z1": 58, "count": 22, "seed": 909,
-      "sMin": 0.7, "sMax": 1.5, "spacing": 1.6, "exclude": [-2.4, 2.4, 5, 60] },
-
-    { "type": "tree", "x0": -34, "x1": 34, "z0": 58, "z1": 86, "count": 40, "seed": 5151,
-      "sMin": 0.8, "sMax": 1.3, "spacing": 2.3,
-      "exclude": [-12, 12, 58, 86],
-      "note": "Extends nature scatter north over the new zone belt (z58-86) while excluding the combat/bank/wizard/dock clearings; tune exclude rects per-zone once those areas finalize." }
+    {
+      "type": "tree",
+      "x0": -24,
+      "x1": 24,
+      "z0": 17,
+      "z1": 58,
+      "count": 70,
+      "seed": 1337,
+      "sMin": 0.85,
+      "sMax": 1.35,
+      "spacing": 2.3,
+      "exclude": [
+        -2.4,
+        2.4,
+        5,
+        60
+      ]
+    },
+    {
+      "type": "bush",
+      "x0": -24,
+      "x1": 24,
+      "z0": 16,
+      "z1": 58,
+      "count": 55,
+      "seed": 4242,
+      "sMin": 0.7,
+      "sMax": 1.25,
+      "spacing": 1.3,
+      "exclude": [
+        -2.4,
+        2.4,
+        5,
+        60
+      ]
+    },
+    {
+      "type": "rock",
+      "x0": -24,
+      "x1": 24,
+      "z0": 16,
+      "z1": 58,
+      "count": 22,
+      "seed": 909,
+      "sMin": 0.7,
+      "sMax": 1.5,
+      "spacing": 1.6,
+      "exclude": [
+        -2.4,
+        2.4,
+        5,
+        60
+      ]
+    },
+    {
+      "type": "tree",
+      "x0": -34,
+      "x1": 34,
+      "z0": 58,
+      "z1": 86,
+      "count": 40,
+      "seed": 5151,
+      "sMin": 0.8,
+      "sMax": 1.3,
+      "spacing": 2.3,
+      "exclude": [
+        -12,
+        12,
+        58,
+        86
+      ],
+      "note": "Extends nature scatter north over the new zone belt (z58-86) while excluding the combat/bank/wizard/dock clearings; tune exclude rects per-zone once those areas finalize."
+    }
   ]
 }

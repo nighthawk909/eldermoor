@@ -1,5 +1,5 @@
 {
-  "updated": 1782874940593,
+  "updated": 1782875289662,
   "version": "v41",
   "note": "Live fleet board. Reflects v36 owner QA + browser screenshots. Character art (studio + in-world avatar/creator) owned by a separate chat. Statuses: queued | building | review | requeue | shipped | done | blocked | failed.",
   "board": [
@@ -560,6 +560,15 @@
       "agent": "builder-levelup",
       "note": "level-up popup + jingle (levelup.js, wired); v51",
       "ts": 1782874938871
+    },
+    {
+      "id": "NPC-MODELS",
+      "epic": "Character Art",
+      "title": "NPC-MODELS",
+      "status": "shipped",
+      "agent": "builder-npcmodels",
+      "note": "instructors are KayKit rigged models (role->model, idle/walk), match the player; v52",
+      "ts": 1782875289662
     }
   ]
 }

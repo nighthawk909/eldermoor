@@ -113,6 +113,19 @@ export function followPath(dt){
     }
   } else stuckT = 0;
 }
+/* REAL-AVATAR: true once window.EMAVATAR reports the rigged KayKit glTF avatar
+   is active (loaded + swapped in). While true, simStep drives the avatar via
+   the AnimationMixer state API (idle/walk/attack/death) instead of the
+   procedural EMRIG limb-swing/lunge/topple below, so the two animation
+   systems never fight over the same pose. Falls back to false (procedural
+   rig, unchanged) whenever no glb avatar is loaded - boot-safe by construction. */
+let _prevAttackT = 0;
+let _prevDead = false;
+function glbAvatarActive(){
+  try { return !!(window.EMAVATAR && window.EMAVATAR.usingGlb && window.EMAVATAR.usingGlb()); }
+  catch(e){ return false; }
+}
+
 export function simStep(dt){
   // proximity gate: stop & act the moment we\'re within range of (and can see) the target -
   // and re-path if the target is an NPC who has wandered.
@@ -130,33 +143,56 @@ export function simStep(dt){
     run.energy = Math.min(100, run.energy + 0.45 * dt);
   }
 
-  // real walk cycle: swing legs/arms in opposite phase from the hip/shoulder pivots
-  const sw = move.moving ? Math.sin(walkPhase)*0.55 : 0;
-  if(rig.legL){ rig.legL.rotation.x =  sw;        rig.legR.rotation.x = -sw; }
-  if(rig.armL){ rig.armL.rotation.x = -sw*0.6;    rig.armR.rotation.x =  sw*0.6; }
+  const usingGlb = glbAvatarActive();
   const bob = move.moving ? Math.abs(Math.sin(walkPhase))*0.05 : 0;
-  player.position.set(pos.x, bob, pos.z);
 
-  // CBT-ANIM: brief attack lunge - a fast forward swing of the right arm (and a
-  // small forward weight-shift on the whole group) that decays to 0 over ~0.35s.
-  // Overrides the walk-cycle arm pose for its duration; harmless if no rig loaded.
-  if(playerAnim.attackT > 0){
-    playerAnim.attackT = Math.max(0, playerAnim.attackT - dt*2.85);
-    const k = Math.sin(playerAnim.attackT * Math.PI);   // 0 → 1 → 0 swing envelope
-    if(rig.armR) rig.armR.rotation.x = -1.1 * k;
-    player.scale.set(1, 1, 1 + k*0.04);                  // tiny forward punch, asset-free
-  } else if(!playerAnim.dead){
-    player.scale.set(1,1,1);
-  }
+  if(usingGlb){
+    // rigged glTF avatar path: tick the AnimationMixer and drive it purely by
+    // state name - no manual limb-pivot math (EMRIG is left untouched so it's
+    // ready instantly if the glb avatar ever has to fall back mid-session).
+    // walkPhase itself is still advanced by followPath() above while moving;
+    // it just isn't consumed here (the mixer clip supplies the leg motion).
+    window.EMAVATAR.update(dt);
+    if(playerAnim.dead){
+      if(!_prevDead) window.EMAVATAR.setState('death');   // rising edge only - once per death
+    } else if(playerAnim.attackT > 0){
+      if(_prevAttackT <= 0) window.EMAVATAR.setState('attack');   // rising edge only - once per swing
+      playerAnim.attackT = Math.max(0, playerAnim.attackT - dt*2.85);
+    } else {
+      window.EMAVATAR.setState(move.moving ? 'walk' : 'idle');
+    }
+    _prevAttackT = playerAnim.attackT;
+    _prevDead = playerAnim.dead;
+    player.position.set(pos.x, 0, pos.z);   // no procedural bob/topple/scale-punch - the clips carry their own motion
+  } else {
+    // real walk cycle: swing legs/arms in opposite phase from the hip/shoulder pivots
+    const sw = move.moving ? Math.sin(walkPhase)*0.55 : 0;
+    if(rig.legL){ rig.legL.rotation.x =  sw;        rig.legR.rotation.x = -sw; }
+    if(rig.armL){ rig.armL.rotation.x = -sw*0.6;    rig.armR.rotation.x =  sw*0.6; }
+    if(move.moving) walkPhase += dt*9;
+    player.position.set(pos.x, bob, pos.z);
 
-  // CBT-ANIM: death - topple + sink + fade over ~0.7s (matches combat.js's playerDeath
-  // timing), then clearDeathAnim() (called by combat.js on respawn) resets the pose.
-  if(playerAnim.dead){
-    playerAnim.deadT = Math.min(1, playerAnim.deadT + dt/0.7);
-    const t = playerAnim.deadT;
-    player.rotation.z = -t * (Math.PI/2.1);   // topple onto its side
-    player.position.y = bob - t * 0.55;       // sink into the ground
-    player.scale.set(1 - t*0.25, 1 - t*0.25, 1 - t*0.25);
+    // CBT-ANIM: brief attack lunge - a fast forward swing of the right arm (and a
+    // small forward weight-shift on the whole group) that decays to 0 over ~0.35s.
+    // Overrides the walk-cycle arm pose for its duration; harmless if no rig loaded.
+    if(playerAnim.attackT > 0){
+      playerAnim.attackT = Math.max(0, playerAnim.attackT - dt*2.85);
+      const k = Math.sin(playerAnim.attackT * Math.PI);   // 0 → 1 → 0 swing envelope
+      if(rig.armR) rig.armR.rotation.x = -1.1 * k;
+      player.scale.set(1, 1, 1 + k*0.04);                  // tiny forward punch, asset-free
+    } else if(!playerAnim.dead){
+      player.scale.set(1,1,1);
+    }
+
+    // CBT-ANIM: death - topple + sink + fade over ~0.7s (matches combat.js's playerDeath
+    // timing), then clearDeathAnim() (called by combat.js on respawn) resets the pose.
+    if(playerAnim.dead){
+      playerAnim.deadT = Math.min(1, playerAnim.deadT + dt/0.7);
+      const t = playerAnim.deadT;
+      player.rotation.z = -t * (Math.PI/2.1);   // topple onto its side
+      player.position.y = bob - t * 0.55;       // sink into the ground
+      player.scale.set(1 - t*0.25, 1 - t*0.25, 1 - t*0.25);
+    }
   }
 
   if(marker.visible){

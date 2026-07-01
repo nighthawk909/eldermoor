@@ -21,6 +21,87 @@
 
 const DEF = { skin:'#e8b98e', hair:'#3a2a1c', torso:'#3f6f8c', legs:'#2f3742', feet:'#5a3f28' };
 
+/* ---------------------------------------------------------------------
+   REAL-AVATAR: rigged KayKit glTF avatar path (CC0, assets/ext/characters/).
+   Loads a rigged low-poly character model in place of the procedural box
+   body, drives it with THREE.AnimationMixer (idle/walk/attack/death/cast),
+   and sockets weapon/shield gear onto its handslot bones. Fully additive +
+   defensive: any failure here (missing THREE.GLTFLoader, fetch error, no
+   matching bones) leaves `current` null/procedural and the caller falls
+   back to the existing buildBody() box avatar so the game never bricks.
+   ===================================================================== */
+const KAYKIT_DIR = 'assets/ext/characters/';
+const KAYKIT_GEAR_DIR = 'assets/ext/gear/';
+/* model files verified present in assets/ext/characters/ */
+const KAYKIT_MODELS = {
+  knight: 'Knight.glb', mage: 'Mage.glb', rogue: 'Rogue.glb',
+  rogue_hooded: 'Rogue_Hooded.glb', barbarian: 'Barbarian.glb',
+};
+/* clip-name aliases: KayKit ships several near-duplicate clips per pose;
+   try each in order, first present wins. Keeps the state API stable even
+   if a given model is missing one of the alt names. */
+const CLIP_ALIASES = {
+  idle:   ['Idle', 'Unarmed_Idle'],
+  walk:   ['Walking_A', 'Walking_B', 'Walking_C'],
+  run:    ['Running_A', 'Running_B'],
+  attack: ['1H_Melee_Attack_Slice_Diagonal', '1H_Melee_Attack_Slice_Horizontal', '1H_Melee_Attack_Chop', '2H_Melee_Attack_Slice', 'Unarmed_Melee_Attack_Punch_A'],
+  cast:   ['Spellcasting', 'Spellcast_Raise', 'Spellcast_Shoot'],
+  death:  ['Death_A', 'Death_B'],
+  hit:    ['Hit_A', 'Hit_B'],
+  block:  ['Block', 'Blocking'],
+};
+/* gear id/slot -> KayKit gear .gltf filename (closest visual match). */
+const GEAR_FILES = {
+  weapon: [
+    [/dagger/i, 'dagger.gltf'],
+    [/axe|hatchet/i, 'axe_1handed.gltf'],
+    [/staff/i, 'staff.gltf'],
+    [/wand/i, 'wand.gltf'],
+    [/bow/i, 'crossbow_1handed.gltf'],
+    [/sword|blade|scimitar|longsword/i, 'sword_1handed.gltf'],
+  ],
+  shield: [
+    [/square|tower|kite/i, 'shield_square.gltf'],
+    [/spike/i, 'shield_spikes.gltf'],
+    [/badge|buckler/i, 'shield_badge.gltf'],
+    [/.*/, 'shield_round.gltf'],
+  ],
+};
+/* the KayKit rigs are authored ~1.7 world units tall; the existing
+   procedural avatar + player.glb read at ~1.8-1.9u (head pivot at y=1.62
+   plus hair). Until the live mesh bounds are measured at load time this is
+   the static fallback scale; loadGlbAvatar() below corrects it from the
+   actual loaded bounding box so it always matches the world regardless of
+   per-model authoring variance. */
+const KAYKIT_FALLBACK_SCALE = 1.0;
+const TARGET_HEIGHT = 1.84;   // world units - matches the procedural avatar's head height + margin
+
+function pickModelKey(sel){
+  const p = (sel && sel.parts) || {};
+  const torso = String(p.torso||''), head = String(p.head||'');
+  if(/robe/.test(torso)) return 'mage';
+  if(/hood/.test(head)) return 'rogue_hooded';
+  if(/jerkin/.test(torso)) return 'rogue';
+  if(/yoke/.test(torso)) return 'barbarian';
+  return 'knight';
+}
+
+function gltfLoader(){
+  const T = TH();
+  if(!T || typeof T.GLTFLoader !== 'function') return null;
+  return new T.GLTFLoader();
+}
+
+/* find the first bone/object in the rig whose name matches any candidate,
+   case-insensitively and tolerant of the '.l'/'.r' vs '_l'/'_r' suffix style. */
+function findBone(root, names){
+  for(const n of names){
+    const o = root.getObjectByName(n);
+    if(o) return o;
+  }
+  return null;
+}
+
 function TH(){ return (typeof window !== 'undefined') ? window.THREE : null; }
 function appearance(){
   if (typeof window === 'undefined') return null;
@@ -107,9 +188,138 @@ export function initAvatar(){
 
   let current = null;       // { group, pivots, handR, handL }
   let wornSig = '';         // signature of the last-rendered worn set
+  /* rigged-avatar runtime state, kept fully separate from `current` (the
+     procedural fallback) so the two paths never fight over the same fields.
+     glb = { scene, mixer, actions:{name->AnimationAction}, activeName,
+             handR, handL, modelKey, worn:{slot->Object3D} } | null while
+     loading/unavailable - player.js checks window.EMAVATAR.usingGlb() and
+     skips the procedural rig swing only when this is truthy. */
+  let glb = null;
+  let glbWornSig = '';
+  let glbLoadToken = 0;     // bumps on every rebuild; a stale in-flight load checks this and bails
 
   function playerGroup(){ return window.EMPLAYER || null; }
   function ready(){ return !!(TH() && playerGroup() && window.EMRIG); }
+
+  /* ---------------------------------------------------------- glb avatar */
+  function disposeGlb(){
+    if(!glb) return;
+    try {
+      if(glb.mixer) glb.mixer.stopAllAction();
+      if(glb.scene){
+        glb.scene.traverse(o => { if(o.geometry && o.geometry.dispose) o.geometry.dispose();
+          if(o.material){ const ms=Array.isArray(o.material)?o.material:[o.material]; ms.forEach(m=>m.dispose&&m.dispose()); } });
+        if(glb.scene.parent) glb.scene.parent.remove(glb.scene);
+      }
+      if(glb.worn) Object.keys(glb.worn).forEach(k => disposeGearMesh(glb.worn[k]));
+    } catch(_){}
+    glb = null;
+    glbWornSig = '';
+    _mixerFinishedBound = false;   // the next loadGlbAvatar() creates a fresh mixer - rebind its 'finished' listener
+  }
+
+  function disposeGearMesh(mesh){
+    if(!mesh) return;
+    try {
+      mesh.traverse(o => { if(o.geometry && o.geometry.dispose) o.geometry.dispose();
+        if(o.material){ const ms=Array.isArray(o.material)?o.material:[o.material]; ms.forEach(m=>m.dispose&&m.dispose()); } });
+      if(mesh.parent) mesh.parent.remove(mesh);
+    } catch(_){}
+  }
+
+  /* resolve a clip alias list against the loaded animations; returns the
+     first matching THREE.AnimationAction, or null. */
+  function resolveAction(mixer, root, aliasList){
+    if(!root.animations || !root.animations.length) return null;
+    for(const name of aliasList){
+      const clip = TH().AnimationClip.findByName(root.animations, name);
+      if(clip) return mixer.clipAction(clip);
+    }
+    return null;
+  }
+
+  /* Attempt the rigged-glTF avatar load. Resolves true on success (glb is
+     populated), false on any failure (caller keeps/uses the procedural
+     buildBody fallback). Never throws. */
+  function loadGlbAvatar(sel, pg){
+    return new Promise(resolve => {
+      const T = TH();
+      const loader = gltfLoader();
+      if(!T || !loader){ resolve(false); return; }
+      const modelKey = pickModelKey(sel);
+      const file = KAYKIT_MODELS[modelKey] || KAYKIT_MODELS.knight;
+      const myToken = ++glbLoadToken;
+      loader.load(KAYKIT_DIR + file, gltf => {
+        if(myToken !== glbLoadToken){ return resolve(false); }   // a newer rebuild superseded this load
+        try {
+          const root = gltf.scene;
+          if(!root){ resolve(false); return; }
+          // scale to match the world: measure the loaded bounding box and
+          // fit it to TARGET_HEIGHT rather than trusting a hardcoded ratio,
+          // so per-model authoring variance (Mage vs Knight vs Barbarian)
+          // never desyncs the silhouette from the ground / camera rig.
+          root.updateMatrixWorld(true);
+          const box = new T.Box3().setFromObject(root);
+          const h = Math.max(0.01, box.max.y - box.min.y);
+          const scl = (h > 0.05) ? (TARGET_HEIGHT / h) : KAYKIT_FALLBACK_SCALE;
+          root.scale.setScalar(scl);
+          root.rotation.y = Math.PI;     // KayKit rigs face +Z; world forward is -Z (matches player.rotation.y default)
+          root.position.set(0,0,0);
+
+          const mixer = new T.AnimationMixer(root);
+          const actions = {};
+          Object.keys(CLIP_ALIASES).forEach(state => {
+            const a = resolveAction(mixer, gltf, CLIP_ALIASES[state]);
+            if(a){ a.clampWhenFinished = (state==='death'); a.loop = (state==='death'||state==='attack'||state==='cast'||state==='hit') ? T.LoopOnce : T.LoopRepeat; actions[state] = a; }
+          });
+          const handR = findBone(root, ['handslot.r', 'handslot_r', 'hand.r']);
+          const handL = findBone(root, ['handslot.l', 'handslot_l', 'hand.l']);
+
+          glb = { scene: root, mixer, actions, activeName: null, handR, handL, modelKey, worn:{} };
+          pg.add(root);
+          // start in idle (or whatever's available) immediately
+          playState('idle');
+          resolve(true);
+        } catch(e){ console.warn('[avatar] glb avatar setup failed:', e); resolve(false); }
+      }, undefined, err => { console.warn('[avatar] glb avatar load failed:', file, err); resolve(false); });
+    });
+  }
+
+  /* crossfade to a named state (idle/walk/run/attack/cast/death/hit/block).
+     Falls back to idle if the requested state has no resolved clip; no-ops
+     entirely if no glb avatar is active. oneShot states (attack/cast/hit)
+     auto-return to idle/walk via the mixer 'finished' listener. */
+  function playState(name, fadeS){
+    if(!glb || !glb.mixer) return false;
+    const fade = (fadeS == null) ? 0.18 : fadeS;
+    let action = glb.actions[name] || glb.actions.idle;
+    if(!action) return false;
+    const actName = glb.actions[name] ? name : 'idle';
+    if(glb.activeName === actName && action.isRunning()) return true;
+    Object.keys(glb.actions).forEach(k => { if(k !== actName) glb.actions[k].fadeOut(fade); });
+    action.reset().fadeIn(fade).play();
+    glb.activeName = actName;
+    return true;
+  }
+  let _mixerFinishedBound = false;
+  function bindMixerFinished(){
+    if(_mixerFinishedBound || !glb || !glb.mixer) return;
+    glb.mixer.addEventListener('finished', e => {
+      // one-shot clips (attack/cast/hit/death) settle back to idle/walk once they end,
+      // EXCEPT death, which holds its final pose (clampWhenFinished above).
+      if(glb && glb.activeName && glb.activeName !== 'death'){
+        const moving = window.EMMOVE && window.EMMOVE.moving;
+        playState(moving ? 'walk' : 'idle');
+      }
+    });
+    _mixerFinishedBound = true;
+  }
+
+  /* public per-frame tick - called from player.js simStep(dt) each frame. */
+  function update(dt){
+    if(glb && glb.mixer) glb.mixer.update(dt);
+  }
+  function usingGlb(){ return !!(glb && glb.scene); }
 
   function disposeGroup(grp){
     if(!grp) return;
@@ -136,6 +346,9 @@ export function initAvatar(){
     const sel = appearance();
     if(!sel || !ready()) return false;
     const pg = playerGroup();
+    // Tear down any previous rigged-glb avatar too - a rebuild means the
+    // appearance changed, so the model choice (pickModelKey) may change.
+    disposeGlb();
     if(current) disposeGroup(current.group);
     current = buildBody(sel);
     pg.add(current.group);
@@ -146,6 +359,18 @@ export function initAvatar(){
     rig.armL = current.pivots.armL; rig.armR = current.pivots.armR;
     wornSig = '';                 // force worn re-render against the new hands
     renderWorn();
+
+    // Kick off the rigged glTF avatar load in the background (BOOT-CRITICAL:
+    // the procedural body above is already live, so a failure/slow network
+    // here never blocks or blanks the player - it just stays procedural).
+    loadGlbAvatar(sel, pg).then(ok => {
+      if(!ok || !glb) return;
+      bindMixerFinished();
+      hideGlb(pg, glb.scene);          // hide the procedural body + static player.glb, keep only the rigged avatar
+      current.group.visible = false;   // belt-and-suspenders: procedural group stays built (cheap) but hidden
+      glbWornSig = '';                 // force gear re-render against the new hand bones
+      renderWornGlb();
+    }).catch(()=>{ /* loadGlbAvatar never rejects, but stay defensive */ });
     return true;
   }
 
@@ -227,13 +452,85 @@ export function initAvatar(){
     });
   }
 
+  /* gear id -> best-match KayKit gear filename, or null if the slot has no
+     KayKit prop equivalent (armour/legs/feet/helm read purely as re-tints
+     on the base rig for now - no matching GLTF exists in assets/ext/gear/). */
+  function pickGearFile(slot, id){
+    const table = GEAR_FILES[slot];
+    if(!table) return null;
+    id = String(id||'');
+    for(const [re, file] of table){ if(re.test(id)) return file; }
+    return null;
+  }
+
+  /* (re)build weapon/shield gear onto the rigged glb avatar's hand-slot bones.
+     Loads + clones the matching KayKit gear .gltf and parents it to
+     handslot.r (weapon) / handslot.l (shield), with a small offset so the
+     grip sits in the hand. Removed cleanly on unequip. Defensive: any
+     missing bone / failed load / unmapped id just skips that slot silently -
+     never throws, never blocks the rest of the avatar. */
+  let _gearLoaderInst = null;   // lazily constructed, keeps a single GLTFLoader instance for gear pieces
+  function getGearLoader(){
+    if(_gearLoaderInst) return _gearLoaderInst;
+    _gearLoaderInst = gltfLoader();
+    return _gearLoaderInst;
+  }
+  const GEAR_OFFSET = {
+    weapon: { pos:[0, -0.02, 0.02], rot:[0, 0, 0] },
+    shield: { pos:[0, -0.02, 0.02], rot:[0, Math.PI/2, 0] },
+  };
+  function renderWornGlb(){
+    if(!glb || !glb.scene) return;
+    const ws = wornState();
+    const sig = Object.keys(ws).filter(k => k==='weapon'||k==='shield').sort().map(s => s + ':' + ws[s]).join('|');
+    if(sig === glbWornSig) return;
+    glbWornSig = sig;
+
+    ['weapon','shield'].forEach(slot => {
+      if(glb.worn[slot]){ disposeGearMesh(glb.worn[slot]); glb.worn[slot] = null; }
+    });
+
+    ['weapon','shield'].forEach(slot => {
+      const id = ws[slot];
+      if(!id) return;
+      const bone = slot === 'weapon' ? glb.handR : glb.handL;
+      if(!bone) return;                              // rig has no matching socket - skip gracefully
+      const file = pickGearFile(slot, id);
+      if(!file) return;                               // no KayKit prop maps to this item id
+      const loader = getGearLoader();
+      if(!loader) return;
+      const myGlb = glb;                               // capture so a stale async resolve can detect a rebuild
+      loader.load(KAYKIT_GEAR_DIR + file, gltf => {
+        if(myGlb !== glb || !glb.worn) return;          // avatar was rebuilt/torn down while this was in flight
+        try {
+          const piece = gltf.scene || (gltf.scenes && gltf.scenes[0]);
+          if(!piece) return;
+          const off = GEAR_OFFSET[slot] || { pos:[0,0,0], rot:[0,0,0] };
+          piece.position.set(off.pos[0], off.pos[1], off.pos[2]);
+          piece.rotation.set(off.rot[0], off.rot[1], off.rot[2]);
+          bone.add(piece);
+          glb.worn[slot] = piece;
+        } catch(e){ console.warn('[avatar] gear attach failed:', slot, file, e); }
+      }, undefined, err => { console.warn('[avatar] gear load failed:', file, err); });
+    });
+  }
+
   // build when ready / on appearance change; poll worn gear for equip/unequip
   let tries = 0;
   (function pump(){ if(rebuild()) return; if(++tries < 120) setTimeout(pump, 150); })();
   addEventListener('em-appearance', () => { try { rebuild(); } catch(e){} }, { passive:true });
-  if(typeof setInterval === 'function') setInterval(() => { try { renderWorn(); } catch(e){} }, 400);
+  if(typeof setInterval === 'function') setInterval(() => {
+    try { renderWorn(); } catch(e){}
+    try { renderWornGlb(); } catch(e){}
+  }, 400);
 
-  window.EMAVATAR = { rebuild, renderWorn, buildBody, current(){ return current; } };
+  window.EMAVATAR = {
+    rebuild, renderWorn, buildBody, current(){ return current; },
+    /* REAL-AVATAR state API: driven by player.js each frame. */
+    update,                 // update(dt) - ticks the AnimationMixer; no-op if no glb avatar loaded
+    setState: playState,    // setState('idle'|'walk'|'run'|'attack'|'cast'|'death'|'hit'|'block', fadeSeconds?)
+    usingGlb,                // true once the rigged glTF avatar has replaced the procedural body
+  };
   return window.EMAVATAR;
 }
 

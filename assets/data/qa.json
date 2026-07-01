@@ -1,6 +1,6 @@
 {
-  "version": "v46",
-  "title": "v46 — combat/magic/prayer/chat actually work + 2-col creator",
+  "version": "v47",
+  "title": "v47 — REAL rigged 3D character (no more blocky) + gear on hands",
   "items": [
     {
       "id": "login",
@@ -126,6 +126,11 @@
       "id": "creator-3d",
       "title": "3D creator preview",
       "how": "In the character creator the preview is a rotating 3D model of your real avatar (not a flat paper-doll); it updates live as you change head/torso/arms/legs/feet/colours/body type."
+    },
+    {
+      "id": "real-avatar",
+      "title": "Real 3D character (not blocky)",
+      "how": "After creating your character, the in-world body is a real rigged low-poly model (KayKit) that walks/attacks/dies with real animations; equipped weapon/shield appear in the hands. Not the Minecraft box."
     }
   ]
 }

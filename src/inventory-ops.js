@@ -1,5 +1,5 @@
 /* =====================================================================
-   ELDERMOOR - Inventory item interactions (INV1-4 / INV+1 / INV+2).
+   ELDERMOOR - Inventory item interactions (INV1-4 / INV+1 / INV+2 / USE-ON).
 
    OSRS-style right-click option menu on inventory slots. Self-contained:
    reads the bag + item definitions through window.EMHUD, builds an option
@@ -7,7 +7,7 @@
 
      Wield / Wear  -> window.EMEQUIP.equip(id)
      Eat           -> heal (addXp-free) + remove from bag
-     Use           -> arm a "use cursor" for use-on (next slot click)
+     Use           -> arm a "use cursor" for use-on (next slot OR world fixture)
      Drop          -> remove from bag
      Examine       -> print item\'s examine line to chat (always present)
 
@@ -17,11 +17,51 @@
    touches hud.js and survives every HUD re-render. No-ops gracefully when
    EMHUD is absent. Owns its own menu DOM + CSS.
 
+   ---- Use-on (item-on-item / item-on-fixture) ----
+   Tapping "Use" on a bag slot arms a use cursor ("Use <item> with..."). The
+   next tap resolves the combination:
+     - tap another inventory slot  -> item+item combo (assets/data/useon.json
+       `itemPairs`, matched either direction)
+     - tap the 3D world (canvas #c) -> item+fixture combo (`itemFixture`),
+       matched by the fixture *verb* interact.js already assigns fixtures
+       (Cook/Smelt/Smith - see world.js FIXTURE_DESC). We never re-implement
+       3D picking here: we read interact.js\'s existing #hoverLabel element
+       (already kept live on pointermove with the exact verb+name under the
+       cursor) at click time, which stays perfectly in sync with the real
+       raycast without importing interact.js or touching its picking code.
+   Recipes are fully data-driven (assets/data/useon.json, self-fetched once,
+   lazily, same pattern as prayer-tab.js/music-engine.js). Fixture recipes
+   that map to an existing skilling action (light/cook/smelt/smith) are
+   routed through window.EMSKILL so we never duplicate that engine\'s success
+   rolls/xp/consumption; recipes with no skilling counterpart (e.g. the plain
+   item+item flour+water -> dough) are applied directly here via EMHUD.
+   Unknown combinations always print "Nothing interesting happens." Fully
+   defensive: no-ops when EMHUD/EMSKILL/fetch are unavailable.
+
    main.js calls initInvOps() once.
    ===================================================================== */
 
 const MENU_ID = 'eminv-ctx';
 const STYLE_ID = 'eminv-ctx-css';
+const USEON_URL = 'assets/data/useon.json';
+
+// ---------- useon.json recipes (module-level: fetched once, lazily, shared
+// across re-inits since initInvOps() is idempotent anyway) --------------
+let useonData = null;      // { itemPairs:[...], itemFixture:[...] } once loaded
+let useonPromise = null;
+function loadUseon(){
+  if(useonData) return Promise.resolve(useonData);
+  if(useonPromise) return useonPromise;
+  if(typeof fetch !== 'function'){ useonData = { itemPairs: [], itemFixture: [] }; return Promise.resolve(useonData); }
+  useonPromise = fetch(USEON_URL)
+    .then(r => r.ok ? r.json() : null)
+    .then(j => { useonData = (j && typeof j === 'object') ? j : { itemPairs: [], itemFixture: [] };
+      if(!Array.isArray(useonData.itemPairs)) useonData.itemPairs = [];
+      if(!Array.isArray(useonData.itemFixture)) useonData.itemFixture = [];
+      return useonData; })
+    .catch(() => { useonData = { itemPairs: [], itemFixture: [] }; return useonData; });
+  return useonPromise;
+}
 
 export function initInvOps(){
   if(typeof document === 'undefined') return;
@@ -120,11 +160,14 @@ export function initInvOps(){
     useArmed = { idx, id: ctx.id, name: ctx.name };
     document.body.classList.add('eminv-use-armed');
     h.addChat('Use ' + ctx.name + ' with...', '', true);
+    loadUseon();   // kick off (or reuse) the fetch now, so it's ready by the time the player taps a target
   }
   function clearUse(){
     useArmed = null;
     document.body.classList.remove('eminv-use-armed');
   }
+
+  // ---- item + item resolution (tap on another inventory slot) ----
   function resolveUseOn(h, targetIdx){
     const src = useArmed;
     const target = itemAt(h, targetIdx);
@@ -134,7 +177,119 @@ export function initInvOps(){
       h.addChat('Nothing interesting happens.', '', true);
       return;
     }
-    h.addChat('Use ' + src.name + ' with ' + target.name + '. Nothing interesting happens yet.', '', true);
+    loadUseon().then(data => {
+      const recipe = findItemPairRecipe(data, src.id, target.id);
+      if(!recipe){ h.addChat('Nothing interesting happens.', '', true); return; }
+      applyItemPairRecipe(h, recipe, src, target);
+    });
+  }
+
+  function findItemPairRecipe(data, aId, bId){
+    const list = (data && data.itemPairs) || [];
+    return list.find(r => (r.a === aId && r.b === bId) || (r.a === bId && r.b === aId)) || null;
+  }
+
+  function applyItemPairRecipe(h, recipe, src, target){
+    // consume both sides (order-independent): whichever of src/target matches a vs b
+    const consumeSrc = (recipe.a === src.id) ? recipe.consumeA !== false : recipe.consumeB !== false;
+    const consumeTarget = (recipe.a === target.id) ? recipe.consumeA !== false : recipe.consumeB !== false;
+    if(consumeSrc) removeById(h, src.id);
+    if(consumeTarget) removeById(h, target.id);
+    if(recipe.result) h.giveItem(recipe.result, 1);
+    if(recipe.xp && recipe.xp.skill && typeof h.addXp === 'function') h.addXp(recipe.xp.skill, recipe.xp.amount || 0);
+    h.addChat(recipe.message || 'Nothing interesting happens.', '', true);
+    if(recipe.flag) dispatchFlag(recipe.flag);
+    refresh(h);
+  }
+
+  // remove the FIRST bag slot matching this item id (mirrors removeOne's stack-aware logic)
+  function removeById(h, id){
+    const inv = h.getInv();
+    if(!Array.isArray(inv)) return;
+    const idx = inv.findIndex(e => e && e.id === id);
+    if(idx >= 0) removeOne(h, idx);
+  }
+
+  function dispatchFlag(flag){
+    try { window.dispatchEvent(new CustomEvent('em-flag', { detail: flag })); } catch(e){ /* no-op if unsupported */ }
+  }
+
+  // ---- item + fixture resolution (tap the 3D world while a use is armed) ----
+  // We never re-implement 3D picking: interact.js already maintains a live
+  // #hoverLabel DOM element (verb + name text, refreshed on pointermove) that
+  // mirrors its own raycast exactly. Reading it at click time on the canvas
+  // gives us the same target interact.js would have engaged, with zero
+  // coupling to its module internals.
+  function currentHoverTarget(){
+    const el = document.getElementById('hoverLabel');
+    if(!el || el.style.display === 'none' || !el.textContent) return null;
+    const verbEl = el.querySelector('span');
+    const verb = verbEl ? verbEl.textContent.trim() : '';
+    const name = el.textContent.replace(verb, '').trim();
+    if(!verb) return null;
+    return { verb, name };
+  }
+
+  function findFixtureRecipe(data, itemId, verb){
+    const list = (data && data.itemFixture) || [];
+    const v = String(verb || '').toLowerCase();
+    return list.find(r => r.item === itemId && (!r.fixtureVerb || String(r.fixtureVerb).toLowerCase() === v)) || null;
+  }
+  // fallback: an itemFixture recipe with NO fixtureVerb at all is a "use this
+  // item on its required companion item" combo that doesn't need a fixture in
+  // range yet (e.g. lighting logs the very first time, before any fire exists).
+  function findFixtureFreeRecipe(data, itemId){
+    const list = (data && data.itemFixture) || [];
+    return list.find(r => r.item === itemId && !r.fixtureVerb) || null;
+  }
+
+  function runFixtureRecipe(h, recipe, itemName){
+    if(recipe.requiresItem && !hasItemId(h, recipe.requiresItem)){
+      h.addChat('You need ' + (itemsDefName(h, recipe.requiresItem)) + ' as well.', '', true);
+      return;
+    }
+    if(recipe.message) h.addChat(recipe.message, '', true);
+    const skillApi = (typeof window !== 'undefined') ? window.EMSKILL : null;
+    if(recipe.skill && recipe.skill.action && skillApi && typeof skillApi[recipe.skill.action] === 'function'){
+      // route through the existing skilling engine (light/cook/smelt/smith) -
+      // it owns success rolls, xp, and consuming the matched ingredients itself.
+      skillApi[recipe.skill.action]();
+      if(recipe.flag) dispatchFlag(recipe.flag);
+      return;
+    }
+    // no skilling counterpart - apply the recipe directly (consume + grant + xp)
+    if(recipe.consumeItem) removeById(h, recipe.item);
+    if(recipe.consumeRequires && recipe.requiresItem) removeById(h, recipe.requiresItem);
+    if(recipe.result) h.giveItem(recipe.result, 1);
+    if(recipe.xp && recipe.xp.skill && typeof h.addXp === 'function') h.addXp(recipe.xp.skill, recipe.xp.amount || 0);
+    if(recipe.flag) dispatchFlag(recipe.flag);
+    refresh(h);
+  }
+
+  function hasItemId(h, id){
+    const inv = h.getInv() || [];
+    return !!inv.find(e => e && e.id === id);
+  }
+  function itemsDefName(h, id){
+    const def = (h.getItems() || {})[id];
+    return (def && def.name) || id;
+  }
+
+  // called on a canvas click while a use is armed (see canvas wiring below)
+  function resolveUseOnWorld(h){
+    const src = useArmed;
+    clearUse();
+    if(!src) return;
+    const hover = currentHoverTarget();
+    loadUseon().then(data => {
+      // 1) try a fixture-verb match against whatever's under the cursor
+      const byFixture = hover ? findFixtureRecipe(data, src.id, hover.verb) : null;
+      if(byFixture){ runFixtureRecipe(h, byFixture, src.name); return; }
+      // 2) fall back to a fixture-free recipe (no fixture required, e.g. first light)
+      const free = findFixtureFreeRecipe(data, src.id);
+      if(free){ runFixtureRecipe(h, free, src.name); return; }
+      h.addChat('Nothing interesting happens.', '', true);
+    });
   }
 
   // ---------- bag mutation (immutable-friendly: edit the live array in place
@@ -216,17 +371,28 @@ export function initInvOps(){
   document.addEventListener('pointerup', cancelLongPress, { passive: true });
   document.addEventListener('pointercancel', cancelLongPress, { passive: true });
 
-  // Left-click while a Use is armed = use-on the clicked slot. We run this in
-  // the CAPTURE phase so we intercept before the HUD\'s own op0 onclick fires.
+  // Left-click while a Use is armed = use-on the clicked slot (item+item) OR,
+  // if the click landed on the 3D game canvas, use-on-world (item+fixture).
+  // We run this in the CAPTURE phase so we intercept before the HUD\'s own
+  // op0 onclick fires (for slots) or the canvas\'s own worldClick (interact.js).
   document.addEventListener('click', (e) => {
     if(suppressClick){ suppressClick = false; e.preventDefault(); e.stopPropagation(); return; }  // long-press just opened the menu
     if(menuOpen() && !menu.contains(e.target)) hideMenu();
     if(!useArmed) return;
     const idx = slotFrom(e.target);
-    if(idx === null){ clearUse(); return; } // clicked off the bag -> cancel
-    e.preventDefault();
-    e.stopPropagation();
-    const h = hud(); if(h) resolveUseOn(h, idx);
+    if(idx !== null){
+      e.preventDefault();
+      e.stopPropagation();
+      const h = hud(); if(h) resolveUseOn(h, idx);
+      return;
+    }
+    if(e.target && e.target.id === 'c'){          // the game canvas (engine.js: document.getElementById('c'))
+      e.preventDefault();
+      e.stopPropagation();
+      const h = hud(); if(h) resolveUseOnWorld(h);
+      return;
+    }
+    clearUse(); // clicked off the bag and off the world canvas -> cancel
   }, true);
 
   // Public API: the HUD routes a left-click / tap through the REAL op0 action

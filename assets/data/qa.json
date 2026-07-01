@@ -1,6 +1,6 @@
 {
-  "version": "v48",
-  "title": "v48 — OSRS combat formulas + ground items + chat depth",
+  "version": "v49",
+  "title": "v49 — Use-on (fire/cook/smelt/smith/dough)",
   "items": [
     {
       "id": "login",
@@ -131,6 +131,11 @@
       "id": "real-avatar",
       "title": "Real 3D character (not blocky)",
       "how": "After creating your character, the in-world body is a real rigged low-poly model (KayKit) that walks/attacks/dies with real animations; equipped weapon/shield appear in the hands. Not the Minecraft box."
+    },
+    {
+      "id": "use-on",
+      "title": "Use item on item/object",
+      "how": "Use tinderbox on logs -> fire; flour on water -> dough; raw shrimp on fire -> cooked; ore on furnace -> bar; bar on anvil -> dagger."
     }
   ]
 }

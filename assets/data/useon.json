@@ -1,0 +1,86 @@
+{
+  "_comment": "OSRS-style 'Use X with Y' recipes for eldermoor_client.html. Consumed by src/inventory-ops.js's use-mode resolver. Two shapes: item+item pairs (a,b are both inventory item ids) and item+fixture pairs (a is an item id, fixture is a scenery/fixture verb such as 'Cook'/'Smelt'/'Smith' that world.js already assigns to fire/range/furnace/anvil nodes). Order of a/b (or item/fixture) does not matter when resolving - the engine tries both directions.",
+
+  "itemPairs": [
+    {
+      "id": "flour-water-dough",
+      "a": "pot-of-flour",
+      "b": "bucket-of-water",
+      "consumeA": true,
+      "consumeB": true,
+      "result": "bread-dough",
+      "message": "You mix the flour and water into a soft dough."
+    }
+  ],
+
+  "itemFixture": [
+    {
+      "id": "tinderbox-logs-fire",
+      "item": "tinderbox",
+      "fixtureVerb": "Cook",
+      "fixtureTypes": ["fire", "range"],
+      "requiresItem": "logs",
+      "consumeRequires": true,
+      "skill": { "action": "light" },
+      "flag": "lit:fire",
+      "message": "You attempt to light the logs."
+    },
+    {
+      "id": "tinderbox-logs-anywhere",
+      "item": "tinderbox",
+      "requiresItem": "logs",
+      "consumeRequires": true,
+      "skill": { "action": "light" },
+      "flag": "lit:fire",
+      "message": "You attempt to light the logs.",
+      "note": "Fallback: lighting logs does not strictly require clicking an existing fire (there is none yet the first time), so tinderbox+logs also resolves as a plain item-on-item use."
+    },
+    {
+      "id": "raw-shrimp-fire-cook",
+      "item": "raw-shrimp",
+      "fixtureVerb": "Cook",
+      "fixtureTypes": ["fire", "range"],
+      "skill": { "action": "cook" },
+      "message": "You cook the shrimp on the fire."
+    },
+    {
+      "id": "dough-range-bake",
+      "item": "bread-dough",
+      "fixtureVerb": "Cook",
+      "fixtureTypes": ["range", "fire"],
+      "consumeItem": true,
+      "result": "bread",
+      "xp": { "skill": "Cooking", "amount": 40 },
+      "message": "You bake the dough into a warm loaf of bread."
+    },
+    {
+      "id": "ore-furnace-smelt",
+      "item": "tin-ore",
+      "fixtureVerb": "Smelt",
+      "fixtureTypes": ["furnace"],
+      "requiresItem": "copper-ore",
+      "consumeRequires": true,
+      "skill": { "action": "smelt" },
+      "message": "You place the ore into the furnace."
+    },
+    {
+      "id": "ore-furnace-smelt-swap",
+      "item": "copper-ore",
+      "fixtureVerb": "Smelt",
+      "fixtureTypes": ["furnace"],
+      "requiresItem": "tin-ore",
+      "consumeRequires": true,
+      "skill": { "action": "smelt" },
+      "message": "You place the ore into the furnace."
+    },
+    {
+      "id": "bar-anvil-smith",
+      "item": "bronze-bar",
+      "fixtureVerb": "Smith",
+      "fixtureTypes": ["anvil"],
+      "requiresItem": "hammer",
+      "skill": { "action": "smith" },
+      "message": "You hammer the bar on the anvil."
+    }
+  ]
+}

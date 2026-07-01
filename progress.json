@@ -1,5 +1,5 @@
 {
-  "updated": 1782884412054,
+  "updated": 1782892171775,
   "version": "v41",
   "note": "Live fleet board. Reflects v36 owner QA + browser screenshots. Character art (studio + in-world avatar/creator) owned by a separate chat. Statuses: queued | building | review | requeue | shipped | done | blocked | failed.",
   "board": [
@@ -610,10 +610,10 @@
       "id": "QA-SWEEP",
       "epic": "QA",
       "title": "QA-SWEEP",
-      "status": "shipped",
+      "status": "done",
       "agent": "qa-sweep",
-      "note": "clean bill (49/49 syntax, 15/15 json, no patch conflicts/leaks); 1 real fix (lit:fire) shipped v56; em-settings-change left as backlog",
-      "ts": 1782884412054
+      "note": "clean sweep + 2 live-smoke-test fixes (lit:fire, L0-stuck)",
+      "ts": 1782892171775
     }
   ]
 }

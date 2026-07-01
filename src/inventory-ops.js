@@ -146,6 +146,9 @@ export function initInvOps(){
       removeOne(h, idx);
       if(typeof h.addXp === 'function') h.addXp('Prayer', 5);   // OSRS-ish bones Prayer XP
       h.addChat('You dig a hole and bury the ' + ctx.name + '.', '', true);
+      // tutorial L15: burying is the real completing action (nothing dispatched this flag
+      // before - the lesson only ever advanced via the 15s anti-brick grace).
+      try{ window.dispatchEvent(new CustomEvent('em-flag', { detail:'bones_buried' })); }catch(e){}
       refresh(h);
       return;
     }

@@ -192,6 +192,10 @@ export const SCENERY_DESC = {
   tree: { name:'Tree', verb:'Chop down', examine:'A sturdy tree, ripe for the Survival Expert\'s axe.' },
   bush: { name:'Bush', verb:'Search',    examine:'A leafy bush.' },
   rock: { name:'Rock', verb:'Mine',      examine:'A rocky outcrop streaked with ore.' },
+  // departure point (tutorial L17): the dock is the reachable board-point; the boat sits at the
+  // world edge as its backdrop. Both carry verb 'Board' so arrive() can fire the `departed` flag.
+  dock: { name:'Ferry dock', verb:'Board', examine:'The ferry to the mainland waits here. Board it when you are ready to leave.' },
+  boat: { name:'Boat',       verb:'Board', examine:'A small boat that will carry you across to the mainland - your adventure begins.' },
 };
 /* live registry of gatherable scenery nodes + per-type respawn timing (seconds) */
 export const SCENERY_NODES = [];

@@ -70,7 +70,11 @@ export function arrive(){           // in range of the pending target → act on
       if(window.EMDOORS) EMDOORS.toggle(t);
     }
     else if(t.kind === 'scenery'){              // scenery → fixture-aware routing, then skilling engine
-      if(t.fixture === 'bank-booth'){
+      if(t.type === 'dock' || t.type === 'boat'){     // tutorial L17: board the ferry → depart the island
+        if(window.EMHUD) EMHUD.addChat('You board the ferry and set sail for the mainland. Your adventure begins!');
+        try{ window.dispatchEvent(new CustomEvent('em-flag', { detail:'departed' })); }catch(e){}
+      }
+      else if(t.fixture === 'bank-booth'){
         if(window.EMBANK) EMBANK.open();
       } else if(t.fixture === 'poll-booth'){
         if(window.EMHUD) EMHUD.addChat('You consider the poll booth. (Voting - coming soon.)');

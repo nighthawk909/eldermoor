@@ -840,6 +840,9 @@ function closePinFlow(success) {
 
 function showBankPanel() {
   _open = true;
+  // tutorial L13: opening the bank is the real action that completes the lesson
+  // (nothing dispatched bank_used before - it relied on the 15s anti-brick grace).
+  try { window.dispatchEvent(new CustomEvent('em-flag', { detail: 'bank_used' })); } catch (e) {}
   if (!_overlay) {
     _overlay = buildOverlay();
   }

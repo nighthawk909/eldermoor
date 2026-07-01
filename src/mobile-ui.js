@@ -149,8 +149,8 @@ body.em-landscape #emtabs{ width:min(52vw,340px) !important; grid-template-colum
 body.em-landscape #empanel{ left:8px !important; right:auto !important; width:min(46vw,360px) !important;
   top:calc(48px + var(--em-safe-t)) !important; bottom:calc(120px + var(--em-safe-b)) !important;
   max-height:none !important; }
-body.em-landscape #emchat{ left:8px !important; right:auto !important; width:min(40vw,320px) !important;
-  height:130px; bottom:calc(8px + var(--em-safe-b)) !important; }
+body.em-landscape #emchat{ left:8px !important; right:auto !important; width:min(44vw,400px) !important;
+  height:min(42vh,300px) !important; bottom:calc(8px + var(--em-safe-b)) !important; }
 /* chat yields its log/channel area to a major panel in landscape too (panel + chat share
    the left), but stays as a tappable compact bar rather than disappearing entirely. */
 body.em-landscape.em-panel-open #emchat,
@@ -160,6 +160,18 @@ body.em-landscape.em-panel-open #emchat #emlog,
 body.em-landscape.em-panel-open #emchat #emchch,
 body.em-landscape.em-dlg-open #emchat #emlog,
 body.em-landscape.em-dlg-open #emchat #emchch{ display:none !important; }
+/* REAL DESKTOP (not a phone in landscape): there's room for chat AND a panel, so
+   keep chat full-size and always readable — override the phone-landscape shrink/hide
+   rules above. Matches the desktop dock-lock breakpoint used in hud.js. */
+@media (min-width:701px) and (min-height:520px){
+  body #emchat, body.em-landscape #emchat,
+  body.em-landscape.em-panel-open #emchat, body.em-landscape.em-dlg-open #emchat{
+    left:8px !important; right:auto !important; top:auto !important;
+    width:min(30vw,380px) !important; height:min(40vh,300px) !important;
+    bottom:calc(8px + var(--em-safe-b)) !important; }
+  #emchat:not(.em-collapsed) #emlog{ display:block !important; }
+  #emchat:not(.em-collapsed) #emchch{ display:flex !important; }
+}
 
 /* never let any panel render off the left/right edge */
 #empanel{ max-width:calc(100vw - 12px) !important; }

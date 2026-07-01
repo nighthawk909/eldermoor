@@ -1,6 +1,6 @@
 {
-  "version": "v65",
-  "title": "v65 — roofs reveal interiors, trees out of buildings, tab-button + chat relocated",
+  "version": "v66",
+  "title": "v66 — solid walls + enter-through-doors, readable chat",
   "items": [
     {
       "id": "login",

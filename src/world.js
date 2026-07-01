@@ -20,6 +20,9 @@ export const clampZ = z => Math.max(BOUND.z0, Math.min(BOUND.z1, z));
 export const RECTS = [];               // static rectangular colliders (walls, prop footprints)
 export const CIRCLES = [];             // static round obstacles (candles, tree trunks, ...)
 export const NPCCOLS = [];             // DYNAMIC NPC body colliders (collision only - they move/wander)
+export const DOOR_GAPS = [];           // door openings force-carved WALKABLE in the A* grid (see buildGrid),
+                                       // so a solid-walled building is always enterable through its door
+                                       // regardless of gap-vs-cell alignment / RAD inflation.
 const inBound = (x,z) => x>BOUND.x0 && x<BOUND.x1 && z>BOUND.z0 && z<BOUND.z1;
 export function staticBlocked(x, z){   // out-of-bounds + walls + props (what the path grid is baked from)
   if(!inBound(x, z)) return true;
@@ -64,6 +67,14 @@ export function buildGrid(){                       // (re)bake from BOUND + stat
   WALK = [];
   for(let ci=0; ci<G.cols; ci++){ WALK[ci]=[]; for(let cj=0; cj<G.rows; cj++){
     const c = cellCenter(ci,cj); WALK[ci][cj] = !staticBlocked(c.x, c.z); } }
+  // force door openings walkable so a solid-walled building is always enterable through
+  // its door (the RAD-inflated wall segments can otherwise pinch a narrow gap shut in the grid).
+  for(const g of DOOR_GAPS){
+    for(let ci=0; ci<G.cols; ci++) for(let cj=0; cj<G.rows; cj++){
+      const c = cellCenter(ci,cj);
+      if(c.x>=g.x0 && c.x<=g.x1 && c.z>=g.z0 && c.z<=g.z1) WALK[ci][cj] = true;
+    }
+  }
 }
 function cellWalkable(ci,cj, ignoreCol){   // static grid + dynamic NPC bodies (except the one we\'re walking to)
   if(!inb(ci,cj) || !WALK[ci] || !WALK[ci][cj]) return false;   // BUG+7: guard edge/OOB cells (no "undefined" throw at the BOUND edge)
@@ -273,25 +284,29 @@ export function placeFixture(type, x, z){
 function placeHouse(b){
   const w=b.w||8, d=b.d||7, x=b.x, z=b.z, h=3.0, t=0.3, doorw=b.doorw||2;
   const wallMat = new THREE.MeshStandardMaterial({ color:0xcdbf98, flatShading:true });
-  // NOTE (v61 investigation): making these walls solid RECT colliders sealed the indoor
-  // instructors in — at the 0.45 path-grid + RAD inflation, the 2.0 door gap isn't reliably
-  // routable, so A* stopped OUTSIDE the house (verified: 4/6 instructors unreachable). Walls
-  // stay visual-only until the doorway is a proper portal (wider gap / finer grid / explicit
-  // door cells). Tracked in BACKLOG "Solid house walls". Doors (v59) still block their own gap.
-  const wall = (cx,cz,ww,dd) => { const m=new THREE.Mesh(new THREE.BoxGeometry(ww,h,dd), wallMat); m.position.set(cx,h/2,cz); scene.add(m); };
-  wall(x, z+d/2, w, t);                                   // north wall
-  wall(x-w/2, z, t, d);                                   // west wall
-  wall(x+w/2, z, t, d);                                   // east wall
-  const seg=Math.max(0.4,(w-doorw)/2);
-  wall(x-(doorw/2+seg/2), z-d/2, seg, t);                 // south wall, left of door
-  wall(x+(doorw/2+seg/2), z-d/2, seg, t);                 // south wall, right of door (door faces -z)
+  // v66: walls are SOLID (RECT colliders) so you can't clip through them, with a WIDE
+  // south doorway (>=3.2u) that the 0.45 A* grid can reliably route through after RAD
+  // inflation — you enter through the door, not the back wall. (v61's attempt failed only
+  // because the 2.0 gap was too narrow AND instructors sat on fixtures; both fixed since.)
+  const wall = (cx,cz,ww,dd) => {
+    const m=new THREE.Mesh(new THREE.BoxGeometry(ww,h,dd), wallMat); m.position.set(cx,h/2,cz); scene.add(m);
+    RECTS.push({ x0:cx-ww/2, x1:cx+ww/2, z0:cz-dd/2, z1:cz+dd/2 });
+  };
+  const doorGap = Math.max(3.2, doorw);                   // wide enough to A*-route through
+  wall(x, z+d/2, w, t);                                   // north wall (solid)
+  wall(x-w/2, z, t, d);                                   // west wall (solid)
+  wall(x+w/2, z, t, d);                                   // east wall (solid)
+  const seg=Math.max(0.4,(w-doorGap)/2);
+  wall(x-(doorGap/2+seg/2), z-d/2, seg, t);               // south wall, left of the door gap
+  wall(x+(doorGap/2+seg/2), z-d/2, seg, t);               // south wall, right of the door gap
+  DOOR_GAPS.push({ x0:x-doorGap/2+0.15, x1:x+doorGap/2-0.15, z0:(z-d/2)-0.9, z1:(z-d/2)+0.9 });  // keep this opening routable
   const roof=new THREE.Mesh(new THREE.BoxGeometry(w+0.6,0.4,d+0.6), new THREE.MeshStandardMaterial({ color:0x6b3f2a, flatShading:true }));
   roof.position.set(x,h+0.2,z); scene.add(roof);
   registerRoof(roof);                                    // hide this roof when the player steps inside (see engine.updateRoofsFor)
   // openable door in the south doorway (starts OPEN so the walkable island is unchanged)
   if(typeof window !== 'undefined' && window.EMDOORS){
     const zoneName = b.zone ? b.zone.replace(/_/g,' ') : 'house';
-    try { window.EMDOORS.placeDoor(x, z-d/2, { w:doorw, dir:'x', startOpen:true,
+    try { window.EMDOORS.placeDoor(x, z-d/2, { w:doorGap, dir:'x', startOpen:true,
       examine:'A wooden door into the '+zoneName+'.' }); } catch(e){ console.warn('[em] door', e); }
   }
 }

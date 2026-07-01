@@ -234,3 +234,17 @@ export function isInsideAnyRoof(point){
   }
   return false;
 }
+
+/* Per-roof occlusion: hide ONLY the roof(s) whose footprint the player is under,
+   so entering one building doesn't blink every roof on the island. Drop-in for
+   the old updateRoofs(isInsideAnyRoof(pos)) global-hide call in the player tick. */
+export function updateRoofsFor(point){
+  if(!point){ _roofs.forEach(m => { m.visible = true; }); return; }
+  _roofs.forEach(m => {
+    _box.setFromObject(m);
+    const under = point.x >= _box.min.x && point.x <= _box.max.x &&
+                  point.z >= _box.min.z && point.z <= _box.max.z &&
+                  point.y <= _box.min.y + 0.5;
+    m.visible = !under;
+  });
+}

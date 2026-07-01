@@ -5,7 +5,7 @@
    planPath and helpers), applyColliders, and the kit-piece library
    (PIECES / place / instanceManifest / scenery descriptors).
    ===================================================================== */
-import { scene, dressMaterials, TEX } from './engine.js';
+import { scene, dressMaterials, TEX, registerRoof } from './engine.js';
 import { clickTargets } from './interact.js';
 import { move, pos, player } from './player.js';
 
@@ -287,6 +287,7 @@ function placeHouse(b){
   wall(x+(doorw/2+seg/2), z-d/2, seg, t);                 // south wall, right of door (door faces -z)
   const roof=new THREE.Mesh(new THREE.BoxGeometry(w+0.6,0.4,d+0.6), new THREE.MeshStandardMaterial({ color:0x6b3f2a, flatShading:true }));
   roof.position.set(x,h+0.2,z); scene.add(roof);
+  registerRoof(roof);                                    // hide this roof when the player steps inside (see engine.updateRoofsFor)
   // openable door in the south doorway (starts OPEN so the walkable island is unchanged)
   if(typeof window !== 'undefined' && window.EMDOORS){
     const zoneName = b.zone ? b.zone.replace(/_/g,' ') : 'house';
@@ -323,6 +324,20 @@ function addIslandGround(){
 }
 export function instanceManifest(data){
   addIslandGround();                                                                   // land under the whole island (kills the all-water look)
+  // keep procedural scatter OUT of building footprints and off placed objects/NPCs,
+  // so nothing grows through a wall/roof or on top of an instructor (was: trees inside houses).
+  const _foot = (data.buildings||[]).filter(b=>b.type==='house').map(b=>{
+    const w=(b.w||8), d=(b.d||7); return [b.x-w/2-1.5, b.x+w/2+1.5, b.z-d/2-1.5, b.z+d/2+1.5];
+  });
+  const _clear = [].concat(
+    (data.objects||[]).map(o=>[o.x,o.z]),
+    (data.npcs||[]).map(n=>[n.x,n.z])
+  );
+  function _scatterBlocked(x,z){
+    for(const f of _foot){ if(x>f[0]&&x<f[1]&&z>f[2]&&z<f[3]) return true; }
+    for(const p of _clear){ const dx=x-p[0],dz=z-p[1]; if(dx*dx+dz*dz < 6.25) return true; }   // 2.5u clear radius
+    return false;
+  }
   (data.objects || []).forEach(o => place(o.type, o.x, o.z, o.rot||0, o.scale||1));   // explicit placements
   (data.scatter || []).forEach(s => {                                                  // procedural fill
     if(!PIECES[s.type] || !PIECES[s.type].tpl) return;
@@ -332,6 +347,7 @@ export function instanceManifest(data){
       tries++;
       const x = s.x0 + (s.x1-s.x0)*rnd(), z = s.z0 + (s.z1-s.z0)*rnd();
       if(staticBlocked(x,z)) continue;                                                 // skip walls/props/path-not, OOB
+      if(_scatterBlocked(x,z)) continue;                                               // skip building footprints + placed objects/npcs
       if(ex && x>ex[0] && x<ex[1] && z>ex[2] && z<ex[3]) continue;                      // keep the path clear
       let ok=true; for(const c of CIRCLES){ if((c.x-x)*(c.x-x)+(c.z-z)*(c.z-z) < sp*sp){ ok=false; break; } }
       if(!ok) continue;                                                                // min spacing

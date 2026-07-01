@@ -14,7 +14,7 @@ export function initHud(){
   #emmap{position:fixed;right:10px;top:10px;z-index:30;width:108px;height:108px;border-radius:50%;
     border:3px solid #5a4a2a;box-shadow:0 3px 12px #0008,inset 0 0 0 2px #2b2620;overflow:hidden;background:#3f6f3a;}
   #emmap canvas{display:block;width:100%;height:100%;}
-  #emchat{position:fixed;left:8px;bottom:8px;width:min(44vw,360px);height:178px;z-index:30;display:flex;flex-direction:column;
+  #emchat{position:fixed;left:8px;bottom:8px;width:min(46vw,400px);height:min(42vh,300px);z-index:30;display:flex;flex-direction:column;
     background:linear-gradient(#2b2620,#1f1b16);border:2px solid #5a4a2a;border-radius:6px;box-shadow:0 4px 16px #000a;font-family:"Trebuchet MS",sans-serif;}
   #emlog{flex:1;overflow-y:auto;padding:6px 9px;font-size:12.5px;color:#e3d6b8;line-height:1.5;}
   #emlog .sys{color:#e7c64f;} #emlog .who{color:#7fb0e0;}
@@ -349,7 +349,7 @@ export function initHud(){
     SK.skills.forEach(s=>skillXp[s.id]=0);
     const start=SK.startLevels||{}; for(const k in start){ skillXp[k]=SK.xpTable[(start[k]||1)-1]||0; }
     ready=true; showTab('inv');
-    EMHUD.addChat('Welcome to <b>Eldermoor</b> <span style="opacity:.6">(v64)</span>.','', true);
+    EMHUD.addChat('Welcome to <b>Eldermoor</b> <span style="opacity:.6">(v65)</span>.','', true);
     EMHUD.addChat('Tap the world to walk. Tap an NPC to talk.','', true);
     // Neutral default; the lesson state machine (lessons.js) replaces this with the
     // current data-driven objective as soon as EMDATA.lessons loads.

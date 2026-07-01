@@ -92,12 +92,14 @@ body.em-landscape #dlg{ max-height:42vh !important; }
 /* ---- single active panel: hide the dialogue sheet while a tab panel is open ---- */
 body.em-panel-open #dlg{ display:none !important; }
 
-/* ---- collapsible tab cluster (toggle lives in the top-right stack) ---- */
-#emtabs-toggle{ position:fixed; z-index:34; right:8px; min-height:30px; padding:4px 10px; border-radius:7px;
+/* ---- collapsible tab cluster (toggle sits DIRECTLY ABOVE the tab strip,
+   bottom-right, where the tabs are — not up in the minimap cluster) ---- */
+#emtabs-toggle{ position:fixed; z-index:34; right:8px; bottom:118px; min-height:30px; padding:4px 10px; border-radius:7px;
   background:#1f1b16; border:2px solid #5a4a2a; color:#e7c64f; font:bold 11px "Trebuchet MS",sans-serif;
   cursor:pointer; box-shadow:0 2px 8px #0008; }
-body.em-portrait #emtabs-toggle{ top:calc(176px + var(--em-safe-t)); }
-body.em-landscape #emtabs-toggle{ top:calc(190px + var(--em-safe-t)); }
+body.em-portrait  #emtabs-toggle{ bottom:calc(110px + var(--em-safe-b)); right:6px; }
+body.em-landscape #emtabs-toggle{ bottom:calc(118px + var(--em-safe-b)); }
+body.em-tabs-hidden #emtabs-toggle{ bottom:8px; }   /* strip hidden -> drop the toggle to the corner */
 body.em-tabs-hidden #emtabs{ display:none !important; }
 body.em-tabs-hidden #empanel{ display:none !important; }
 

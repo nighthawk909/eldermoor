@@ -12,6 +12,8 @@
       "tool": "axe",
       "value": 16,
       "weight": 1.5,
+      "highalch": 10,
+      "lowalch": 6,
       "equipBonus": { "attack": 1, "strength": 2, "defence": 0, "ranged": 0 }
     },
     {
@@ -25,7 +27,9 @@
       "verbs": ["Use", "Drop"],
       "tool": "tinderbox",
       "value": 1,
-      "weight": 0.4
+      "weight": 0.4,
+      "highalch": 1,
+      "lowalch": 0
     },
     {
       "id": "small-fishing-net",
@@ -38,7 +42,9 @@
       "verbs": ["Use", "Drop"],
       "tool": "net",
       "value": 5,
-      "weight": 0.3
+      "weight": 0.3,
+      "highalch": 3,
+      "lowalch": 2
     },
     {
       "id": "bronze-pickaxe",
@@ -50,8 +56,10 @@
       "slot": "weapon",
       "verbs": ["Wield", "Use", "Drop"],
       "tool": "pickaxe",
-      "value": 1,
+      "value": 16,
       "weight": 2.267,
+      "highalch": 10,
+      "lowalch": 6,
       "equipBonus": { "attack": 1, "strength": 2, "defence": 0, "ranged": 0 }
     },
     {
@@ -64,7 +72,9 @@
       "slot": null,
       "verbs": ["Use", "Drop"],
       "value": 4,
-      "weight": 2.0
+      "weight": 2.0,
+      "highalch": 2,
+      "lowalch": 2
     },
     {
       "id": "raw-shrimp",
@@ -76,7 +86,9 @@
       "slot": null,
       "verbs": ["Use", "Drop"],
       "value": 5,
-      "weight": 0.1
+      "weight": 0.1,
+      "highalch": 3,
+      "lowalch": 2
     },
     {
       "id": "cooked-shrimp",
@@ -89,7 +101,9 @@
       "verbs": ["Eat", "Use", "Drop"],
       "value": 5,
       "weight": 0.1,
-      "heal": 3
+      "heal": 3,
+      "highalch": 3,
+      "lowalch": 2
     },
     {
       "id": "burnt-shrimp",
@@ -101,7 +115,9 @@
       "slot": null,
       "verbs": ["Drop"],
       "value": 1,
-      "weight": 0.1
+      "weight": 0.1,
+      "highalch": 1,
+      "lowalch": 0
     },
     {
       "id": "pot-of-flour",
@@ -113,7 +129,9 @@
       "slot": null,
       "verbs": ["Use", "Empty", "Drop"],
       "value": 10,
-      "weight": 0.5
+      "weight": 0.5,
+      "highalch": 6,
+      "lowalch": 4
     },
     {
       "id": "bucket-of-water",
@@ -125,7 +143,9 @@
       "slot": null,
       "verbs": ["Use", "Empty", "Drop"],
       "value": 5,
-      "weight": 1.5
+      "weight": 1.5,
+      "highalch": 3,
+      "lowalch": 2
     },
     {
       "id": "bread-dough",
@@ -137,7 +157,9 @@
       "slot": null,
       "verbs": ["Use", "Drop"],
       "value": 12,
-      "weight": 0.4
+      "weight": 0.4,
+      "highalch": 7,
+      "lowalch": 5
     },
     {
       "id": "bread",
@@ -149,7 +171,9 @@
       "slot": null,
       "verbs": ["Eat", "Use", "Drop"],
       "value": 12,
-      "weight": 0.4
+      "weight": 0.4,
+      "highalch": 7,
+      "lowalch": 5
     },
     {
       "id": "tin-ore",
@@ -161,7 +185,9 @@
       "slot": null,
       "verbs": ["Use", "Drop"],
       "value": 14,
-      "weight": 2.267
+      "weight": 2.267,
+      "highalch": 8,
+      "lowalch": 6
     },
     {
       "id": "copper-ore",
@@ -173,7 +199,9 @@
       "slot": null,
       "verbs": ["Use", "Drop"],
       "value": 14,
-      "weight": 2.267
+      "weight": 2.267,
+      "highalch": 8,
+      "lowalch": 6
     },
     {
       "id": "bronze-bar",
@@ -185,7 +213,9 @@
       "slot": null,
       "verbs": ["Use", "Drop"],
       "value": 24,
-      "weight": 2.267
+      "weight": 2.267,
+      "highalch": 14,
+      "lowalch": 10
     },
     {
       "id": "bronze-dagger",
@@ -198,6 +228,8 @@
       "verbs": ["Wield", "Use", "Drop"],
       "value": 10,
       "weight": 0.4,
+      "highalch": 6,
+      "lowalch": 4,
       "equipBonus": { "attack": 3, "strength": 2, "defence": 0, "ranged": 0 }
     },
     {
@@ -211,7 +243,9 @@
       "verbs": ["Use", "Drop"],
       "tool": "hammer",
       "value": 1,
-      "weight": 1.36
+      "weight": 1.36,
+      "highalch": 1,
+      "lowalch": 0
     },
     {
       "id": "bronze-sword",
@@ -224,6 +258,8 @@
       "verbs": ["Wield", "Use", "Drop"],
       "value": 26,
       "weight": 1.8,
+      "highalch": 16,
+      "lowalch": 10,
       "equipBonus": { "attack": 4, "strength": 4, "defence": 0, "ranged": 0 }
     },
     {
@@ -237,6 +273,8 @@
       "verbs": ["Wield", "Use", "Drop"],
       "value": 20,
       "weight": 2.7,
+      "highalch": 12,
+      "lowalch": 8,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 4, "ranged": 0 }
     },
     {
@@ -250,6 +288,8 @@
       "verbs": ["Wear", "Use", "Drop"],
       "value": 24,
       "weight": 2.0,
+      "highalch": 14,
+      "lowalch": 10,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 5, "ranged": 0 }
     },
     {
@@ -263,6 +303,8 @@
       "verbs": ["Wear", "Use", "Drop"],
       "value": 6,
       "weight": 0.2,
+      "highalch": 4,
+      "lowalch": 2,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 1, "ranged": 0 }
     },
     {
@@ -276,6 +318,8 @@
       "verbs": ["Wield", "Use", "Drop"],
       "value": 50,
       "weight": 1.0,
+      "highalch": 30,
+      "lowalch": 20,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 0, "ranged": 8 }
     },
     {
@@ -289,6 +333,8 @@
       "verbs": ["Wield", "Use", "Drop"],
       "value": 1,
       "weight": 0.0,
+      "highalch": 1,
+      "lowalch": 0,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 0, "ranged": 7 }
     },
     {
@@ -301,7 +347,9 @@
       "slot": null,
       "verbs": ["Bury", "Use", "Drop"],
       "value": 1,
-      "weight": 0.5
+      "weight": 0.5,
+      "highalch": 1,
+      "lowalch": 0
     },
     {
       "id": "air-rune",
@@ -313,7 +361,9 @@
       "slot": null,
       "verbs": ["Use", "Drop"],
       "value": 4,
-      "weight": 0.0
+      "weight": 0.0,
+      "highalch": 2,
+      "lowalch": 2
     },
     {
       "id": "mind-rune",
@@ -325,7 +375,9 @@
       "slot": null,
       "verbs": ["Use", "Drop"],
       "value": 3,
-      "weight": 0.0
+      "weight": 0.0,
+      "highalch": 2,
+      "lowalch": 1
     },
     {
       "id": "water-rune",
@@ -337,7 +389,9 @@
       "slot": null,
       "verbs": ["Use", "Drop"],
       "value": 4,
-      "weight": 0.0
+      "weight": 0.0,
+      "highalch": 2,
+      "lowalch": 2
     },
     {
       "id": "earth-rune",
@@ -349,7 +403,9 @@
       "slot": null,
       "verbs": ["Use", "Drop"],
       "value": 4,
-      "weight": 0.0
+      "weight": 0.0,
+      "highalch": 2,
+      "lowalch": 2
     },
     {
       "id": "fire-rune",
@@ -361,7 +417,9 @@
       "slot": null,
       "verbs": ["Use", "Drop"],
       "value": 4,
-      "weight": 0.0
+      "weight": 0.0,
+      "highalch": 2,
+      "lowalch": 2
     },
     {
       "id": "body-rune",
@@ -373,7 +431,9 @@
       "slot": null,
       "verbs": ["Use", "Drop"],
       "value": 3,
-      "weight": 0.0
+      "weight": 0.0,
+      "highalch": 2,
+      "lowalch": 1
     },
     {
       "id": "chaos-rune",
@@ -385,7 +445,9 @@
       "slot": null,
       "verbs": ["Use", "Drop"],
       "value": 90,
-      "weight": 0.0
+      "weight": 0.0,
+      "highalch": 54,
+      "lowalch": 36
     },
     {
       "id": "death-rune",
@@ -397,7 +459,9 @@
       "slot": null,
       "verbs": ["Use", "Drop"],
       "value": 220,
-      "weight": 0.0
+      "weight": 0.0,
+      "highalch": 132,
+      "lowalch": 88
     },
     {
       "id": "law-rune",
@@ -409,7 +473,9 @@
       "slot": null,
       "verbs": ["Use", "Drop"],
       "value": 260,
-      "weight": 0.0
+      "weight": 0.0,
+      "highalch": 156,
+      "lowalch": 104
     },
     {
       "id": "cosmic-rune",
@@ -421,7 +487,9 @@
       "slot": null,
       "verbs": ["Use", "Drop"],
       "value": 130,
-      "weight": 0.0
+      "weight": 0.0,
+      "highalch": 78,
+      "lowalch": 52
     },
     {
       "id": "coins",
@@ -433,7 +501,9 @@
       "slot": null,
       "verbs": ["Drop"],
       "value": 1,
-      "weight": 0.0
+      "weight": 0.0,
+      "highalch": 0,
+      "lowalch": 0
     },
     {
       "id": "quest-journal",
@@ -445,7 +515,9 @@
       "slot": null,
       "verbs": ["Read", "Drop"],
       "value": 1,
-      "weight": 0.5
+      "weight": 0.5,
+      "highalch": 0,
+      "lowalch": 0
     },
     {
       "id": "security-card",
@@ -457,7 +529,9 @@
       "slot": null,
       "verbs": ["Read", "Drop"],
       "value": 1,
-      "weight": 0.0
+      "weight": 0.0,
+      "highalch": 0,
+      "lowalch": 0
     },
     {
       "id": "island-map",
@@ -469,7 +543,9 @@
       "slot": null,
       "verbs": ["Read", "Drop"],
       "value": 1,
-      "weight": 0.0
+      "weight": 0.0,
+      "highalch": 0,
+      "lowalch": 0
     },
     {
       "id": "poll-card",
@@ -481,7 +557,9 @@
       "slot": null,
       "verbs": ["Read", "Use", "Drop"],
       "value": 1,
-      "weight": 0.0
+      "weight": 0.0,
+      "highalch": 0,
+      "lowalch": 0
     },
     {
       "id": "tutorial-cape",
@@ -494,6 +572,8 @@
       "verbs": ["Wear", "Use", "Drop"],
       "value": 1,
       "weight": 0.4,
+      "highalch": 0,
+      "lowalch": 0,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 1, "ranged": 0 }
     },
 
@@ -508,6 +588,8 @@
       "verbs": ["Wield", "Use", "Drop"],
       "value": 52,
       "weight": 1.9,
+      "highalch": 31,
+      "lowalch": 21,
       "equipBonus": { "attack": 7, "strength": 7, "defence": 0, "ranged": 0 }
     },
     {
@@ -521,6 +603,8 @@
       "verbs": ["Wield", "Use", "Drop"],
       "value": 20,
       "weight": 0.45,
+      "highalch": 12,
+      "lowalch": 8,
       "equipBonus": { "attack": 6, "strength": 5, "defence": 0, "ranged": 0 }
     },
     {
@@ -534,6 +618,8 @@
       "verbs": ["Wield", "Use", "Drop"],
       "value": 40,
       "weight": 3.0,
+      "highalch": 24,
+      "lowalch": 16,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 7, "ranged": 0 }
     },
     {
@@ -547,6 +633,8 @@
       "verbs": ["Wear", "Use", "Drop"],
       "value": 30,
       "weight": 2.1,
+      "highalch": 18,
+      "lowalch": 12,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 6, "ranged": 0 }
     },
     {
@@ -560,6 +648,8 @@
       "verbs": ["Wear", "Use", "Drop"],
       "value": 48,
       "weight": 4.5,
+      "highalch": 29,
+      "lowalch": 19,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 9, "ranged": 0 }
     },
     {
@@ -573,6 +663,8 @@
       "verbs": ["Wear", "Use", "Drop"],
       "value": 42,
       "weight": 3.8,
+      "highalch": 25,
+      "lowalch": 17,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 8, "ranged": 0 }
     },
     {
@@ -586,6 +678,8 @@
       "verbs": ["Wear", "Use", "Drop"],
       "value": 14,
       "weight": 1.1,
+      "highalch": 8,
+      "lowalch": 6,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 2, "ranged": 0 }
     },
     {
@@ -599,6 +693,8 @@
       "verbs": ["Wear", "Use", "Drop"],
       "value": 12,
       "weight": 0.3,
+      "highalch": 7,
+      "lowalch": 5,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 2, "ranged": 0 }
     },
     {
@@ -613,6 +709,8 @@
       "tool": "axe",
       "value": 40,
       "weight": 1.6,
+      "highalch": 24,
+      "lowalch": 16,
       "equipBonus": { "attack": 4, "strength": 5, "defence": 0, "ranged": 0 }
     },
     {
@@ -627,6 +725,8 @@
       "tool": "pickaxe",
       "value": 40,
       "weight": 2.3,
+      "highalch": 24,
+      "lowalch": 16,
       "equipBonus": { "attack": 4, "strength": 5, "defence": 0, "ranged": 0 }
     },
 
@@ -641,6 +741,8 @@
       "verbs": ["Wield", "Use", "Drop"],
       "value": 102,
       "weight": 2.0,
+      "highalch": 61,
+      "lowalch": 41,
       "equipBonus": { "attack": 12, "strength": 12, "defence": 0, "ranged": 0 }
     },
     {
@@ -654,6 +756,8 @@
       "verbs": ["Wield", "Use", "Drop"],
       "value": 38,
       "weight": 0.5,
+      "highalch": 23,
+      "lowalch": 15,
       "equipBonus": { "attack": 10, "strength": 8, "defence": 0, "ranged": 0 }
     },
     {
@@ -667,6 +771,8 @@
       "verbs": ["Wield", "Use", "Drop"],
       "value": 80,
       "weight": 3.4,
+      "highalch": 48,
+      "lowalch": 32,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 12, "ranged": 0 }
     },
     {
@@ -680,6 +786,8 @@
       "verbs": ["Wear", "Use", "Drop"],
       "value": 60,
       "weight": 2.4,
+      "highalch": 36,
+      "lowalch": 24,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 10, "ranged": 0 }
     },
     {
@@ -693,6 +801,8 @@
       "verbs": ["Wear", "Use", "Drop"],
       "value": 96,
       "weight": 5.2,
+      "highalch": 58,
+      "lowalch": 38,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 15, "ranged": 0 }
     },
     {
@@ -706,6 +816,8 @@
       "verbs": ["Wear", "Use", "Drop"],
       "value": 84,
       "weight": 4.4,
+      "highalch": 50,
+      "lowalch": 34,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 13, "ranged": 0 }
     },
     {
@@ -719,6 +831,8 @@
       "verbs": ["Wear", "Use", "Drop"],
       "value": 26,
       "weight": 1.4,
+      "highalch": 16,
+      "lowalch": 10,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 3, "ranged": 0 }
     },
     {
@@ -732,6 +846,8 @@
       "verbs": ["Wear", "Use", "Drop"],
       "value": 22,
       "weight": 0.4,
+      "highalch": 13,
+      "lowalch": 9,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 3, "ranged": 0 }
     },
     {
@@ -746,6 +862,8 @@
       "tool": "axe",
       "value": 80,
       "weight": 1.7,
+      "highalch": 48,
+      "lowalch": 32,
       "equipBonus": { "attack": 7, "strength": 8, "defence": 0, "ranged": 0 }
     },
     {
@@ -760,6 +878,8 @@
       "tool": "pickaxe",
       "value": 80,
       "weight": 2.4,
+      "highalch": 48,
+      "lowalch": 32,
       "equipBonus": { "attack": 7, "strength": 8, "defence": 0, "ranged": 0 }
     },
 
@@ -774,6 +894,8 @@
       "verbs": ["Wield", "Use", "Drop"],
       "value": 180,
       "weight": 2.1,
+      "highalch": 108,
+      "lowalch": 72,
       "equipBonus": { "attack": 17, "strength": 17, "defence": 0, "ranged": 0 }
     },
     {
@@ -787,6 +909,8 @@
       "verbs": ["Wield", "Use", "Drop"],
       "value": 64,
       "weight": 0.55,
+      "highalch": 38,
+      "lowalch": 26,
       "equipBonus": { "attack": 14, "strength": 11, "defence": 0, "ranged": 0 }
     },
     {
@@ -800,6 +924,8 @@
       "verbs": ["Wield", "Use", "Drop"],
       "value": 140,
       "weight": 3.6,
+      "highalch": 84,
+      "lowalch": 56,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 17, "ranged": 0 }
     },
     {
@@ -813,6 +939,8 @@
       "verbs": ["Wear", "Use", "Drop"],
       "value": 104,
       "weight": 2.6,
+      "highalch": 62,
+      "lowalch": 42,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 14, "ranged": 0 }
     },
     {
@@ -826,6 +954,8 @@
       "verbs": ["Wear", "Use", "Drop"],
       "value": 168,
       "weight": 5.6,
+      "highalch": 101,
+      "lowalch": 67,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 21, "ranged": 0 }
     },
     {
@@ -839,6 +969,8 @@
       "verbs": ["Wear", "Use", "Drop"],
       "value": 148,
       "weight": 4.7,
+      "highalch": 89,
+      "lowalch": 59,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 18, "ranged": 0 }
     },
     {
@@ -852,6 +984,8 @@
       "verbs": ["Wear", "Use", "Drop"],
       "value": 44,
       "weight": 1.5,
+      "highalch": 26,
+      "lowalch": 18,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 4, "ranged": 0 }
     },
     {
@@ -865,6 +999,8 @@
       "verbs": ["Wear", "Use", "Drop"],
       "value": 38,
       "weight": 0.45,
+      "highalch": 23,
+      "lowalch": 15,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 4, "ranged": 0 }
     },
     {
@@ -879,6 +1015,8 @@
       "tool": "axe",
       "value": 140,
       "weight": 1.8,
+      "highalch": 84,
+      "lowalch": 56,
       "equipBonus": { "attack": 10, "strength": 11, "defence": 0, "ranged": 0 }
     },
     {
@@ -893,6 +1031,8 @@
       "tool": "pickaxe",
       "value": 140,
       "weight": 2.5,
+      "highalch": 84,
+      "lowalch": 56,
       "equipBonus": { "attack": 10, "strength": 11, "defence": 0, "ranged": 0 }
     },
 
@@ -907,6 +1047,8 @@
       "verbs": ["Wield", "Use", "Drop"],
       "value": 320,
       "weight": 1.7,
+      "highalch": 192,
+      "lowalch": 128,
       "equipBonus": { "attack": 24, "strength": 24, "defence": 0, "ranged": 0 }
     },
     {
@@ -920,6 +1062,8 @@
       "verbs": ["Wield", "Use", "Drop"],
       "value": 112,
       "weight": 0.4,
+      "highalch": 67,
+      "lowalch": 45,
       "equipBonus": { "attack": 20, "strength": 16, "defence": 0, "ranged": 0 }
     },
     {
@@ -933,6 +1077,8 @@
       "verbs": ["Wield", "Use", "Drop"],
       "value": 250,
       "weight": 2.9,
+      "highalch": 150,
+      "lowalch": 100,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 24, "ranged": 0 }
     },
     {
@@ -946,6 +1092,8 @@
       "verbs": ["Wear", "Use", "Drop"],
       "value": 188,
       "weight": 1.9,
+      "highalch": 113,
+      "lowalch": 75,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 20, "ranged": 0 }
     },
     {
@@ -959,6 +1107,8 @@
       "verbs": ["Wear", "Use", "Drop"],
       "value": 300,
       "weight": 4.2,
+      "highalch": 180,
+      "lowalch": 120,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 29, "ranged": 0 }
     },
     {
@@ -972,6 +1122,8 @@
       "verbs": ["Wear", "Use", "Drop"],
       "value": 264,
       "weight": 3.6,
+      "highalch": 158,
+      "lowalch": 106,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 25, "ranged": 0 }
     },
     {
@@ -985,6 +1137,8 @@
       "verbs": ["Wear", "Use", "Drop"],
       "value": 78,
       "weight": 0.9,
+      "highalch": 47,
+      "lowalch": 31,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 5, "ranged": 0 }
     },
     {
@@ -998,6 +1152,8 @@
       "verbs": ["Wear", "Use", "Drop"],
       "value": 68,
       "weight": 0.25,
+      "highalch": 41,
+      "lowalch": 27,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 5, "ranged": 0 }
     },
     {
@@ -1012,6 +1168,8 @@
       "tool": "axe",
       "value": 260,
       "weight": 1.4,
+      "highalch": 156,
+      "lowalch": 104,
       "equipBonus": { "attack": 16, "strength": 17, "defence": 0, "ranged": 0 }
     },
     {
@@ -1026,6 +1184,8 @@
       "tool": "pickaxe",
       "value": 260,
       "weight": 2.0,
+      "highalch": 156,
+      "lowalch": 104,
       "equipBonus": { "attack": 16, "strength": 17, "defence": 0, "ranged": 0 }
     },
 
@@ -1040,6 +1200,8 @@
       "verbs": ["Wield", "Use", "Drop"],
       "value": 560,
       "weight": 2.2,
+      "highalch": 336,
+      "lowalch": 224,
       "equipBonus": { "attack": 33, "strength": 33, "defence": 0, "ranged": 0 }
     },
     {
@@ -1053,6 +1215,8 @@
       "verbs": ["Wield", "Use", "Drop"],
       "value": 196,
       "weight": 0.5,
+      "highalch": 118,
+      "lowalch": 78,
       "equipBonus": { "attack": 27, "strength": 22, "defence": 0, "ranged": 0 }
     },
     {
@@ -1066,6 +1230,8 @@
       "verbs": ["Wield", "Use", "Drop"],
       "value": 440,
       "weight": 3.3,
+      "highalch": 264,
+      "lowalch": 176,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 33, "ranged": 0 }
     },
     {
@@ -1079,6 +1245,8 @@
       "verbs": ["Wear", "Use", "Drop"],
       "value": 330,
       "weight": 2.7,
+      "highalch": 198,
+      "lowalch": 132,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 27, "ranged": 0 }
     },
     {
@@ -1092,6 +1260,8 @@
       "verbs": ["Wear", "Use", "Drop"],
       "value": 528,
       "weight": 5.0,
+      "highalch": 317,
+      "lowalch": 211,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 39, "ranged": 0 }
     },
     {
@@ -1105,6 +1275,8 @@
       "verbs": ["Wear", "Use", "Drop"],
       "value": 462,
       "weight": 4.3,
+      "highalch": 277,
+      "lowalch": 185,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 34, "ranged": 0 }
     },
     {
@@ -1118,6 +1290,8 @@
       "verbs": ["Wear", "Use", "Drop"],
       "value": 136,
       "weight": 1.3,
+      "highalch": 82,
+      "lowalch": 54,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 6, "ranged": 0 }
     },
     {
@@ -1131,6 +1305,8 @@
       "verbs": ["Wear", "Use", "Drop"],
       "value": 118,
       "weight": 0.4,
+      "highalch": 71,
+      "lowalch": 47,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 6, "ranged": 0 }
     },
     {
@@ -1145,6 +1321,8 @@
       "tool": "axe",
       "value": 460,
       "weight": 1.9,
+      "highalch": 276,
+      "lowalch": 184,
       "equipBonus": { "attack": 22, "strength": 23, "defence": 0, "ranged": 0 }
     },
     {
@@ -1159,6 +1337,8 @@
       "tool": "pickaxe",
       "value": 460,
       "weight": 2.6,
+      "highalch": 276,
+      "lowalch": 184,
       "equipBonus": { "attack": 22, "strength": 23, "defence": 0, "ranged": 0 }
     },
 
@@ -1173,6 +1353,8 @@
       "verbs": ["Wield", "Use", "Drop"],
       "value": 980,
       "weight": 2.3,
+      "highalch": 588,
+      "lowalch": 392,
       "equipBonus": { "attack": 45, "strength": 45, "defence": 0, "ranged": 0 }
     },
     {
@@ -1186,6 +1368,8 @@
       "verbs": ["Wield", "Use", "Drop"],
       "value": 344,
       "weight": 0.55,
+      "highalch": 206,
+      "lowalch": 138,
       "equipBonus": { "attack": 36, "strength": 29, "defence": 0, "ranged": 0 }
     },
     {
@@ -1199,6 +1383,8 @@
       "verbs": ["Wield", "Use", "Drop"],
       "value": 760,
       "weight": 3.7,
+      "highalch": 456,
+      "lowalch": 304,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 45, "ranged": 0 }
     },
     {
@@ -1212,6 +1398,8 @@
       "verbs": ["Wear", "Use", "Drop"],
       "value": 570,
       "weight": 2.9,
+      "highalch": 342,
+      "lowalch": 228,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 37, "ranged": 0 }
     },
     {
@@ -1225,6 +1413,8 @@
       "verbs": ["Wear", "Use", "Drop"],
       "value": 912,
       "weight": 5.8,
+      "highalch": 547,
+      "lowalch": 365,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 54, "ranged": 0 }
     },
     {
@@ -1238,6 +1428,8 @@
       "verbs": ["Wear", "Use", "Drop"],
       "value": 798,
       "weight": 4.9,
+      "highalch": 479,
+      "lowalch": 319,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 47, "ranged": 0 }
     },
     {
@@ -1251,6 +1443,8 @@
       "verbs": ["Wear", "Use", "Drop"],
       "value": 236,
       "weight": 1.6,
+      "highalch": 142,
+      "lowalch": 94,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 7, "ranged": 0 }
     },
     {
@@ -1264,6 +1458,8 @@
       "verbs": ["Wear", "Use", "Drop"],
       "value": 204,
       "weight": 0.45,
+      "highalch": 122,
+      "lowalch": 82,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 7, "ranged": 0 }
     },
     {
@@ -1278,6 +1474,8 @@
       "tool": "axe",
       "value": 800,
       "weight": 2.0,
+      "highalch": 480,
+      "lowalch": 320,
       "equipBonus": { "attack": 30, "strength": 31, "defence": 0, "ranged": 0 }
     },
     {
@@ -1292,6 +1490,8 @@
       "tool": "pickaxe",
       "value": 800,
       "weight": 2.7,
+      "highalch": 480,
+      "lowalch": 320,
       "equipBonus": { "attack": 30, "strength": 31, "defence": 0, "ranged": 0 }
     },
 
@@ -1306,6 +1506,8 @@
       "verbs": ["Wield", "Use", "Drop"],
       "value": 110,
       "weight": 1.1,
+      "highalch": 66,
+      "lowalch": 44,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 0, "ranged": 15 }
     },
     {
@@ -1319,6 +1521,8 @@
       "verbs": ["Wield", "Use", "Drop"],
       "value": 240,
       "weight": 1.2,
+      "highalch": 144,
+      "lowalch": 96,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 0, "ranged": 24 }
     },
     {
@@ -1332,6 +1536,8 @@
       "verbs": ["Wield", "Use", "Drop"],
       "value": 420,
       "weight": 1.6,
+      "highalch": 252,
+      "lowalch": 168,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 0, "ranged": 34 }
     },
     {
@@ -1345,6 +1551,8 @@
       "verbs": ["Wield", "Use", "Drop"],
       "value": 900,
       "weight": 1.7,
+      "highalch": 540,
+      "lowalch": 360,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 0, "ranged": 48 }
     },
     {
@@ -1358,6 +1566,8 @@
       "verbs": ["Wield", "Use", "Drop"],
       "value": 2,
       "weight": 0.0,
+      "highalch": 1,
+      "lowalch": 1,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 0, "ranged": 12 }
     },
     {
@@ -1371,6 +1581,8 @@
       "verbs": ["Wield", "Use", "Drop"],
       "value": 4,
       "weight": 0.0,
+      "highalch": 2,
+      "lowalch": 2,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 0, "ranged": 18 }
     },
     {
@@ -1384,6 +1596,8 @@
       "verbs": ["Wield", "Use", "Drop"],
       "value": 7,
       "weight": 0.0,
+      "highalch": 4,
+      "lowalch": 3,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 0, "ranged": 25 }
     },
     {
@@ -1397,6 +1611,8 @@
       "verbs": ["Wield", "Use", "Drop"],
       "value": 11,
       "weight": 0.0,
+      "highalch": 7,
+      "lowalch": 4,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 0, "ranged": 33 }
     },
     {
@@ -1410,6 +1626,8 @@
       "verbs": ["Wield", "Use", "Drop"],
       "value": 17,
       "weight": 0.0,
+      "highalch": 10,
+      "lowalch": 7,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 0, "ranged": 42 }
     },
     {
@@ -1423,6 +1641,8 @@
       "verbs": ["Wield", "Use", "Drop"],
       "value": 26,
       "weight": 0.0,
+      "highalch": 16,
+      "lowalch": 10,
       "equipBonus": { "attack": 0, "strength": 0, "defence": 0, "ranged": 52 }
     }
   ]

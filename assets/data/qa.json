@@ -1,6 +1,6 @@
 {
-  "version": "v50",
-  "title": "v50 — tutorial chain wired (kill/cast flags + both ores)",
+  "version": "v51",
+  "title": "v51 — level-up popup+jingle, full SFX, item value/alch",
   "items": [
     {
       "id": "login",

@@ -1,5 +1,5 @@
 {
-  "updated": 1782864527618,
+  "updated": 1782864650543,
   "version": "v41",
   "note": "Live fleet board. Reflects v36 owner QA + browser screenshots. Character art (studio + in-world avatar/creator) owned by a separate chat. Statuses: queued | building | review | requeue | shipped | done | blocked | failed.",
   "board": [
@@ -502,19 +502,19 @@
       "id": "GROUND-ITEMS",
       "epic": "Items",
       "title": "GROUND-ITEMS",
-      "status": "building",
+      "status": "review",
       "agent": "builder-ground",
-      "note": "drop -> item on ground -> Take (new grounditems.js)",
-      "ts": 1782864488154
+      "note": "EMGROUND built in src/grounditems.js: drop/take/tick/requestTake, stacking, 60s despawn, icon-sprite ground markers wired into interact.js clickTargets via userData.scenery reuse. Needs main.js import+init+Drop-hook wiring (not done here per scope).",
+      "ts": 1782864650543
     },
     {
       "id": "CHATBOX-DEPTH",
       "epic": "HUD",
       "title": "CHATBOX-DEPTH",
-      "status": "building",
+      "status": "review",
       "agent": "builder-chat",
-      "note": "Reading hud.js, planning chat categorization/filter/scrollback/XSS work",
-      "ts": 1782864527618
+      "note": "Chat categorised by channel colour (game=yellow/public=white/private=cyan+From:/To:/clan=green/trade=gold), timestamp toggle, live filter buttons (right-click cycles on/filtered/off/hide), 200-line scrollback, HTML-escape+tag-whitelist XSS guard in addChat. node --check passed.",
+      "ts": 1782864621838
     }
   ]
 }

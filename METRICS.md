@@ -1,5 +1,7 @@
 # METRICS.md — Eldermoor
 
+> **v54 (2026-07-01) — run animation.** player.js drives the avatar Running_A clip when run energy is on + moving (was always the walk clip). Boot-verified. Deployed v54.
+
 > **v53 (2026-06-30) — skilling anim + zone content.** avatar.js: player plays a looping gather/work-swing animation while EMSKILL.isActive() (chop/mine/smith/etc.), coexists with walk/attack/death, boot-safe. world.manifest.json: signpost + 1-3 teaching props added to all 9 zones (existing kit ids only; scene 524->562). Boot-verified. Deployed v53.
 
 > **v52 (2026-06-30) — instructors are real models.** npc.js addNpc now loads a KayKit rigged glb per role (guide/guard->Knight, mage->Mage, rogue/survival->Rogue, barbarian->Barbarian) with an AnimationMixer (Idle/Walking_A driven off the wander c.moving flag), hiding the procedural box body; defensive fallback to the box if GLTFLoader/glb fails. World now visually consistent: real rigged player + real rigged instructors. Boot-verified (15 nameplates, clean). Deployed v52.

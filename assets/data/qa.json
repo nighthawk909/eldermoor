@@ -1,6 +1,6 @@
 {
-  "version": "v53",
-  "title": "v53 — skilling animation + per-zone signposts/props",
+  "version": "v54",
+  "title": "v54 — run animation",
   "items": [
     {
       "id": "login",

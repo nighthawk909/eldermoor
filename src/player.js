@@ -159,7 +159,8 @@ export function simStep(dt){
       if(_prevAttackT <= 0) window.EMAVATAR.setState('attack');   // rising edge only - once per swing
       playerAnim.attackT = Math.max(0, playerAnim.attackT - dt*2.85);
     } else {
-      window.EMAVATAR.setState(move.moving ? 'walk' : 'idle');
+      // run animation when actually running (run toggled on + energy left), else walk/idle
+      window.EMAVATAR.setState(move.moving ? ((run.on && run.energy > 0) ? 'run' : 'walk') : 'idle');
     }
     _prevAttackT = playerAnim.attackT;
     _prevDead = playerAnim.dead;

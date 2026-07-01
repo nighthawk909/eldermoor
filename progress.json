@@ -1,5 +1,5 @@
 {
-  "updated": 1782864444606,
+  "updated": 1782864527618,
   "version": "v41",
   "note": "Live fleet board. Reflects v36 owner QA + browser screenshots. Character art (studio + in-world avatar/creator) owned by a separate chat. Statuses: queued | building | review | requeue | shipped | done | blocked | failed.",
   "board": [
@@ -488,6 +488,33 @@
       "agent": "builder-avatar",
       "note": "KayKit rigged glb avatar loads+animates+gear-sockets; usingGlb verified true; v47",
       "ts": 1782864444606
+    },
+    {
+      "id": "COMBAT-FIDELITY",
+      "epic": "Combat",
+      "title": "COMBAT-FIDELITY",
+      "status": "building",
+      "agent": "builder-cbf",
+      "note": "Reading combat.js and combat.json to plan OSRS-accurate formulas",
+      "ts": 1782864511370
+    },
+    {
+      "id": "GROUND-ITEMS",
+      "epic": "Items",
+      "title": "GROUND-ITEMS",
+      "status": "building",
+      "agent": "builder-ground",
+      "note": "drop -> item on ground -> Take (new grounditems.js)",
+      "ts": 1782864488154
+    },
+    {
+      "id": "CHATBOX-DEPTH",
+      "epic": "HUD",
+      "title": "CHATBOX-DEPTH",
+      "status": "building",
+      "agent": "builder-chat",
+      "note": "Reading hud.js, planning chat categorization/filter/scrollback/XSS work",
+      "ts": 1782864527618
     }
   ]
 }

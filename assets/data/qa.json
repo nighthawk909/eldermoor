@@ -1,6 +1,6 @@
 {
-  "version": "v49",
-  "title": "v49 — Use-on (fire/cook/smelt/smith/dough)",
+  "version": "v50",
+  "title": "v50 — tutorial chain wired (kill/cast flags + both ores)",
   "items": [
     {
       "id": "login",

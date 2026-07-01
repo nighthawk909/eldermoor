@@ -31,7 +31,7 @@ const SKILL = {
 const RECIPE = {
   chop:  { skill:'Woodcutting', xp:25, chance:0.30, output:'logs',
            start:'You swing your axe at the tree.', success:'You get some logs.' },
-  mine:  { skill:'Mining', xp:35, chance:0.28, output:'copper-ore',
+  mine:  { skill:'Mining', xp:35, chance:0.28, output:'copper-ore', outputPool:['copper-ore','tin-ore'],
            start:'You swing your pickaxe at the rock.', success:'You manage to mine some ore.' },
   fish:  { skill:'Fishing', xp:30, chance:0.32, output:'raw-shrimp',
            start:'You cast out your net...', success:'You catch some shrimp.' },
@@ -204,7 +204,7 @@ function runProduceQty(verb, qty){
       grantItem(r.burnt);
       chat('Oops! You accidentally burn the food.');
     } else {
-      if(r.output) grantItem(r.output);
+      if(r.output) grantItem(r.outputPool ? r.outputPool[Math.floor(Math.random()*r.outputPool.length)] : r.output);
       chat(r.success);
     }
     grantXp(r.skill, r.xp);

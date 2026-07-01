@@ -727,6 +727,15 @@ export function initCombat() {
     });
     // mark dead + hide its visual if it owns one
     mob.dead = true; mob.hp = 0;
+    // tutorial hook: satisfy killed:<mob> lesson predicates (L11 killed:giant_rat, L12 killed:giant_rat_ranged).
+    // mob ids use hyphens ('giant-rat'); lesson predicates use underscores ('giant_rat') - normalize.
+    try {
+      const mid = String(mob.id || '').replace(/-/g, '_');
+      if (mid && typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('em-flag', { detail: 'killed:' + mid }));
+        if (isRangedReady()) window.dispatchEvent(new CustomEvent('em-flag', { detail: 'killed:' + mid + '_ranged' }));
+      }
+    } catch (e) { /* non-fatal */ }
     const vis = mobVisual(mob);
     if (vis) vis.visible = false;
     // respawn after respawnMs (restore HP + visibility; honest re-arm of the mob)

@@ -434,6 +434,13 @@ export function initMagicTab(){
     // consume runes now (before bolt lands - OSRS behaviour)
     consumeRunes(sp);
 
+    // tutorial hook: satisfy cast:<spell> lesson predicates (L16). Uses the spell's real
+    // id normalized to underscores (e.g. 'gale-bolt' -> 'gale_bolt'); lessons.json matches this.
+    try {
+      const sid = String(sp && sp.id || '').replace(/-/g, '_');
+      if (sid && typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('em-flag', { detail: 'cast:' + sid }));
+    } catch (e) { /* non-fatal */ }
+
     // stash the (canonical) mob on the pending cast for fireMagicBolt to anchor
     // the sprite - it now has a real .group/.mesh/._inst once combat.js has
     // hydrated it, so the projectile flies to its actual on-screen position.

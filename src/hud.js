@@ -349,7 +349,7 @@ export function initHud(){
     SK.skills.forEach(s=>skillXp[s.id]=0);
     const start=SK.startLevels||{}; for(const k in start){ skillXp[k]=SK.xpTable[(start[k]||1)-1]||0; }
     ready=true; showTab('inv');
-    EMHUD.addChat('Welcome to <b>Eldermoor</b> <span style="opacity:.6">(v49)</span>.','', true);
+    EMHUD.addChat('Welcome to <b>Eldermoor</b> <span style="opacity:.6">(v50)</span>.','', true);
     EMHUD.addChat('Tap the world to walk. Tap an NPC to talk.','', true);
     // Neutral default; the lesson state machine (lessons.js) replaces this with the
     // current data-driven objective as soon as EMDATA.lessons loads.

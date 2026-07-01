@@ -310,7 +310,7 @@
       ],
       "grants": ["air-rune", "mind-rune"],
       "xp": [{ "skill": "Magic", "amount": 35 }],
-      "complete_when": "cast:wind_strike",
+      "complete_when": "cast:gale_bolt",
       "next": "L17",
       "gate": "lesson:L17"
     },

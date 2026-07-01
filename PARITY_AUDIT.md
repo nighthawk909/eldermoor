@@ -576,8 +576,8 @@ Concrete, code-grounded defects (from the code review critic). Several directly 
 - [x] **BUG+17 — Asymmetric NPC/player collision thresholds cause the stuck-to-NPC glue + doorway stutter.** 🟥 **(FIXED v15: `nearPlayer` 0.6→0.92 + `moveBlocked` escape hatch.)** Test: an NPC wandering into you never glues you; pathing through a doorway with an NPC present doesn't stutter-replan forever.  _Shipped: audit itself marks this FIXED v15._
 
 **Pathfinding / scale**
-- [~] **BUG+6 — A* key `ci*1000+cj` aliases cells once the world exceeds 1000 cols/rows.** 🟧 Hard cap on the "massive world" mandate. Test: a 600×600-unit world (cols>1000) corrupts paths; switch to a collision-free key (e.g. `ci*rows+cj`).  _Status: A* key formula not re-grepped this pass._
-- [~] **BUG+7 — `cellWalkable` indexes `WALK[ci][cj]` with no bounds guard.** 🟧 A player clamped to the exact `BOUND` edge can throw "Cannot read properties of undefined". Test: spawn at the bound edge + trigger replan → no throw.  _Status: bounds-guard on cellWalkable not re-grepped this pass._
+- [x] **BUG+6 — A* key `ci*1000+cj` aliases cells once the world exceeds 1000 cols/rows.** ✅ **FIXED v60:** key now encodes with the live row count (`ci*G.rows+cj`, decode `k/KR`,`k%KR`) — collision-free at any world size, unblocking the massive-world mandate. Verified: normal path still reaches its target after the change (encode/decode round-trips).
+- [x] **BUG+7 — `cellWalkable` indexes `WALK[ci][cj]` with no bounds guard.** ✅ **FIXED v60:** added `if(!inb(ci,cj) || !WALK[ci] || !WALK[ci][cj]) return false;`. Verified on a clean origin: planning a path to a BOUND-corner tile returns a route with no throw.
 
 **HUD / data**
 - [~] **BUG+8 — `giveItem` prints "You receive: X" even when a full 28-slot bag silently drops the item.** 🟧 The chat lies. Test: fill the bag, give a new item → either it's added or the message says it wasn't.  _Status: giveItem full-bag lie not re-verified this pass._

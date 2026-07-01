@@ -66,7 +66,7 @@ export function buildGrid(){                       // (re)bake from BOUND + stat
     const c = cellCenter(ci,cj); WALK[ci][cj] = !staticBlocked(c.x, c.z); } }
 }
 function cellWalkable(ci,cj, ignoreCol){   // static grid + dynamic NPC bodies (except the one we\'re walking to)
-  if(!WALK[ci][cj]) return false;
+  if(!inb(ci,cj) || !WALK[ci] || !WALK[ci][cj]) return false;   // BUG+7: guard edge/OOB cells (no "undefined" throw at the BOUND edge)
   const c = cellCenter(ci,cj);
   for(const col of NPCCOLS){ if(col===ignoreCol) continue;
     const dx=c.x-col.x, dz=c.z-col.z, rr=col.r+RAD; if(dx*dx+dz*dz < rr*rr) return false; }
@@ -88,7 +88,10 @@ export function astar(sx,sz, tx,tz, ignoreCol){
   if(!inb(s.ci,s.cj)) return null;
   if(!inb(t.ci,t.cj) || !W(t.ci,t.cj)){ const nw=nearestWalkable(t,ignoreCol); if(!nw) return null; t=nw; }
   if(!W(s.ci,s.cj)){ const nw=nearestWalkable(s,ignoreCol); if(nw) s=nw; }
-  const key=(ci,cj)=>ci*1000+cj, open=new Map(), came=new Map(), gsc=new Map();
+  // BUG+6 fix: encode with the LIVE row count (cj always < G.rows), not a fixed 1000,
+  // so cell keys never alias once the world grows past 1000 cols/rows (world-scale mandate).
+  const KR = G.rows;
+  const key=(ci,cj)=>ci*KR+cj, open=new Map(), came=new Map(), gsc=new Map();
   const h=(ci,cj)=>Math.hypot(ci-t.ci, cj-t.cj);
   gsc.set(key(s.ci,s.cj),0); open.set(key(s.ci,s.cj),{ci:s.ci,cj:s.cj,f:h(s.ci,s.cj)});
   const dirs=[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
@@ -98,7 +101,7 @@ export function astar(sx,sz, tx,tz, ignoreCol){
     const cur=open.get(bk); open.delete(bk);
     if(cur.ci===t.ci && cur.cj===t.cj){
       const path=[]; let k=bk;
-      while(k!==undefined){ path.unshift(cellCenter(Math.floor(k/1000), k%1000)); k=came.get(k); }
+      while(k!==undefined){ path.unshift(cellCenter(Math.floor(k/KR), k%KR)); k=came.get(k); }
       return path;
     }
     const cg=gsc.get(bk);

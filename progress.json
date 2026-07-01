@@ -1,5 +1,5 @@
 {
-  "updated": 1782864650543,
+  "updated": 1782864874346,
   "version": "v41",
   "note": "Live fleet board. Reflects v36 owner QA + browser screenshots. Character art (studio + in-world avatar/creator) owned by a separate chat. Statuses: queued | building | review | requeue | shipped | done | blocked | failed.",
   "board": [
@@ -493,28 +493,28 @@
       "id": "COMBAT-FIDELITY",
       "epic": "Combat",
       "title": "COMBAT-FIDELITY",
-      "status": "building",
+      "status": "shipped",
       "agent": "builder-cbf",
-      "note": "Reading combat.js and combat.json to plan OSRS-accurate formulas",
-      "ts": 1782864511370
+      "note": "OSRS accuracy/max-hit/attack-speed formulas + weapon-speed cadence; v48",
+      "ts": 1782864873385
     },
     {
       "id": "GROUND-ITEMS",
       "epic": "Items",
       "title": "GROUND-ITEMS",
-      "status": "review",
+      "status": "shipped",
       "agent": "builder-ground",
-      "note": "EMGROUND built in src/grounditems.js: drop/take/tick/requestTake, stacking, 60s despawn, icon-sprite ground markers wired into interact.js clickTargets via userData.scenery reuse. Needs main.js import+init+Drop-hook wiring (not done here per scope).",
-      "ts": 1782864650543
+      "note": "drop->world->take + stack + 60s despawn; wired into main loop + inventory Drop; v48",
+      "ts": 1782864873722
     },
     {
       "id": "CHATBOX-DEPTH",
       "epic": "HUD",
       "title": "CHATBOX-DEPTH",
-      "status": "review",
+      "status": "shipped",
       "agent": "builder-chat",
-      "note": "Chat categorised by channel colour (game=yellow/public=white/private=cyan+From:/To:/clan=green/trade=gold), timestamp toggle, live filter buttons (right-click cycles on/filtered/off/hide), 200-line scrollback, HTML-escape+tag-whitelist XSS guard in addChat. node --check passed.",
-      "ts": 1782864621838
+      "note": "coloured/categorised + timestamps + PM + filters + scrollback + XSS-safe; v48",
+      "ts": 1782864874346
     }
   ]
 }

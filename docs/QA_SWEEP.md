@@ -47,3 +47,33 @@ Fix (low priority, backlog): either wire a listener (e.g. in audio.js or sfx-act
 ## Verdict
 
 No blocker or major regressions found in this session's monkey-patch/event-wiring/init-order work - the defensive patterns (poll-until-present, singleton guards, return-value preservation, id normalization) are consistently and correctly applied everywhere checked. The one real gameplay-facing gap is #1 (Firemaking lesson does not detect the actual lit-fire action, only times out after 15s) - pre-existing since the commit that introduced the predicate system this session (4a37e28), not a regression from later chunks, but still worth a follow-up fix given how easy the dispatch is to add. #2 is inert dead wiring, safe to leave or clean up.
+
+---
+
+## Functional reachability + combat verification (v62, 2026-07-01)
+
+Method: live A* probes + live combat driven through the real `window.EM*` APIs on a
+clean-origin preview (port rotation to defeat ES-module cache).
+
+Reachability sweep — plan a path from spawn to every world interactable, assert the
+route ends within talk/use range (not the astar-fail fallback):
+
+    ALL 22 probed targets reachable — 0 bricks:
+      6 instructors (in their proper in-room positions, within talkRange)
+      16 fixtures/mobs/landmarks (fishing/fire/range/furnace/anvil/gate/rats/
+          target/bank/poll/altar/rune-racks/chicken/dock)
+    (This is the state AFTER the v62 sealed-building collider fix. Pre-v62, ~9 of
+     these — banking, prayer altar, rune rack, chicken, 4 instructors — were HARD
+     bricks: enclosed by full-footprint solid-fill rects in world.colliders.json.)
+
+Combat lesson mechanism (L11/L12) — driven live via EMCOMBAT.attack + EMCOMBAT.tick:
+
+    giant-rat: maxHp hydrated=5 from combat.json (id match OK), death path fires
+    em-flag "killed:giant_rat". Dev char is L99 so it one-shots (correct — max hit
+    exceeds a tutorial rat's 5 HP); real low-level play takes several hits.
+
+Magic cast mechanism (L16) — executeCast (magic-tab.js) dispatches em-flag
+"cast:<sid>" (gale-bolt -> cast:gale_bolt); confirmed by code + verified live in v50.
+Not re-driven here (needs the arm-spell -> click-mob UI chain, not a public API).
+
+Verdict: reachability + combat kill-flag PASS. No code change required this pass.

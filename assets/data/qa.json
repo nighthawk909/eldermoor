@@ -1,6 +1,6 @@
 {
-  "version": "v51",
-  "title": "v51 — level-up popup+jingle, full SFX, item value/alch",
+  "version": "v52",
+  "title": "v52 — instructors are real rigged models (match player)",
   "items": [
     {
       "id": "login",
@@ -136,6 +136,11 @@
       "id": "use-on",
       "title": "Use item on item/object",
       "how": "Use tinderbox on logs -> fire; flour on water -> dough; raw shrimp on fire -> cooked; ore on furnace -> bar; bar on anvil -> dagger."
+    },
+    {
+      "id": "npc-models",
+      "title": "Instructors are real 3D models",
+      "how": "The instructor NPCs are rigged KayKit characters (idle/walk animated) like your player, not boxes."
     }
   ]
 }

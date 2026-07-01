@@ -4,7 +4,7 @@
    wander simulation (npcCtrl / pickWander / updateNpcs). Dialogue data
    (lines / examine / verbs) hangs off the roster entries here.
    ===================================================================== */
-import { TAU, scene } from './engine.js';
+import { TAU, scene, dressMaterials } from './engine.js';
 import { clampX, clampZ, blocked, NPCCOLS } from './world.js';
 import { clickTargets } from './interact.js';
 import { pos } from './player.js';
@@ -168,17 +168,28 @@ export function updateNpcs(dt){
     c.n._proxy.position.set(c.px, 1.05, c.pz);            // clickable proxy follows
     c.n._plate.position.set(c.px, 2.35, c.pz);            // nameplate follows
     if(c.n._bubble) c.n._bubble.position.set(c.px, BUBBLE_Y, c.pz);  // speech bubble follows
-    const sw = c.moving ? Math.sin(c.phase)*0.5 : 0;
-    if(c.rig.legL){ c.rig.legL.rotation.x =  sw;     c.rig.legR.rotation.x = -sw; }
-    if(c.rig.armL){ c.rig.armL.rotation.x = -sw*0.5; c.rig.armR.rotation.x =  sw*0.5; }
+    // REAL-NPC-MODEL: if a rigged KayKit glb loaded onto this NPC's group, drive its
+    // AnimationMixer (idle/walk) instead of - not in addition to - the procedural
+    // rig.leg/arm box-limb swing below, so the two never fight over the same NPC.
+    const glb = c.group.userData && c.group.userData.glb;
+    if(glb){
+      setNpcGlbState(glb, c.moving ? 'walk' : 'idle');
+      if(glb.mixer) glb.mixer.update(dt);
+    } else {
+      const sw = c.moving ? Math.sin(c.phase)*0.5 : 0;
+      if(c.rig.legL){ c.rig.legL.rotation.x =  sw;     c.rig.legR.rotation.x = -sw; }
+      if(c.rig.armL){ c.rig.armL.rotation.x = -sw*0.5; c.rig.armR.rotation.x =  sw*0.5; }
+    }
   }
 }
 
 /* ============================================================ runtime NPC spawn
    Build a visible, walking, talkable instructor from a world.manifest npc spec —
-   procedural low-poly body (no glb needed), nameplate, click proxy, body collider,
-   dialogue (talk() resolves the tree by npc.id), and optional wander. Called by
-   world.js instanceManifest() via window.EMNPC.add after the world loads. */
+   procedural low-poly body (fallback) OR a rigged KayKit glTF body (preferred,
+   matches the player avatar - see REAL-NPC-MODEL below) — nameplate, click proxy,
+   body collider, dialogue (talk() resolves the tree by npc.id), and optional
+   wander. Called by world.js instanceManifest() via window.EMNPC.add after the
+   world loads. */
 const NPC_BODY_COLORS = {
   guide:0x3f6f8c, survival:0x4f8a3c, chef:0xd8d1c0, quest:0x9c3030, miner:0x8c6b40,
   guard:0xc2cad4, banker:0xd8b25a, account:0x5a3f28, wizard:0x3a2a6c, monklike:0x6a5a3a, default:0x7a6a52,
@@ -198,6 +209,84 @@ function buildNpcBody(role){
   g.userData.rig = { legL, legR, armL, armR };
   return g;
 }
+
+/* ---------------------------------------------------------------------
+   REAL-NPC-MODEL: rigged KayKit glTF body for spawned instructor NPCs, same
+   CC0 pack + AnimationMixer approach as avatar.js's rigged player avatar.
+   Fully additive + defensive: any failure here (missing THREE.GLTFLoader,
+   fetch error, no matching bones) leaves the NPC on its existing procedural
+   buildNpcBody() box body, so nothing ever bricks. ===================== */
+const NPC_KAYKIT_DIR = 'assets/ext/characters/';
+const NPC_KAYKIT_MODELS = {
+  knight: 'Knight.glb', mage: 'Mage.glb', rogue: 'Rogue.glb', barbarian: 'Barbarian.glb',
+};
+const NPC_CLIP_ALIASES = {
+  idle: ['Idle', 'Unarmed_Idle'],
+  walk: ['Walking_A', 'Walking_B', 'Walking_C'],
+};
+const NPC_TARGET_HEIGHT = 1.8;   // matches the procedural NPC body's head height (~1.98) with margin, and avatar.js's 1.7-1.84 band
+
+/* role/type -> KayKit model key. Spread across the four packs so the roster
+   doesn't read as four clones; anything unmatched falls to 'knight'. */
+function pickNpcModelKey(role){
+  const r = String(role || '').toLowerCase();
+  if(/mage|wizard/.test(r)) return 'mage';
+  if(/rogue/.test(r)) return 'rogue';
+  if(/survival|ranger/.test(r)) return 'rogue';
+  if(/barbarian/.test(r)) return 'barbarian';
+  if(/guide|warden|guard|combat/.test(r)) return 'knight';
+  if(/chef|banker|quest|account/.test(r)) return 'knight';
+  return 'knight';
+}
+function npcGltfLoader(){
+  if(typeof THREE === 'undefined' || typeof THREE.GLTFLoader !== 'function') return null;
+  return new THREE.GLTFLoader();
+}
+/* Attempt the rigged-glTF NPC body load. Resolves a { scene, mixer, actions }
+   bundle on success, or null on any failure - caller keeps the procedural
+   buildNpcBody() box already in the scene so the NPC is never invisible. */
+function loadNpcGlb(role){
+  return new Promise(resolve => {
+    const loader = npcGltfLoader();
+    if(!loader){ resolve(null); return; }
+    const modelKey = pickNpcModelKey(role);
+    const file = NPC_KAYKIT_MODELS[modelKey] || NPC_KAYKIT_MODELS.knight;
+    loader.load(NPC_KAYKIT_DIR + file, gltf => {
+      try {
+        const root = gltf.scene;
+        if(!root){ resolve(null); return; }
+        dressMaterials(root, false);
+        root.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(root);
+        const h = Math.max(0.01, box.max.y - box.min.y);
+        const scl = (h > 0.05) ? (NPC_TARGET_HEIGHT / h) : 1.0;
+        root.scale.setScalar(scl);
+        root.rotation.y = Math.PI;    // KayKit rigs face +Z; world forward is -Z (matches avatar.js)
+        root.position.set(0,0,0);
+        const mixer = new THREE.AnimationMixer(root);
+        const actions = {};
+        Object.keys(NPC_CLIP_ALIASES).forEach(state => {
+          for(const name of NPC_CLIP_ALIASES[state]){
+            const clip = THREE.AnimationClip.findByName(gltf.animations || [], name);
+            if(clip){ actions[state] = mixer.clipAction(clip); break; }
+          }
+        });
+        resolve({ scene: root, mixer, actions, modelKey });
+      } catch(e){ console.warn('[npc] glb body setup failed:', role, e); resolve(null); }
+    }, undefined, err => { console.warn('[npc] glb body load failed:', file, err); resolve(null); });
+  });
+}
+/* start/keep the right loop (idle vs walk) playing on an NPC's glb bundle;
+   no-op if that state's clip wasn't found in the model (holds current). */
+function setNpcGlbState(bundle, name){
+  if(!bundle || !bundle.mixer) return;
+  const action = bundle.actions[name];
+  if(!action || bundle._active === name) return;
+  Object.keys(bundle.actions).forEach(k => { if(k !== name) bundle.actions[k].fadeOut(0.2); });
+  action.reset().fadeIn(0.2).play();
+  bundle._active = name;
+}
+
 export function addNpc(spec){
   if(!spec || spec.x==null || spec.z==null) return null;
   const id = spec.dialogue || spec.id;
@@ -205,17 +294,34 @@ export function addNpc(spec){
   const x = spec.x, z = spec.z, rotY = spec.rot || 0;
   const npc = { id, name: spec.name || id, x, z, talkRange: spec.talkRange || 1.5,
     examine: spec.examine || ('A ' + (spec.role || 'villager') + '.'), wander: spec.wander || 0 };
-  const body = buildNpcBody(spec.type || 'default'); body.position.set(x,0,z); body.rotation.y = rotY; scene.add(body);
+  const role = spec.type || spec.role || 'default';
+  const body = buildNpcBody(role); body.position.set(x,0,z); body.rotation.y = rotY; scene.add(body);
   const plate = nameplate(npc.name, '#ffd98a', 2.35); plate.position.set(x,2.35,z); scene.add(plate);
   const proxy = new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.5,2.1,8), new THREE.MeshBasicMaterial({visible:false}));
   proxy.position.set(x,1.05,z); proxy.userData.npc = npc; scene.add(proxy); clickTargets.push(proxy);
   const col = { x, z, r:0.42 }; NPCCOLS.push(col);
   npc._proxy = proxy; npc._plate = plate; npc._col = col; npc._body = body;
   NPCS.push(npc);
+  let ctrl = null;
   if(npc.wander > 0){
-    npcCtrl.push({ n:npc, group:body, rig:body.userData.rig, col, home:{x,z},
-      px:x, pz:z, tx:x, tz:z, rotY, moving:false, phase:0, waitT:1+Math.random()*3 });
+    ctrl = { n:npc, group:body, rig:body.userData.rig, col, home:{x,z},
+      px:x, pz:z, tx:x, tz:z, rotY, moving:false, phase:0, waitT:1+Math.random()*3 };
+    npcCtrl.push(ctrl);
   }
+  // Kick off the rigged glTF body load in the background (BOOT-CRITICAL: the
+  // procedural box body above is already live in the scene, so a slow/failed
+  // load here never blocks or blanks the NPC - it just stays procedural).
+  loadNpcGlb(role).then(bundle => {
+    if(!bundle || !bundle.scene) return;                // load failed - keep the procedural body
+    // hide the procedural primitive meshes (legL/legR/armL/armR/torso/head) BEFORE
+    // adding the glb, so the hide-pass never touches the glb's own meshes; the now-
+    // invisible rig groups still exist and still move with the wander sim (position/
+    // rotation only - see updateNpcs), they just render nothing.
+    body.traverse(o => { if(o.isMesh) o.visible = false; });
+    body.add(bundle.scene);                              // parent under the same group the wander sim already moves
+    body.userData.glb = bundle;                           // gate: updateNpcs skips rig.leg/arm swing when this is set
+    setNpcGlbState(bundle, (ctrl && ctrl.moving) ? 'walk' : 'idle');
+  }).catch(()=>{ /* loadNpcGlb never rejects, but stay defensive */ });
   return npc;
 }
 if(typeof window !== 'undefined'){ window.EMNPC = window.EMNPC || {}; window.EMNPC.add = addNpc; }

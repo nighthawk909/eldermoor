@@ -1,6 +1,6 @@
 {
-  "version": "v52",
-  "title": "v52 — instructors are real rigged models (match player)",
+  "version": "v53",
+  "title": "v53 — skilling animation + per-zone signposts/props",
   "items": [
     {
       "id": "login",

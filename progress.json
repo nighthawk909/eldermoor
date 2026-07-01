@@ -1,5 +1,5 @@
 {
-  "updated": 1782865382640,
+  "updated": 1782874344897,
   "version": "v41",
   "note": "Live fleet board. Reflects v36 owner QA + browser screenshots. Character art (studio + in-world avatar/creator) owned by a separate chat. Statuses: queued | building | review | requeue | shipped | done | blocked | failed.",
   "board": [
@@ -533,6 +533,33 @@
       "agent": "qa-tutorial",
       "note": "static end-to-end trace of L0-L17: does each teach->predicate->grant->advance chain across the built mechanics?",
       "ts": 1782865382640
+    },
+    {
+      "id": "SFX-COVERAGE",
+      "epic": "Audio",
+      "title": "SFX-COVERAGE",
+      "status": "building",
+      "agent": "builder-sfx",
+      "note": "Reading sfx-actions.js, audio.js, skilling.js, combat.js, hud.js to plan coverage",
+      "ts": 1782874329552
+    },
+    {
+      "id": "ITEM-DEPTH",
+      "epic": "Items",
+      "title": "ITEM-DEPTH",
+      "status": "building",
+      "agent": "builder-items3",
+      "note": "item value/weight/high-low-alch/noted flags completeness (items.json)",
+      "ts": 1782874298122
+    },
+    {
+      "id": "LEVELUP-FX",
+      "epic": "HUD",
+      "title": "LEVELUP-FX",
+      "status": "building",
+      "agent": "builder-levelup",
+      "note": "Reading hud.js/audio.js to find XP/level hooks",
+      "ts": 1782874344897
     }
   ]
 }

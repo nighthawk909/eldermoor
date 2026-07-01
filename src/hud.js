@@ -18,6 +18,15 @@ export function initHud(){
     background:linear-gradient(#2b2620,#1f1b16);border:2px solid #5a4a2a;border-radius:6px;box-shadow:0 4px 16px #000a;font-family:"Trebuchet MS",sans-serif;}
   #emlog{flex:1;overflow-y:auto;padding:6px 9px;font-size:12.5px;color:#e3d6b8;line-height:1.5;}
   #emlog .sys{color:#e7c64f;} #emlog .who{color:#7fb0e0;}
+  #emlog .ts{color:#8a7d5e;font-size:10.5px;margin-right:4px;}
+  /* ---- OSRS-style per-channel colouring: game=yellow, public=white, private=cyan
+     (with From:/To: PM framing), clan=green, trade=gold ---- */
+  #emlog .c.ch-game{color:#e7c64f;}
+  #emlog .c.ch-public{color:#f3ede0;}
+  #emlog .c.ch-private{color:#6fd6d6;}
+  #emlog .c.ch-clan{color:#7fd06a;}
+  #emlog .c.ch-trade{color:#e0b34a;}
+  #emlog .c .who{color:inherit;font-weight:bold;opacity:.92;}
   #emchch{display:flex;gap:2px;padding:3px;border-top:1px solid #4a3a26;}
   #emchch button{flex:1;font-size:10px;background:#3a2e1f;color:#cdbf98;border:1px solid #4a3a26;border-radius:3px;padding:3px 0;cursor:pointer;}
   #emchch button.on{border-color:#e7c64f;background:#5a4422;color:#fff;box-shadow:inset 0 0 6px #0006;}
@@ -110,7 +119,7 @@ export function initHud(){
     <div id="emchat"><div id="emlog"></div>
       <div id="emchin"><input id="emchintx" type="text" maxlength="160" placeholder="Press Enter to chat..." autocomplete="off"/><button id="emchinbtn" type="button">Send</button></div>
       <div id="emchch">${[['all','All'],['game','Game'],['public','Public'],['private','Private'],['clan','Clan'],['trade','Trade']]
-        .map(([ch,lab])=>`<button data-ch="${ch}" data-lab="${lab}" class="${ch==='all'?'':'ch-'+ch}">${lab}</button>`).join('')}</div></div>
+        .map(([ch,lab])=>`<button data-ch="${ch}" data-lab="${lab}" class="${ch==='all'?'':'ch-'+ch}">${lab}</button>`).join('')}<button id="emchts" data-lab="Time" title="Toggle timestamps">🕒</button></div></div>
     <div id="empanel" class="empanel"></div>
     <div id="emtabs" class="emtabs">${TABS.map(t=>`<button data-t="${t[0]}" title="${t[2]}">${t[1]}</button>`).join('')}</div>
     <div id="emxp" class="ui"></div>`);
@@ -210,17 +219,59 @@ export function initHud(){
   });
   paintAllChBtns(); // default active = All
 
+  /* ---- timestamps toggle (persisted for the session) ---- */
+  let showTs = false;
+  const tsBtn = document.getElementById('emchts');
+  function paintTsBtn(){ if(tsBtn) tsBtn.classList.toggle('on', showTs); }
+  if(tsBtn){ tsBtn.onclick=()=>{ showTs=!showTs; paintTsBtn();
+    logEl.querySelectorAll('.c').forEach(d=>{ const t=d.querySelector('.ts'); if(t) t.style.display = showTs?'':'none'; });
+  }; paintTsBtn(); }
+  function tsPrefix(){ const now=new Date();
+    const hh=String(now.getHours()).padStart(2,'0'), mm=String(now.getMinutes()).padStart(2,'0');
+    return hh+':'+mm; }
+
+  /* ---- XSS-safe rendering: escape raw text, then allow back a small inline
+     whitelist (b/i/em/strong/span[style=color]) used by a few trusted internal
+     system lines (welcome banner, dev/devtools tags). Anything else — item
+     names, NPC lines, player-typed chat — comes out as inert text. ---- */
+  function escapeHtml(s){
+    return String(s==null?'':s).replace(/[&<>"']/g, ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  }
+  const SAFE_TAG_RE = /&lt;(\/?)(b|i|em|strong|span)((?:\s+style=&quot;[a-zA-Z0-9#:;.,%\s]*&quot;)?)\s*&gt;/gi;
+  function sanitizeChat(raw){
+    let esc = escapeHtml(raw);
+    // un-escape only the small whitelisted tag shapes; everything else stays literal text
+    esc = esc.replace(SAFE_TAG_RE, (m, close, tag, attr)=>{
+      const safeAttr = attr ? attr.replace(/&quot;/g,'"') : '';
+      return '<'+close+tag+safeAttr+'>';
+    });
+    return esc;
+  }
+
   window.EMHUD = {
     addChat(text, who, opts){
-      // opts: true (legacy = system line) | {sys, channel}
+      // opts: true (legacy = system line) | {sys, channel, dir}
       const o = (opts===true) ? {sys:true} : (opts||{});
       const sys = !!o.sys;
       // channel: explicit > player line is 'public' > system/default 'game'
       const channel = o.channel || (sys ? 'game' : (who ? 'public' : 'game'));
-      const d=document.createElement('div'); d.className='c'+(sys?' sys':'');
+      const d=document.createElement('div'); d.className='c ch-'+channel+(sys?' sys':'');
       d.dataset.ch=channel;
-      d.innerHTML=(who?`<span class="who">${who}: </span>`:'')+text; logEl.appendChild(d);
-      while(logEl.children.length>60) logEl.removeChild(logEl.firstChild);
+      const safeWho = who!=null ? escapeHtml(who) : '';
+      const safeText = sanitizeChat(text);
+      let whoHtml='';
+      if(who){
+        if(channel==='private'){
+          // OSRS-style PM framing: incoming = "From X:", outgoing = "To X:"
+          whoHtml = `<span class="who">${o.dir==='out'?'To':'From'} ${safeWho}: </span>`;
+        } else {
+          whoHtml = `<span class="who">${safeWho}: </span>`;
+        }
+      }
+      const tsHtml = `<span class="ts" style="${showTs?'':'display:none'}">[${tsPrefix()}]</span>`;
+      d.innerHTML = tsHtml + whoHtml + safeText;
+      logEl.appendChild(d);
+      while(logEl.children.length>200) logEl.removeChild(logEl.firstChild);
       applyChFilter(d); logEl.scrollTop=logEl.scrollHeight; },
     giveItem(id,n){ n=n||1; const e=inv.find(x=>x.id===id); const it=IT[id];
       if(it&&it.stackable&&e){ e.count+=n; } else { if(inv.length<28) inv.push({id,count:n}); }
@@ -263,7 +314,7 @@ export function initHud(){
     if(!text) { chatInput.focus(); return; }
     const channel = (activeCh && activeCh!=='all') ? activeCh : 'public';
     const name = (window.EMPLAYERNAME || (window.EMHUD && EMHUD.playerName) || 'You');
-    EMHUD.addChat(text, name, {channel});
+    EMHUD.addChat(text, name, channel==='private' ? {channel, dir:'out'} : {channel});
     chatInput.focus();
   }
   if(chatInput && chatSendBtn){

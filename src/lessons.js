@@ -389,6 +389,16 @@ function check() {
   if (!started || progress.done || !hasData()) return false;
   const l = currentLesson();
   if (!l) return false;
+  // Lesson-level completion FIRST: if the lesson's own complete_when holds, finish
+  // the whole lesson regardless of which step we're on. This fixes lessons whose
+  // predicate is satisfied by a non-dialogue system - notably L0, whose
+  // flag:appearance_confirmed is set by charcreate's em-flag (never an em-lesson
+  // 'complete:L0' beat), so without this the tutorial got stuck on L0 after
+  // character creation. It also hardens every action lesson (chop/mine/etc.):
+  // gathering the item completes the lesson even if the instructor dialogue beat
+  // that moves the step-cursor never fired.
+  const cw = (typeof l.complete_when === 'string') ? l.complete_when.trim() : '';
+  if (cw && evalPredicate(cw)) { return completeLesson(); }
   const pred = stepPredicate(l, Math.min(progress.stepIndex, stepsOf(l).length - 1));
   if (pred && evalPredicate(pred)) {
     return advanceStep();

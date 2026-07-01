@@ -1,6 +1,6 @@
 {
-  "version": "v57",
-  "title": "v57 — dev kit slimmed (free bag slots for gathering)",
+  "version": "v58",
+  "title": "v58 — CRITICAL: tutorial no longer stuck on L0 after char creation",
   "items": [
     {
       "id": "login",

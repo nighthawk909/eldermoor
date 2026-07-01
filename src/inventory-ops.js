@@ -93,6 +93,7 @@ export function initInvOps(){
     }
     if(v === 'drop'){
       removeOne(h, idx);
+      if(window.EMGROUND && EMGROUND.drop) EMGROUND.drop(ctx.id, 1);   // spawn it on the ground (Take to pick up)
       h.addChat('You drop the ' + ctx.name + '.', '', true);
       refresh(h);
       return;

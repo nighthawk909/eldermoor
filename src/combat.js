@@ -82,14 +82,60 @@ function rollDamage(maxHit) {
   return Math.floor(Math.random() * (m + 1));
 }
 
-/* OSRS-flavoured accuracy: attacker roll vs defender roll. Both sides scale with
-   their (attack/defence) stat; ties and misses are possible. Returns true on a hit.
-   This is intentionally simple - a real hit-chance formula can replace it later
-   without touching the tick loop. */
+/* ---- OSRS combat formulas (CBT-FIDELITY) ---------------------------------
+   Standard RuneScape-era melee/ranged formulas, used for both the player and
+   mobs so accuracy/max-hit read consistently on both sides of a fight. No
+   prayers/potions/special-attack layer exists yet, so those multiplier slots
+   are simply left at their neutral value (1) rather than omitted, so they can
+   be wired in later without reshaping these functions. */
+
+/* effective level = floor(level * prayerMult) + styleBonus + 8 (the flat "+8"
+   stance term OSRS applies to every accuracy/max-hit effective-level calc). */
+function effectiveLevel(level, styleBonus, prayerMult) {
+  const lvl = Math.max(1, level | 0);
+  const pm = (typeof prayerMult === 'number' && prayerMult > 0) ? prayerMult : 1;
+  return Math.floor(lvl * pm) + (styleBonus | 0) + 8;
+}
+
+/* max attack/defence roll = effective level * (equipment bonus + 64). */
+function maxRoll(effLevel, equipBonus) {
+  return Math.max(0, effLevel) * (Math.max(-64, equipBonus | 0) + 64);
+}
+
+/* max hit (melee/ranged) = floor(0.5 + effectiveStrength * (strBonus + 64) / 640),
+   in whole hitpoints (rounded down after the +0.5, i.e. round-half-up). */
+function maxHitFromEffective(effStrengthLevel, strengthBonus) {
+  const eff = Math.max(0, effStrengthLevel);
+  const bonus = Math.max(-64, strengthBonus | 0) + 64;
+  return Math.max(0, Math.floor(0.5 + (eff * bonus) / 640));
+}
+
+/* OSRS hit-chance formula from the two max rolls:
+     atk <= def  ->  p = atk / (2*(def+1))
+     atk >  def  ->  p = 1 - (def+1) / (2*(atk+1))
+   Both branches degenerate gracefully at 0/near-0 rolls. Returns the hit
+   probability in [0,1]; callers roll against it. */
+function hitChance(atkRoll, defRoll) {
+  const a = Math.max(0, atkRoll);
+  const d = Math.max(0, defRoll);
+  if (a <= d) return d === 0 ? 1 : a / (2 * (d + 1));
+  return 1 - (d + 1) / (2 * (a + 1));
+}
+
+/* roll to-hit using full attacker/defender roll pairs (preferred path). */
+function rollHitFromRolls(atkRoll, defRoll) {
+  return Math.random() < hitChance(atkRoll, defRoll);
+}
+
+/* legacy/simple fallback: attack level vs defence level only (used only when
+   full effective-level + equipment-bonus context isn\'t available, e.g. mob
+   retaliation before a mob def carries explicit rolls). Kept as a thin wrapper
+   over the same hitChance() curve using flat +64 equipment so the distribution
+   still matches OSRS shape rather than a bespoke ad-hoc formula. */
 function rollHit(attack, defence) {
-  const atkRoll = Math.random() * (Math.max(1, attack) + 1);
-  const defRoll = Math.random() * (Math.max(1, defence) + 1);
-  return atkRoll >= defRoll;
+  const atkRoll = maxRoll(effectiveLevel(attack, 0, 1), 0);
+  const defRoll = maxRoll(effectiveLevel(defence, 0, 1), 0);
+  return rollHitFromRolls(atkRoll, defRoll);
 }
 
 /* resolve the active combat config: EMDATA.combat first, fallback otherwise.
@@ -618,23 +664,54 @@ export function initCombat() {
     hud.addXp('hitpoints', Math.round(hpXp * 10) / 10);
   }
 
-  /* read effective player melee stats from the HUD when available. */
+  /* raw skill level lookup (module-scope helper; hud is passed in so callers
+     that already hold a HUD() reference don\'t re-fetch it). */
+  function skillLevel(hud, id) {
+    try {
+      if (hud && hud.getSkillXp && hud.levelFromXp) {
+        const xp = hud.getSkillXp(); return hud.levelFromXp(xp[id] || 0);
+      }
+    } catch (e) { /* ignore */ }
+    return PLAYER_DEFAULTS[id] || 1;
+  }
+
+  /* read full OSRS-formula player melee stats: effective levels (raw level +
+     style stance bonus + 8), max attack/defence rolls (effective level *
+     (equipment bonus + 64)), and max hit (effective strength * (strength
+     bonus + 64) / 640). Equipment bonuses come from window.EMEQUIP.stats()
+     (attack/strength/defence/ranged, CB-EQUIP); the active style\'s
+     stanceBonus (combat.json styleDefs) determines which effective level(s)
+     get the OSRS "+3 accurate / +3 aggressive / +3 defensive / +1 controlled"
+     stance bump. Falls back to PLAYER_DEFAULTS when the HUD/EMEQUIP aren\'t
+     ready yet, so combat still functions before those modules boot. */
   function playerStats() {
     const hud = HUD();
-    const lvl = (id) => {
-      try {
-        if (hud && hud.getSkillXp && hud.levelFromXp) {
-          const xp = hud.getSkillXp(); return hud.levelFromXp(xp[id] || 0);
-        }
-      } catch (e) { /* ignore */ }
-      return PLAYER_DEFAULTS[id] || 1;
-    };
-    const strength = lvl('strength');
+    const eq = EQUIP();
+    const bonuses = (eq && typeof eq.stats === 'function') ? eq.stats() : { attack: 0, strength: 0, defence: 0, ranged: 0 };
+    const style = currentStyle();
+    const stance = (style && style.stanceBonus) || {};
+
+    const atkLvl = skillLevel(hud, 'attack');
+    const strLvl = skillLevel(hud, 'strength');
+    const defLvl = skillLevel(hud, 'defence');
+
+    const effAtk = effectiveLevel(atkLvl, stance.attack || 0, 1);
+    const effStr = effectiveLevel(strLvl, stance.strength || 0, 1);
+    const effDef = effectiveLevel(defLvl, stance.defence || 0, 1);
+
+    const atkRoll = maxRoll(effAtk, bonuses.attack || 0);
+    const defRoll = maxRoll(effDef, bonuses.defence || 0);
+    const maxHit  = maxHitFromEffective(effStr, bonuses.strength || 0);
+
     return {
-      attack: lvl('attack'),
-      defence: lvl('defence'),
-      // unarmed max hit scales gently with strength
-      maxHit: Math.max(1, Math.floor(strength / 2) + PLAYER_DEFAULTS.maxHit),
+      attack: atkLvl,
+      defence: defLvl,
+      strength: strLvl,
+      atkRoll: atkRoll,
+      defRoll: defRoll,
+      // unarmed/base floor of 1 keeps Tutorial Island\'s earliest fights from
+      // ever rolling a guaranteed 0 max hit before any strength bonus exists.
+      maxHit: Math.max(PLAYER_DEFAULTS.maxHit, maxHit),
     };
   }
 
@@ -694,12 +771,22 @@ export function initCombat() {
       playSwing();   // CBT-ANIM: lunge on every swing, hit or miss (ranged + melee alike)
 
       if (usingRanged) {
-        // ---- RANGED PATH ----
-        const rLvl   = playerRangedLevel();
-        const rMaxHit = Math.max(1, Math.floor(rLvl / 2) + 1);
-        const mobDef  = mob.defence != null ? mob.defence : 1;
+        // ---- RANGED PATH (CBT-FIDELITY: full OSRS roll pair) ----
+        const hud     = HUD();
+        const eq      = EQUIP();
+        const bonuses = (eq && typeof eq.stats === 'function') ? eq.stats() : { ranged: 0 };
+        const rStyle0 = currentStyle();
+        const rStance = (rStyle0 && rStyle0.stanceBonus) || {};
+        const rLvl    = playerRangedLevel();
+        const effRng  = effectiveLevel(rLvl, rStance.ranged || 0, 1);
+        const rAtkRoll = maxRoll(effRng, bonuses.ranged || 0);
+        const rMaxHit  = Math.max(1, maxHitFromEffective(effRng, bonuses.ranged || 0));
+        // mob defence roll: mob.defence is an already-"effective" flat level in
+        // combat.json (no mob equipment layer yet), so feed it through with a
+        // neutral (0) equipment bonus rather than re-deriving an effective level.
+        const mobDefRoll = maxRoll(Math.max(1, mob.defence != null ? mob.defence : 1) + 8, 0);
 
-        if (rollHit(rLvl, mobDef)) {
+        if (rollHitFromRolls(rAtkRoll, mobDefRoll)) {
           const dmg     = rollDamage(rMaxHit);
           const outcome = dmg === 0 ? 'zero' : (dmg >= rMaxHit ? 'max' : 'hit');
           // consume the arrow before the projectile flies
@@ -724,17 +811,21 @@ export function initCombat() {
           consumeArrow();
           showHitsplat(mob, 0, 'zero');
         }
-        // Rapid style (CB-STYLES) shaves a tick off the ranged attack cadence,
-        // matching OSRS; other ranged styles use the base speed.
-        const rStyle = currentStyle();
-        const rDelta = Number(rStyle && rStyle.attackSpeedTicksDelta) || 0;
-        state.playerCd = Math.max(1, PLAYER_DEFAULTS.attackSpeedTicks + rDelta);
+        // Bow attack speed comes from its weaponClass entry (combat.json), with
+        // the active style's attackSpeedTicksDelta (Rapid = -1 tick) applied on
+        // top - matches OSRS bow cadence instead of a fixed constant.
+        const rWc    = weaponClassFor();
+        const rBase  = Number(rWc && rWc.attackSpeedTicks) > 0 ? Number(rWc.attackSpeedTicks) : PLAYER_DEFAULTS.attackSpeedTicks;
+        const rDelta = Number(rStyle0 && rStyle0.attackSpeedTicksDelta) || 0;
+        state.playerCd = Math.max(1, rBase + rDelta);
         // note: death check after projectile lands (async), so we don\'t return early here
 
       } else {
-        // ---- MELEE PATH (unchanged) ----
+        // ---- MELEE PATH (CBT-FIDELITY: full OSRS accuracy/max-hit rolls) ----
         const ps = playerStats();
-        if (rollHit(ps.attack, mob.defence != null ? mob.defence : 1)) {
+        // mob defence roll: same neutral-equipment treatment as the ranged path above.
+        const mobDefRoll = maxRoll(Math.max(1, mob.defence != null ? mob.defence : 1) + 8, 0);
+        if (rollHitFromRolls(ps.atkRoll, mobDefRoll)) {
           const dmg = rollDamage(ps.maxHit);
           mob.hp = Math.max(0, mob.hp - dmg);
           const outcome = dmg === 0 ? 'zero' : (dmg >= ps.maxHit ? 'max' : 'hit');
@@ -744,16 +835,25 @@ export function initCombat() {
           showHitsplat(mob, 0, 'zero');   // a miss shows a 0 splat
         }
         ensureHpBar(mob);
-        state.playerCd = PLAYER_DEFAULTS.attackSpeedTicks;
+        // attack speed comes from the equipped weapon's class (combat.json
+        // weaponClasses[].attackSpeedTicks) - daggers/unarmed are fast (4
+        // ticks), heavier weapons slower - not a single fixed constant.
+        const wc = weaponClassFor();
+        state.playerCd = Number(wc && wc.attackSpeedTicks) > 0 ? Number(wc.attackSpeedTicks) : PLAYER_DEFAULTS.attackSpeedTicks;
         if (mob.hp <= 0) { killMob(mob); return; }
       }
     }
 
-    // ---- mob retaliation (now lands on the player HP pool) ----
+    // ---- mob retaliation (now lands on the player HP pool, on its own
+    // attack-speed cadence from combat.json mobs[].attackSpeedTicks) ----
     if (state.mobCd <= 0) {
       const mobMaxHit = Number(mob.maxHit) || 0;
-      const pDef = playerStats().defence;
-      if (mobMaxHit > 0 && rollHit(mob.attack != null ? mob.attack : 1, pDef)) {
+      const ps2 = playerStats();
+      // mob attack roll: mob.attack is a flat "effective" level in combat.json
+      // (no mob equipment layer yet), same neutral-bonus treatment as above.
+      const mobAtkRoll = maxRoll(Math.max(1, mob.attack != null ? mob.attack : 1) + 8, 0);
+      const pDefRoll = ps2.defRoll;
+      if (mobMaxHit > 0 && rollHitFromRolls(mobAtkRoll, pDefRoll)) {
         const dmg = rollDamage(mobMaxHit);
         damagePlayer(dmg, mob);                      // apply to player HP + splat
         if (dmg > 0) chat('The ' + (mob.name || 'creature') + ' hits you for ' + dmg + '.');

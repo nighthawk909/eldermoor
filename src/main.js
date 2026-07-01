@@ -51,6 +51,7 @@ import { initQaPanel } from './qa-panel.js';
 import { initAvatar } from './avatar.js';
 import { initLogin } from './login.js';
 import { initDevtools } from './devtools.js';
+import { initGround } from './grounditems.js';
 
 /* --- shared globals the feature modules read (player pos/rig/move, walk, scene) --- */
 window.EMPLAYERPOS = pos;          // live Vector3 (mutated in place) → {x,z} reads stay current
@@ -75,7 +76,7 @@ initMobileUI();                     // responsive layout/orientation/haptics ove
   initQuestsTab, initSettingsTab, initInvOps, initMinimapNav,
   initLessons, initGating, initCharCreate, initMusicTab, initSocial, initSkillGuide, initMinimapRender,
   initBank, initLogoutTab, initAppearanceApply, initMakeInterface, initSfxActions,
-  initDevTest, initQaPanel, initDevtools, initAvatar
+  initDevTest, initQaPanel, initDevtools, initGround, initAvatar
 ].forEach(fn => { try { fn(); } catch(e){ console.warn('[em] init failed:', fn.name, e); } });
 
 /* minimap click-to-walk fallback (when EMWALK isn\'t reached directly) */
@@ -91,6 +92,7 @@ function loop(now){
   simStep(dt);
   updCam();
   if(window.EMWORLD && EMWORLD.tickRespawns) EMWORLD.tickRespawns(dt);   // resource node respawns
+  if(window.EMGROUND && EMGROUND.tick) EMGROUND.tick(dt);                // ground-item bob/despawn/auto-take
   if(window.EMHUD) EMHUD.setPlayer(pos.x, pos.z, 0, NPCS.map(n=>({x:n.x, z:n.z, c:'#ffd98a'})));
   renderer.render(scene, camera);
 }

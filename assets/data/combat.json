@@ -9,87 +9,94 @@
     "max": "#36c8c8"
   },
 
-  "_comment_styleDefs": "Single source of truth for every combat style: id, display name, a player-facing description, which skill(s) it trains, and how XP splits across those skills when 'trains' has more than one entry (OSRS Controlled = even 3-way split). 'category' groups styles for weaponClasses below.",
+  "_comment_styleDefs": "Single source of truth for every combat style: id, display name, a player-facing description, which skill(s) it trains, and how XP splits across those skills when 'trains' has more than one entry (OSRS Controlled = even 3-way split). 'category' groups styles for weaponClasses below. 'stanceBonus' is the OSRS +level(s) applied to the *effective* level used in the accuracy/max-hit rolls (Accurate: +3 effective Attack; Aggressive: +3 effective Strength; Defensive: +3 effective Defence; Controlled: +1 to all three; ranged Accurate: +3 effective Ranged; Longrange: +3 effective Defence, no Ranged bonus) - keys are the stat(s) the bonus applies to, independent of which skill(s) receive XP via 'trains'/'split'.",
   "styleDefs": {
     "accurate": {
       "id": "accurate", "name": "Accurate", "category": "melee",
       "desc": "Focuses on landing hits. Trains Attack.",
-      "trains": ["attack"], "split": [1]
+      "trains": ["attack"], "split": [1], "stanceBonus": { "attack": 3 }
     },
     "aggressive": {
       "id": "aggressive", "name": "Aggressive", "category": "melee",
       "desc": "Swings harder. Trains Strength.",
-      "trains": ["strength"], "split": [1]
+      "trains": ["strength"], "split": [1], "stanceBonus": { "strength": 3 }
     },
     "defensive": {
       "id": "defensive", "name": "Defensive", "category": "melee",
       "desc": "Favours protection over offence. Trains Defence.",
-      "trains": ["defence"], "split": [1]
+      "trains": ["defence"], "split": [1], "stanceBonus": { "defence": 3 }
     },
     "controlled": {
       "id": "controlled", "name": "Controlled", "category": "melee",
       "desc": "A balanced stance. Splits XP evenly between Attack, Strength and Defence.",
-      "trains": ["attack", "strength", "defence"], "split": [0.3333333333, 0.3333333333, 0.3333333334]
+      "trains": ["attack", "strength", "defence"], "split": [0.3333333333, 0.3333333333, 0.3333333334],
+      "stanceBonus": { "attack": 1, "strength": 1, "defence": 1 }
     },
     "ranged-accurate": {
       "id": "ranged-accurate", "name": "Accurate", "category": "ranged",
       "desc": "Aims with care for better accuracy. Trains Ranged.",
-      "trains": ["ranged"], "split": [1]
+      "trains": ["ranged"], "split": [1], "stanceBonus": { "ranged": 3 }
     },
     "ranged-rapid": {
       "id": "ranged-rapid", "name": "Rapid", "category": "ranged",
       "desc": "Fires faster, attack speed +1 tick. Trains Ranged.",
-      "trains": ["ranged"], "split": [1], "attackSpeedTicksDelta": -1
+      "trains": ["ranged"], "split": [1], "attackSpeedTicksDelta": -1, "stanceBonus": {}
     },
     "ranged-longrange": {
       "id": "ranged-longrange", "name": "Longrange", "category": "ranged",
       "desc": "Keeps distance and adds defensive footwork. Trains Ranged and Defence.",
-      "trains": ["ranged", "defence"], "split": [0.5, 0.5]
+      "trains": ["ranged", "defence"], "split": [0.5, 0.5], "stanceBonus": { "defence": 3 }
     },
     "magic-standard": {
       "id": "magic-standard", "name": "Cast", "category": "magic",
       "desc": "Casting a combat spell trains Magic (handled by the spellbook).",
-      "trains": ["magic"], "split": [1]
+      "trains": ["magic"], "split": [1], "stanceBonus": {}
     }
   },
 
-  "_comment_weaponClasses": "Maps an equipped weapon to the set of styles available for it (OSRS parity: every melee weapon class offers Accurate/Aggressive/Defensive/Controlled; bows offer Accurate/Rapid/Longrange; unarmed behaves like melee). 'match' entries are checked against the worn weapon's item id: exact id match first, then substring match, in array order. The 'unarmed' entry has no match list and is the fallback when no weapon is worn.",
+  "_comment_weaponClasses": "Maps an equipped weapon to the set of styles available for it (OSRS parity: every melee weapon class offers Accurate/Aggressive/Defensive/Controlled; bows offer Accurate/Rapid/Longrange; unarmed behaves like melee). 'match' entries are checked against the worn weapon's item id: exact id match first, then substring match, in array order. The 'unarmed' entry has no match list and is the fallback when no weapon is worn. 'attackSpeedTicks' is the weapon's base attack interval in 0.6s game ticks (OSRS parity: dagger/scimitar-class=4, sword/mace-class=5(ish, kept 5 here as our sword sits mid-speed), axe/pickaxe=5, 2h/slow=6, bow=5, unarmed=4); a style's attackSpeedTicksDelta (styleDefs, e.g. Rapid) is applied on top of this base.",
   "weaponClasses": [
     {
       "id": "bow",
       "match": ["shortbow", "bow"],
       "styles": ["ranged-accurate", "ranged-rapid", "ranged-longrange"],
-      "defaultStyle": "ranged-accurate"
+      "defaultStyle": "ranged-accurate",
+      "attackSpeedTicks": 5
     },
     {
       "id": "dagger",
       "match": ["bronze-dagger", "dagger"],
       "styles": ["accurate", "aggressive", "defensive", "controlled"],
-      "defaultStyle": "accurate"
+      "defaultStyle": "accurate",
+      "attackSpeedTicks": 4
     },
     {
       "id": "sword",
       "match": ["bronze-sword", "sword"],
       "styles": ["accurate", "aggressive", "defensive", "controlled"],
-      "defaultStyle": "accurate"
+      "defaultStyle": "accurate",
+      "attackSpeedTicks": 5
     },
     {
       "id": "axe",
       "match": ["bronze-axe", "axe"],
       "styles": ["accurate", "aggressive", "defensive"],
-      "defaultStyle": "accurate"
+      "defaultStyle": "accurate",
+      "attackSpeedTicks": 5
     },
     {
       "id": "pickaxe",
       "match": ["bronze-pickaxe", "pickaxe"],
       "styles": ["accurate", "aggressive", "defensive"],
-      "defaultStyle": "accurate"
+      "defaultStyle": "accurate",
+      "attackSpeedTicks": 5
     },
     {
       "id": "unarmed",
       "match": [],
       "styles": ["accurate", "aggressive", "defensive", "controlled"],
-      "defaultStyle": "accurate"
+      "defaultStyle": "accurate",
+      "attackSpeedTicks": 4
     }
   ],
 

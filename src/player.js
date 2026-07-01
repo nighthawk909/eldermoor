@@ -66,6 +66,9 @@ export function arrive(){           // in range of the pending target → act on
     else if(t.kind === 'mob'){                  // mob → arrived in melee range, begin/resume the attack
       if(window.EMCOMBAT) EMCOMBAT.attack(t);
     }
+    else if(t.kind === 'door'){                 // door/gate → swing it open or shut
+      if(window.EMDOORS) EMDOORS.toggle(t);
+    }
     else if(t.kind === 'scenery'){              // scenery → fixture-aware routing, then skilling engine
       if(t.fixture === 'bank-booth'){
         if(window.EMBANK) EMBANK.open();

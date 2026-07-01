@@ -1,5 +1,7 @@
 # BACKLOG.md — Eldermoor
 
+> **v59 (2026-07-01) — openable doors + gates.** New `src/doors.js` (`window.EMDOORS`, published at import time so world load can use it): a hinged wooden leaf in every house doorway + an iron-banded rat-pen gate, clicked to swing open/shut with a creak, Open/Close verb + Examine (reuses the scenery node shape for free picking/hover). Collision is a DYNAMIC predicate (`window.EMDOORS.blocks`) consulted by `world.moveBlocked()` — mirrors the lesson-region gate, so the baked A* path grid is untouched and pathfinding is unchanged. House doors start OPEN (the verified-walkable island is unregressed); the rat-pen gate starts SHUT — open it to enter the pen (true OSRS Tutorial-Island progression). Wired: `world.placeHouse` + `rat_pen_gate` object branch, `player.arrive()` door branch, main-loop swing tween. Verified on a CLEAN origin (port 8178): 6 doors placed (5 house + gate), gate-shut blocks its gap / open clears it / verb toggles Open<->Close / swing tween completes, an open house door blocks nothing, 0 console errors. Boot-verified. Deployed v59.
+
 > **v58 (2026-07-01) — CRITICAL tutorial fix (found via live smoke test).** The lesson poll (lessons.js check()) only evaluated the current STEP predicate, never the lesson-level complete_when. L0 has no step predicates and completes via flag:appearance_confirmed, which charcreate sets through an em-flag event (nothing fires em-lesson complete:L0). Result: after character creation the tutorial was STUCK on L0 forever. Fix: check() now completes a lesson whenever its complete_when holds (also hardens every action lesson). Verified on a clean origin: real charcreate path (em-flag only, poll-driven) advances L0->L1, and the chain drives L1..L6. Deployed v58.
 
 > **v57 (2026-07-01) — dev kit slimmed (smoke-test finding).** A scripted functional smoke test (driving the live APIs: giveItem/addXp/EMLESSON/em-flag/combat/skill/ground/bank/equip/devtools) confirmed all subsystems respond, and surfaced that the dev test character filled all 28 bag slots -> could not gather during tutorial testing. devtest.js KIT slimmed to essentials (worn combat kit + 1 bow + full runes + core tools + food); extra gear tiers/tools now spawnable via the dev toolbox. Verified: bag 25/28, 3 free, giveItem(logs) works. Boot-verified. Deployed v57.
@@ -115,7 +117,8 @@ Outstanding work to 100%. Item-level pass/fail tests in `PARITY_AUDIT.md` (~645 
 - [ ] 9 missing zones: spawn house, full survival area, cook's house, quest house, mine/underground,
       combat ring, bank building, wizard area, departure dock.
 - [ ] Instructor roster placed in-world (data authored; NPCs not placed).
-- [ ] Openable doors/gates between zones.
+- [x] Openable doors/gates between zones. **(v59 — src/doors.js: hinged house doors + rat-pen gate, swing + creak + Open/Close/Examine, dynamic collision via EMDOORS.blocks in world.moveBlocked.)**
+- [ ] Solid house walls. *(v59 note: manifest houses render wall meshes but add NO colliders — you can currently walk through the walls; doors block only their gap. Give placeHouse real RECT colliders per wall segment so doors become meaningful barriers. Deferred to avoid trapping NPCs/player before an owner playtest.)*
 
 ## P3 — systems
 - [ ] Trading (player-to-player) · multiplayer presence.

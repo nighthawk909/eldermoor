@@ -38,6 +38,7 @@ export function blocked(x, z, skip){   // static + dynamic NPCs (full collision)
 export function moveBlocked(ox, oz, nx, nz){
   if(staticBlocked(nx, nz)) return true;                 // walls/bounds/props always hard-block
   if(typeof window !== 'undefined' && window.EMGATE && window.EMGATE.regionBlocked && window.EMGATE.regionBlocked(nx, nz)) return true;  // lesson-locked region
+  if(typeof window !== 'undefined' && window.EMDOORS && window.EMDOORS.blocks && window.EMDOORS.blocks(nx, nz)) return true;           // a shut door/gate blocks its gap
   for(const c of NPCCOLS){
     const rr = c.r + RAD, nd = (nx-c.x)*(nx-c.x) + (nz-c.z)*(nz-c.z);
     if(nd < rr*rr){                                       // new position overlaps this NPC
@@ -274,6 +275,12 @@ function placeHouse(b){
   wall(x+(doorw/2+seg/2), z-d/2, seg, t);                 // south wall, right of door (door faces -z)
   const roof=new THREE.Mesh(new THREE.BoxGeometry(w+0.6,0.4,d+0.6), new THREE.MeshStandardMaterial({ color:0x6b3f2a, flatShading:true }));
   roof.position.set(x,h+0.2,z); scene.add(roof);
+  // openable door in the south doorway (starts OPEN so the walkable island is unchanged)
+  if(typeof window !== 'undefined' && window.EMDOORS){
+    const zoneName = b.zone ? b.zone.replace(/_/g,' ') : 'house';
+    try { window.EMDOORS.placeDoor(x, z-d/2, { w:doorw, dir:'x', startOpen:true,
+      examine:'A wooden door into the '+zoneName+'.' }); } catch(e){ console.warn('[em] door', e); }
+  }
 }
 function placeMarker(x,z){   // visible placeholder landmark for fixtures without a mesh yet (ladder/gate/altar/dock/etc.)
   const m=new THREE.Mesh(new THREE.BoxGeometry(0.8,0.9,0.8), new THREE.MeshStandardMaterial({ color:0x7a5c30, flatShading:true }));
@@ -316,6 +323,10 @@ export function instanceManifest(data){
     if(MANIFEST_FIX[o.type]) placeFixture(MANIFEST_FIX[o.type], o.x, o.z);          // skilling fixtures
     else if(o.type === 'rat_spawn'){ const n=o.count||1; for(let i=0;i<n;i++) placeMob('giant-rat', o.x + i*1.3, o.z, 'Giant Rat'); }
     else if(o.type === 'practice_chicken'){ placeMob('giant-rat', o.x, o.z, 'Chicken'); }
+    else if(o.type === 'rat_pen_gate' && window.EMDOORS){                                        // openable gate (starts SHUT - open it to enter the pen)
+      window.EMDOORS.placeDoor(o.x, o.z, { w:2.0, dir:(Math.abs((o.rot||0)%Math.PI) > 0.6 ? 'z' : 'x'),
+        gate:true, startOpen:false, name:'Gate', examine:'The gate to the rat pen. Open it to fight the rats.' });
+    }
     else if(MARKER_PIECE[o.type]) place(MARKER_PIECE[o.type], o.x, o.z, o.rot||0, o.scale||1);   // real Blender-authored prop
     else if(!PIECES[o.type]) placeMarker(o.x, o.z);                                 // placeholder for still-unmodelled props (gate/target/rune_rack/boat)
   } catch(e){ console.warn('[em] object', e); } });

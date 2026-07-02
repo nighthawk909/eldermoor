@@ -18,7 +18,9 @@ everything in the order that makes sense. I want a complete game."* Standing ord
 3. **Banker + bank flow** — DONE v69 (booth opens the bank; root causes: self-collider
    reachability + dead adjacent clicks). Owner QC pending on live.
 4. **UI/HUD clean pass** — coherent OSRS-style panels, readable on phone + desktop, no overlaps.
-5. **World map + unclimbable stairs** (owner-reported).
+5. **World map** — DONE v70 (live data-driven island map: zones/buildings/paths/fixtures/mobs/You).
+   **Unclimbable stairs** — NEXT UP (owner-reported; likely the spawn_house/wizard_tower ladder/stair
+   interactables need a working Climb verb + floor handling or a clear message).
 6. **Modular character pack** — real hair styles, mix-and-match, torso/leg armor visuals.
 
 

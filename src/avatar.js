@@ -274,7 +274,15 @@ export function initAvatar(){
       if(glb.mixer) glb.mixer.stopAllAction();
       if(glb.scene){
         glb.scene.traverse(o => { if(o.geometry && o.geometry.dispose) o.geometry.dispose();
-          if(o.material){ const ms=Array.isArray(o.material)?o.material:[o.material]; ms.forEach(m=>m.dispose&&m.dispose()); } });
+          if(o.material){ const ms=Array.isArray(o.material)?o.material:[o.material]; ms.forEach(m=>{
+            if(!m) return;
+            // material.dispose() does NOT cascade to textures - free the tint
+            // CanvasTexture and the kept original atlas explicitly
+            if(m.map && m.map.dispose) m.map.dispose();
+            const orig = m.userData && m.userData.emOrigMap;
+            if(orig && orig !== m.map && orig.dispose) orig.dispose();
+            if(m.dispose) m.dispose();
+          }); } });
         if(glb.scene.parent) glb.scene.parent.remove(glb.scene);
       }
       if(glb.worn) Object.keys(glb.worn).forEach(k => disposeGearMesh(glb.worn[k]));

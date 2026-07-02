@@ -455,11 +455,39 @@ function ensurePreview3D(host){
     return _pv;
   } catch(e){ _pv = null; return null; }
 }
+/* Detach AND dispose everything under the preview root. Object3D.remove()
+   alone leaks GPU resources — each buildGlbPreview() load allocates fresh
+   skinned geometry + a fresh tint CanvasTexture, and a player comparing two
+   looks re-loads on every toggle, so the swap path must free the outgoing
+   model (geometry, materials, material.map, and the kept original atlas in
+   userData.emOrigMap) every time. */
+function disposePreviewChildren(pv){
+  if(pv.model && pv.model.mixer){ try { pv.model.mixer.stopAllAction(); } catch(e){} }
+  while(pv.root.children.length){
+    const c = pv.root.children[0];
+    pv.root.remove(c);
+    try {
+      c.traverse(o => {
+        if(o.geometry && o.geometry.dispose) o.geometry.dispose();
+        if(o.material){
+          const ms = Array.isArray(o.material) ? o.material : [o.material];
+          ms.forEach(m => {
+            if(!m) return;
+            if(m.map && m.map.dispose) m.map.dispose();
+            const orig = m.userData && m.userData.emOrigMap;
+            if(orig && orig !== m.map && orig.dispose) orig.dispose();
+            if(m.dispose) m.dispose();
+          });
+        }
+      });
+    } catch(e){ /* dispose is best-effort; never break the creator */ }
+  }
+}
 function showProcedural(pv, sel){
   try {
     const build = window.EMAVATAR && window.EMAVATAR.buildBody;
     if(!build) return false;
-    while(pv.root.children.length) pv.root.remove(pv.root.children[0]);
+    disposePreviewChildren(pv);
     pv.model = null; pv.modelKey = null;
     const r = build(sel);
     if(r && r.group){ pv.root.add(r.group); return true; }
@@ -485,7 +513,7 @@ function drawPreview(host, sel){
           pv.loadingKey = null;
           const pending = pv.pendingSel; pv.pendingSel = null;
           if(m){
-            while(pv.root.children.length) pv.root.remove(pv.root.children[0]);
+            disposePreviewChildren(pv);        // free the outgoing model + its tint texture
             pv.root.add(m.group);
             pv.model = m; pv.modelKey = m.modelKey;
           }

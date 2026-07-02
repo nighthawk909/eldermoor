@@ -81,13 +81,15 @@ export function pickAt(px, py){
     if(nObj) consider('obj', nObj.o, nObj.d, 1.0);
     for(const t of clickTargets){
       const s = t.userData && t.userData.scenery;
-      if(!s) continue;
-      const d = Math.hypot(s.x-ground.x, s.z-ground.z);
-      consider('scenery', s, d, 1.2);
+      if(s){ consider('scenery', s, Math.hypot(s.x-ground.x, s.z-ground.z), 1.2); continue; }
+      const m = t.userData && t.userData.mob;      // mobs join the forgiving tap too -
+      if(m && !m.dead)                             // a near-miss on a small rat should attack, not walk
+        consider('mob', m, Math.hypot(m.x-ground.x, m.z-ground.z), 1.2);
     }
     if(bestKind === 'npc') npc = bestEnt;
     else if(bestKind === 'obj') obj = bestEnt;
     else if(bestKind === 'scenery') scenery = bestEnt;
+    else if(bestKind === 'mob') mob = bestEnt;
   }
   return { npc, obj, scenery, mob, ground };
 }

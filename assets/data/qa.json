@@ -1,7 +1,32 @@
 {
-  "version": "v67",
+  "version": "v68",
   "title": "v66 — solid walls + enter-through-doors, readable chat",
   "items": [
+    {
+      "id": "combat-click",
+      "title": "Click a rat -> real fight",
+      "how": "Find the Giant Rat near the chapel (or rat pen). Click it: your character walks over, swings (attack animation), hitsplats + an HP bar appear, the rat flashes red when hit and keels over when it dies."
+    },
+    {
+      "id": "combat-gate-msg",
+      "title": "Locked combat explains itself",
+      "how": "If your character hasn't done the melee lesson, clicking a rat shows a clear banner mid-screen telling you which instructor to visit - NOT silent nothing."
+    },
+    {
+      "id": "mob-life",
+      "title": "Mobs are alive",
+      "how": "Watch a rat/chicken for ~10s: it wanders around its spawn, legs scurrying, tail swaying, and it turns to face you during a fight."
+    },
+    {
+      "id": "mob-chicken",
+      "title": "Chickens look like chickens",
+      "how": "The practice chicken is a white bird with a red comb and beak - not a brown rat."
+    },
+    {
+      "id": "combat-tap-near",
+      "title": "Near-miss taps still attack",
+      "how": "Tap slightly OFF a small rat: it still attacks (OSRS forgiving tap) instead of walking to the spot."
+    },
     {
       "id": "cc-real-model",
       "title": "Creator shows the REAL character",

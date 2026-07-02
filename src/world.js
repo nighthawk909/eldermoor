@@ -404,59 +404,177 @@ export function instanceManifest(data){
    All placed mobs are tracked in MOB_NODES and exposed via window.EMMOB.   */
 export const MOB_NODES = [];
 
-/* Build a minimal low-poly rat-like body from THREE primitives.
-   Returns a THREE.Group positioned at (x, 0, z). */
-function _buildRatMesh(x, z){
+/* faceted flat-shaded material helper for mob parts */
+function _mobMat(hex){ return new THREE.MeshStandardMaterial({ color:hex, flatShading:true }); }
+function _mobBox(w,h,d,hex,x,y,z){ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d), _mobMat(hex)); m.position.set(x,y,z); return m; }
+
+/* Build a readable low-poly mob body (authored facing +Z, same convention as
+   every character). Returns a THREE.Group with animation part refs in
+   group.userData.anim = { legs:[pivots], tail, head } for updateMobs(). */
+function _buildMobMesh(kind){
   const g = new THREE.Group();
-  // body - squat flattened box
-  const body = new THREE.Mesh(
-    new THREE.BoxGeometry(0.40, 0.20, 0.60),
-    new THREE.MeshStandardMaterial({ color:0x6b5240, flatShading:true })
-  );
-  body.position.set(0, 0.12, 0);
-  g.add(body);
-  // head - small cube pushed forward
-  const head = new THREE.Mesh(
-    new THREE.BoxGeometry(0.22, 0.18, 0.22),
-    new THREE.MeshStandardMaterial({ color:0x6b5240, flatShading:true })
-  );
-  head.position.set(0, 0.22, 0.30);
-  g.add(head);
-  // snout - tiny box
-  const snout = new THREE.Mesh(
-    new THREE.BoxGeometry(0.10, 0.08, 0.12),
-    new THREE.MeshStandardMaterial({ color:0x7a6050, flatShading:true })
-  );
-  snout.position.set(0, 0.19, 0.41);
-  g.add(snout);
-  // tail - thin elongated box
-  const tail = new THREE.Mesh(
-    new THREE.BoxGeometry(0.04, 0.04, 0.38),
-    new THREE.MeshStandardMaterial({ color:0x503c2c, flatShading:true })
-  );
-  tail.position.set(0, 0.10, -0.38);
-  g.add(tail);
-  g.position.set(x, 0, z);
+  const anim = { legs: [], tail: null, head: null };
+  if(kind === 'chicken'){
+    const white = 0xe8e2d4, comb = 0xc03028, beak = 0xd8922a, leg = 0xc98f3a;
+    g.add(_mobBox(0.34, 0.30, 0.46, white, 0, 0.34, 0));                 // body
+    const head = _mobBox(0.18, 0.20, 0.18, white, 0, 0.62, 0.20);        // head raised forward
+    g.add(head); anim.head = head;
+    g.add(_mobBox(0.06, 0.10, 0.12, comb, 0, 0.76, 0.20));               // comb
+    g.add(_mobBox(0.06, 0.05, 0.12, beak, 0, 0.60, 0.32));               // beak
+    g.add(_mobBox(0.04, 0.04, 0.04, 0x241812, -0.07, 0.66, 0.26));       // eyes
+    g.add(_mobBox(0.04, 0.04, 0.04, 0x241812,  0.07, 0.66, 0.26));
+    const tail = _mobBox(0.20, 0.22, 0.10, white, 0, 0.46, -0.26);       // tail fan
+    tail.rotation.x = -0.5; g.add(tail); anim.tail = tail;
+    g.add(_mobBox(0.06, 0.26, 0.28, white, -0.20, 0.36, 0));             // wings
+    g.add(_mobBox(0.06, 0.26, 0.28, white,  0.20, 0.36, 0));
+    for(const side of [-1, 1]){                                          // legs (pivots at hip)
+      const pv = new THREE.Group(); pv.position.set(side*0.08, 0.20, 0);
+      pv.add(_mobBox(0.04, 0.20, 0.04, leg, 0, -0.10, 0));
+      pv.add(_mobBox(0.10, 0.03, 0.12, leg, 0, -0.20, 0.03));            // foot
+      g.add(pv); anim.legs.push(pv);
+    }
+  } else {
+    // giant rat: dog-sized, grey-brown fur, long segmented tail
+    const fur = 0x5a4a3a, furDark = 0x483a2c, pink = 0xb98a7a;
+    g.add(_mobBox(0.44, 0.34, 0.60, fur, 0, 0.30, -0.10));               // haunches
+    g.add(_mobBox(0.38, 0.30, 0.42, fur, 0, 0.28, 0.28));                // shoulders
+    const head = new THREE.Group(); head.position.set(0, 0.30, 0.52);
+    head.add(_mobBox(0.26, 0.22, 0.30, fur, 0, 0, 0));                   // skull
+    head.add(_mobBox(0.12, 0.10, 0.16, pink, 0, -0.03, 0.20));           // snout
+    head.add(_mobBox(0.10, 0.12, 0.03, furDark, -0.10, 0.14, -0.04));    // ears
+    head.add(_mobBox(0.10, 0.12, 0.03, furDark,  0.10, 0.14, -0.04));
+    head.add(_mobBox(0.03, 0.03, 0.03, 0x111111, -0.07, 0.03, 0.16));    // eyes
+    head.add(_mobBox(0.03, 0.03, 0.03, 0x111111,  0.07, 0.03, 0.16));
+    g.add(head); anim.head = head;
+    const tail = new THREE.Group(); tail.position.set(0, 0.26, -0.40);   // tail (pivot at rump)
+    tail.add(_mobBox(0.05, 0.05, 0.34, furDark, 0, 0, -0.17));
+    tail.add(_mobBox(0.04, 0.04, 0.26, pink, 0, 0.01, -0.44));
+    g.add(tail); anim.tail = tail;
+    for(const [sx, sz] of [[-0.16,0.26],[0.16,0.26],[-0.16,-0.20],[0.16,-0.20]]){
+      const pv = new THREE.Group(); pv.position.set(sx, 0.16, sz);       // leg pivots
+      pv.add(_mobBox(0.08, 0.16, 0.08, furDark, 0, -0.08, 0));
+      g.add(pv); anim.legs.push(pv);
+    }
+  }
+  g.userData.anim = anim;
   return g;
 }
 
 export function placeMob(id, x, z, name){
   const label = name || id;
+  const kind = /chicken|hen|rooster/i.test(label) ? 'chicken' : 'rat';
   // visual mesh
-  const inst = _buildRatMesh(x, z);
+  const inst = _buildMobMesh(kind);
+  inst.position.set(x, 0, z);
   scene.add(inst);
   // invisible click proxy (cylinder, same pattern as NPC/scenery)
   const proxy = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.35, 0.35, 1.4, 8),
+    new THREE.CylinderGeometry(0.45, 0.45, 1.4, 8),
     new THREE.MeshBasicMaterial({ visible:false })
   );
   proxy.position.set(x, 0.7, z);
-  const node = { id, name:label, x, z, talkRange:1.4, kind:'mob', _inst:inst, _proxy:proxy };
+  const node = { id, name:label, x, z, talkRange:1.4, kind:'mob', _inst:inst, _proxy:proxy,
+    _home:{x, z}, _mobKind:kind,
+    _ai:{ phase:Math.random()*6, waitT:1+Math.random()*3, tx:x, tz:z, moving:false, lastHp:null, flashT:0, deathT:-1 } };
   proxy.userData.mob = node;   // hand the CANONICAL node to the picker (was a throwaway clone -> broke combat+magic HP/death)
+  /* death/respawn hooks for combat.js: a visible fall-over + fade instead of
+     an instant vanish; respawn resets the transform. Animated by updateMobs. */
+  node.die = () => { node._ai.deathT = 0; };
+  node.respawn = () => {
+    const ai = node._ai;
+    ai.deathT = -1; ai.flashT = 0; ai.moving = false; ai.waitT = 1 + Math.random()*2;
+    node.x = node._home.x; node.z = node._home.z; ai.tx = node.x; ai.tz = node.z;
+    inst.position.set(node.x, 0, node.z);
+    inst.rotation.set(0, inst.rotation.y, 0);
+    inst.visible = true;
+    inst.traverse(o => { if(o.material && o.material.opacity !== undefined){ o.material.opacity = 1; o.material.transparent = false; } });
+    proxy.position.set(node.x, 0.7, node.z);
+  };
   MOB_NODES.push(node);
   scene.add(proxy);
   clickTargets.push(proxy);
   return node;
+}
+
+/* -------- mob behaviour: wander + face + scurry + hit-flash + death fall.
+   Driven from the main loop (main.js) every frame, like updateNpcs. Mobs stay
+   NON-BLOCKING (no CIRCLES entry); wander steps still respect world collision
+   via blocked() so a penned rat can't phase through its gate. */
+const MOB_SPEED = 0.9, MOB_WANDER_R = 1.3;
+export function updateMobs(dt){
+  const target = (typeof window !== 'undefined' && window.EMCOMBAT && window.EMCOMBAT.target) ? window.EMCOMBAT.target() : null;
+  for(const n of MOB_NODES){
+    const inst = n._inst, ai = n._ai;
+    if(!inst || !ai) continue;
+
+    /* death animation: keel over sideways + sink + fade, then hide (combat.js
+       flips visibility back + calls respawn() when the timer elapses). */
+    if(ai.deathT >= 0){
+      if(!inst.visible) continue;                       // already fully despawned
+      ai.deathT += dt;
+      const t = Math.min(1, ai.deathT / 0.7);
+      inst.rotation.z = t * Math.PI / 2;
+      inst.position.y = -t * 0.12;
+      if(ai.deathT > 0.9){
+        const f = Math.min(1, (ai.deathT - 0.9) / 0.5);
+        inst.traverse(o => { if(o.material){ o.material.transparent = true; o.material.opacity = 1 - f; } });
+        if(f >= 1) inst.visible = false;
+      }
+      continue;
+    }
+
+    /* hit flash: emissive red pulse whenever HP drops */
+    if(ai.lastHp != null && n.hp != null && n.hp < ai.lastHp) ai.flashT = 0.25;
+    ai.lastHp = n.hp;
+    if(ai.flashT > 0){
+      ai.flashT -= dt;
+      const on = ai.flashT > 0 && (Math.floor(ai.flashT * 12) % 2 === 0);
+      inst.traverse(o => { if(o.material && o.material.emissive) o.material.emissive.setHex(on ? 0x8a1a10 : 0x000000); });
+    }
+
+    const engaged = target === n;
+    if(engaged){
+      /* face the player + aggressive bounce; hold position (melee range is the
+         player's job to close - OSRS mobs square up where they stand) */
+      ai.moving = false;
+      inst.rotation.y = Math.atan2(pos.x - n.x, pos.z - n.z);
+      ai.phase += dt * 10;
+      inst.position.y = Math.abs(Math.sin(ai.phase)) * 0.05;
+    } else if(ai.waitT > 0){
+      ai.waitT -= dt; ai.moving = false;
+      if(ai.waitT <= 0){
+        // pick a wander spot near home; skip blocked picks (penned rats stay penned)
+        for(let i = 0; i < 6; i++){
+          const a = Math.random() * Math.PI * 2, r = 0.3 + Math.random() * MOB_WANDER_R;
+          const tx = n._home.x + Math.cos(a) * r, tz = n._home.z + Math.sin(a) * r;
+          if(!blocked(tx, tz, null)){ ai.tx = tx; ai.tz = tz; break; }
+        }
+      }
+    } else {
+      const dx = ai.tx - n.x, dz = ai.tz - n.z, d = Math.hypot(dx, dz);
+      if(d < 0.08){ ai.moving = false; ai.waitT = 2 + Math.random() * 4; }
+      else {
+        ai.moving = true;
+        const step = Math.min(d, MOB_SPEED * dt), ux = dx/d, uz = dz/d;
+        const nx = n.x + ux * step, nz = n.z + uz * step;
+        if(!blocked(nx, nz, null)){ n.x = nx; n.z = nz; }
+        else { ai.waitT = 1 + Math.random() * 2; ai.moving = false; }   // bumped something - re-pick later
+        inst.rotation.y = Math.atan2(ux, uz);
+        ai.phase += dt * 10;
+      }
+    }
+
+    /* scurry: leg swing + tail sway + head bob while moving; settle when idle */
+    const anim = inst.userData.anim || {};
+    const sw = ai.moving ? Math.sin(ai.phase) * 0.6 : 0;
+    (anim.legs || []).forEach((pv, i) => { pv.rotation.x = (i % 2 === 0 ? sw : -sw); });
+    if(anim.tail) anim.tail.rotation.y = Math.sin(ai.phase * 0.7) * (ai.moving ? 0.35 : 0.12);
+    if(!engaged) inst.position.y = ai.moving ? Math.abs(Math.sin(ai.phase)) * 0.03 : 0;
+
+    /* keep transform + proxy + anchor in sync with the live position */
+    inst.position.x = n.x; inst.position.z = n.z;
+    n._proxy.position.set(n.x, 0.7, n.z);
+  }
 }
 
 /* ---------------- resource-node depletion + respawn -----------------------
@@ -524,6 +642,6 @@ export function tickRespawns(dt){
 if(typeof window !== 'undefined'){
   window.EMWORLD = Object.assign(window.EMWORLD || {}, {
     deplete, isDepleted, tickRespawns, gatherNode, nodes: SCENERY_NODES,
-    planPath, respawnAtSpawn, spawn: SPAWN });
+    planPath, respawnAtSpawn, spawn: SPAWN, updateMobs });
   window.EMMOB = { place: placeMob, nodes: MOB_NODES };
 }

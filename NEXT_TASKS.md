@@ -8,11 +8,13 @@
 Owner approved **merging v67 to production immediately** and directed: *"You decide — build
 everything in the order that makes sense. I want a complete game."* Standing order of work
 (each chunk: build → screenshot-verify → agent-QA → ship):
-1. **Combat feel** — click a mob → walk into range → attack animation → hitsplats → mob death
-   animation → respawn/loot. The #1 reason the game feels dead.
-2. **Equip end-to-end in prod** — v67 made gear visible; verify the equipment tab/right-click
-   Wield path works live on mobile + desktop, fix remaining "equip no-op" reports.
-3. **Banker + bank flow** (owner-reported dead).
+1. **Combat feel** — DONE v68 (visible living mobs, death anims, gate toasts) + v69 unblocked
+   solid-fixture/adjacent clicks. Owner QC pending on live.
+2. **Equip end-to-end in prod** — v67 made gear visible; NEXT UP: verify the equipment
+   tab/right-click Wield path works live on mobile + desktop (synthetic-click harness),
+   fix remaining "equip no-op" reports.
+3. **Banker + bank flow** — DONE v69 (booth opens the bank; root causes: self-collider
+   reachability + dead adjacent clicks). Owner QC pending on live.
 4. **UI/HUD clean pass** — coherent OSRS-style panels, readable on phone + desktop, no overlaps.
 5. **World map + unclimbable stairs** (owner-reported).
 6. **Modular character pack** — real hair styles, mix-and-match, torso/leg armor visuals.

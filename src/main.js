@@ -94,6 +94,7 @@ function loop(now){
   simStep(dt);
   updCam();
   if(window.EMWORLD && EMWORLD.tickRespawns) EMWORLD.tickRespawns(dt);   // resource node respawns
+  if(window.EMWORLD && EMWORLD.updateMobs) EMWORLD.updateMobs(dt);       // mob wander/face/flash/death anim
   if(window.EMGROUND && EMGROUND.tick) EMGROUND.tick(dt);                // ground-item bob/despawn/auto-take
   if(window.EMDOORS && EMDOORS.update) EMDOORS.update(dt);               // door/gate swing tweens
   if(window.EMHUD) EMHUD.setPlayer(pos.x, pos.z, 0, NPCS.map(n=>({x:n.x, z:n.z, c:'#ffd98a'})));

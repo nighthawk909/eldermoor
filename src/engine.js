@@ -34,6 +34,7 @@ renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadow
 
 export const scene = new THREE.Scene();
 export const camera = new THREE.PerspectiveCamera(50, innerWidth/innerHeight, 0.1, 400);
+if(typeof window !== 'undefined') window.EMCAMERA = camera;   // QA harness / screen-space projections
 
 /* subtle distance fog: distant terrain fades into the sky.
    near is set generously (~40) so the play area stays crisp; only far

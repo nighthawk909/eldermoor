@@ -168,6 +168,32 @@ function nudge(t){
   lastNudge = now; lastNudgeKey = key;
   const h = hud();
   if (h && typeof h.addChat === 'function') h.addChat(msg, '', true);
+  showNudgeToast(msg);
+}
+
+/* A gated click used to produce ONE chat line — invisible if the chat is
+   collapsed/unread, so blocked actions read as "the game is broken" (the
+   owner's dead-combat report). Surface the nudge as a prominent, self-fading
+   toast banner mid-screen as well. */
+function showNudgeToast(msg){
+  if (typeof document === 'undefined') return;
+  try {
+    let el = document.getElementById('em-gate-toast');
+    if (!el){
+      el = document.createElement('div');
+      el.id = 'em-gate-toast';
+      el.style.cssText = 'position:fixed;left:50%;top:26%;transform:translateX(-50%);' +
+        'max-width:min(480px,86vw);padding:10px 18px;z-index:9500;text-align:center;' +
+        'background:linear-gradient(#3b2f1c,#2a2112);border:2px solid #c8a24a;border-radius:9px;' +
+        'color:#f4d27a;font:bold 14px "Trebuchet MS","Segoe UI",sans-serif;text-shadow:1px 1px 0 #000;' +
+        'box-shadow:0 6px 24px rgba(0,0,0,.55);pointer-events:none;opacity:0;transition:opacity .2s;';
+      document.body.appendChild(el);
+    }
+    el.textContent = msg;
+    el.style.opacity = '1';
+    clearTimeout(el._hideT);
+    el._hideT = setTimeout(() => { el.style.opacity = '0'; }, 2600);
+  } catch (e) { /* cosmetic only */ }
 }
 
 /* ------------------------------------------------------------ region gating */

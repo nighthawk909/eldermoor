@@ -736,13 +736,16 @@ export function initCombat() {
         if (isRangedReady()) window.dispatchEvent(new CustomEvent('em-flag', { detail: 'killed:' + mid + '_ranged' }));
       }
     } catch (e) { /* non-fatal */ }
-    const vis = mobVisual(mob);
-    if (vis) vis.visible = false;
+    // death visual: prefer the node's own die() hook (world.js animates a
+    // fall-over + fade via updateMobs); fall back to an instant hide.
+    if (typeof mob.die === 'function') mob.die();
+    else { const vis = mobVisual(mob); if (vis) vis.visible = false; }
     // respawn after respawnMs (restore HP + visibility; honest re-arm of the mob)
     const respawnMs = Number(mob.respawnMs) > 0 ? Number(mob.respawnMs) : 30000;
     setTimeout(() => {
       mob.dead = false; mob.hp = mob.maxHp;
-      const v = mobVisual(mob); if (v) v.visible = true;
+      if (typeof mob.respawn === 'function') mob.respawn();
+      else { const v = mobVisual(mob); if (v) v.visible = true; }
     }, respawnMs);
 
     stop();
@@ -933,6 +936,7 @@ export function initCombat() {
     attackedBy,                  // auto-retaliate hook for mob AI
     tick,
     stop,
+    target: () => state.target,  // live engagement target (world.js mob AI faces the player off this)
     cfg: () => CFG,
     ready: () => !!CFG,
     playerHp: () => playerHp(),  // read the live { cur, max } pool

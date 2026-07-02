@@ -349,6 +349,9 @@ export function addNpc(spec){
   if(!spec || spec.x==null || spec.z==null) return null;
   const id = spec.dialogue || spec.id;
   if(!id || NPCS.some(n => n.id === id)) return null;            // skip dupes (e.g. the baked monk)
+  // also dedupe by NAME: the manifest ships brother_aldric while the roster already
+  // has the monk (id 'monk', same display name) -> two bodies + two nameplates
+  if(spec.name && NPCS.some(n => n.name && String(n.name).toLowerCase() === String(spec.name).toLowerCase())) return null;
   const x = spec.x, z = spec.z, rotY = spec.rot || 0;
   const npc = { id, name: spec.name || id, x, z, talkRange: spec.talkRange || 1.5,
     examine: spec.examine || ('A ' + (spec.role || 'villager') + '.'), wander: spec.wander || 0 };

@@ -437,7 +437,11 @@ export function instanceManifest(data){
 export const MOB_NODES = [];
 
 /* faceted flat-shaded material helper for mob parts */
-function _mobMat(hex){ return new THREE.MeshStandardMaterial({ color:hex, flatShading:true }); }
+function _mobMat(hex){
+  // authored as sRGB hex: convert to linear (engine col() convention) or the
+  // sRGB output encoding double-brightens it (the 'white box' rat was this)
+  return new THREE.MeshStandardMaterial({ color: new THREE.Color(hex).convertSRGBToLinear(), flatShading:true });
+}
 function _mobBox(w,h,d,hex,x,y,z){ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d), _mobMat(hex)); m.position.set(x,y,z); return m; }
 
 /* Build a readable low-poly mob body (authored facing +Z, same convention as

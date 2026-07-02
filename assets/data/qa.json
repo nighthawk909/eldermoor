@@ -1,7 +1,17 @@
 {
-  "version": "v71",
+  "version": "v72",
   "title": "v66 — solid walls + enter-through-doors, readable chat",
   "items": [
+    {
+      "id": "rat-brown",
+      "title": "Creatures are brown, not white",
+      "how": "The giant rat by the chapel and in the pen is a readable brown animal (not a washed-out cream block)."
+    },
+    {
+      "id": "one-aldric",
+      "title": "Only one Brother Aldric",
+      "how": "In the chapel there is exactly ONE Brother Aldric nameplate/body."
+    },
     {
       "id": "ladder-climb",
       "title": "The mine ladder is climbable",

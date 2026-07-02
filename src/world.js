@@ -642,6 +642,7 @@ export function tickRespawns(dt){
 if(typeof window !== 'undefined'){
   window.EMWORLD = Object.assign(window.EMWORLD || {}, {
     deplete, isDepleted, tickRespawns, gatherNode, nodes: SCENERY_NODES,
+    fixtures: FIXTURE_NODES,
     planPath, respawnAtSpawn, spawn: SPAWN, updateMobs });
   window.EMMOB = { place: placeMob, nodes: MOB_NODES };
 }

@@ -74,14 +74,20 @@ function equipApi(){
 }
 
 function loadEnabled(){
+  // OPT-IN ONLY (flipped v69): the dev character used to default ON, which
+  // force-maxed EVERY player - including the owner and any real visitor on
+  // production - to all-99s with a combat kit, 10k coins and a minute-long
+  // queue of level-up popups at login. A real game starts at level 1.
+  // Enable explicitly with ?dev in the URL or EMDEV.setEnabled(true).
   try {
     if (typeof window !== 'undefined' && window.EM_DEVTEST_OFF) return false;
-    if (typeof localStorage === 'undefined') return true;
-    return localStorage.getItem(KEY) !== 'off';
-  } catch (e) { return true; }
+    if (typeof window !== 'undefined' && /[?&]dev\b/.test(window.location.search || '')) return true;
+    if (typeof localStorage === 'undefined') return false;
+    return localStorage.getItem(KEY) === 'on';
+  } catch (e) { return false; }
 }
 
-let enabled = true;
+let enabled = false;
 
 /* how many of `id` the player has across bag + worn (so we don't re-grant
    things that were auto-equipped or already stacked) */

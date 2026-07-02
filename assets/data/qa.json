@@ -1,7 +1,27 @@
 {
-  "version": "v68",
+  "version": "v69",
   "title": "v66 — solid walls + enter-through-doors, readable chat",
   "items": [
+    {
+      "id": "real-progression",
+      "title": "You start at level 1 (dev character OFF)",
+      "how": "Log in fresh: skills are level 1 (not 99), no wall of level-up popups, a small starter bag. The maxed dev character is now opt-in via ?dev in the URL."
+    },
+    {
+      "id": "bank-opens",
+      "title": "Bank booth opens the bank",
+      "how": "Walk to a bank booth and click it: the Bank of Eldermoor panel opens (tabs, search, deposit/withdraw). Works whether you click from far away or standing right next to it."
+    },
+    {
+      "id": "adjacent-clicks",
+      "title": "Clicking adjacent things works instantly",
+      "how": "Stand right next to an NPC / furnace / anvil / booth and click it: the action happens immediately (talk/smelt/bank) - no more silent dead click."
+    },
+    {
+      "id": "fixture-reach",
+      "title": "Solid fixtures are clickable",
+      "how": "Furnace, anvil, bank booth: clicking them routes you beside them and performs the action - no more permanent 'I can't reach that.'"
+    },
     {
       "id": "combat-click",
       "title": "Click a rat -> real fight",

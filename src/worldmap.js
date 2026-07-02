@@ -52,6 +52,63 @@ const PAL = {
   you:    '#ffffff',
 };
 
+/* fixture type -> map icon (drawn as POI pins) */
+const FIXTURE_ICONS = {
+  'bank-booth':   { icon: '🏛️', name: 'Bank',    c: '#d8b25a' },
+  'poll-booth':   { icon: '📜', name: 'Poll',    c: '#bfae8c' },
+  'furnace':      { icon: '🔥', name: 'Furnace', c: '#c56b2e' },
+  'anvil':        { icon: '⚒️', name: 'Anvil',   c: '#8a9096' },
+  'range':        { icon: '🍳', name: 'Range',   c: '#b98a5a' },
+  'altar':        { icon: '🕯️', name: 'Altar',   c: '#e7c64f' },
+  'rune-rack':    { icon: '✨', name: 'Runes',   c: '#7a5ac8' },
+  'fishing-spot': { icon: '🎣', name: 'Fishing', c: '#6fb6d8' },
+  'target-butt':  { icon: '🎯', name: 'Archery', c: '#9c3030' },
+};
+
+/* Compose the map's world description from LIVE data (the manifest world.js
+   stashed on window.EMWORLD plus live fixtures/mobs), falling back to the
+   legacy hand-authored chapel-grounds WORLD when the manifest hasn't loaded.
+   The old map was frozen at the original prototype - it showed a 14x19 lawn
+   while the real island is 68x94 with nine zones (owner-reported stale map). */
+function liveWorld(){
+  const W = (typeof window !== 'undefined' && window.EMWORLD) || {};
+  const m = W.manifest;
+  if (!m){
+    return {
+      name: 'Chapel Grounds',
+      bound: WORLD.bound,
+      buildings: [{ x0: WORLD.chapel.x0, x1: WORLD.chapel.x1, z0: WORLD.chapel.z0, z1: WORLD.chapel.z1, label: 'Chapel' }],
+      paths: [WORLD.path.map(p => [p.x, p.z])],
+      zones: [],
+      pois: WORLD.pois.slice(),
+      pond: WORLD.pond,
+      mobs: [], npcs: [],
+    };
+  }
+  const bound = W.bound || m.bound || WORLD.bound;
+  const buildings = (m.buildings || []).map(b => {
+    const w = b.w || 8, d = b.d || 7;
+    const label = (b.id || b.type || '').replace(/_/g, ' ').replace(/\bhouse\b/i, '').trim();
+    return { x0: b.x - w/2, x1: b.x + w/2, z0: b.z - d/2, z1: b.z + d/2,
+             label: label ? label.replace(/\b\w/g, c => c.toUpperCase()) : '' };
+  });
+  const paths = (m.paths || []).map(p => p.points || []).filter(p => p.length >= 2);
+  const zones = (m.zones || []).filter(z => z.center && z.label)
+    .map(z => ({ label: z.label, x: z.center.x, z: z.center.z }));
+  const pois = [];
+  (W.fixtures || []).forEach(f => {
+    const d = FIXTURE_ICONS[f.fixture];
+    if (d) pois.push({ name: d.name, icon: d.icon, c: d.c, x: f.x, z: f.z });
+  });
+  (W.nodes || []).forEach(n => {                       // scenery landmarks: the departure dock/boat
+    if (n.type === 'dock') pois.push({ name: 'Dock', icon: '⚓', c: '#6fb6d8', x: n.x, z: n.z });
+  });
+  const mobs = ((typeof window !== 'undefined' && window.EMMOB && window.EMMOB.nodes) || [])
+    .filter(mo => !mo.dead).map(mo => ({ x: mo.x, z: mo.z }));
+  const name = String(m.name || 'Eldermoor Isle').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  return { name, bound, buildings, paths, zones, pois, pond: null, mobs };
+}
+
 /* read the live player position, defensively. {x,z} numbers or null. */
 function readPlayerPos(){
   const p = (typeof window !== 'undefined') && window.EMPLAYERPOS;
@@ -134,8 +191,9 @@ export function initWorldMap(){
       <h5>Legend</h5>
       <div class="row"><span class="sw" style="background:${PAL.grassH}"></span>Playable area</div>
       <div class="row"><span class="sw" style="background:${PAL.dirt}"></span>Dirt path</div>
-      <div class="row"><span class="sw" style="background:${PAL.water}"></span>Pond</div>
-      <div class="row"><span class="sw" style="background:${PAL.stone}"></span>Chapel</div>
+      <div class="row"><span class="sw" style="background:#1e4356"></span>Ocean</div>
+      <div class="row"><span class="sw" style="background:${PAL.stone}"></span>Buildings</div>
+      <div class="row"><span class="sw" style="background:#c8452e;border-radius:50%"></span>Creatures</div>
       <div class="row"><span class="sw you"></span>You are here</div>
     </div>
     <div id="emwmap-hint">Drag to pan · Scroll to zoom · Esc to close</div>`;
@@ -157,7 +215,7 @@ export function initWorldMap(){
       y: cssH / 2 + view.panZ + (z - worldCenter.z) * view.scale,
     };
   }
-  const worldCenter = {
+  const worldCenter = {                                     // recentred from live bounds in fitView()
     x: (WORLD.bound.x0 + WORLD.bound.x1) / 2,
     z: (WORLD.bound.z0 + WORLD.bound.z1) / 2,
   };
@@ -172,15 +230,20 @@ export function initWorldMap(){
     draw();
   }
 
-  /* fit the playable bounds nicely into the viewport (called on open) */
+  /* fit the LIVE playable bounds nicely into the viewport (called on open) */
   function fitView(){
-    const wW = WORLD.bound.x1 - WORLD.bound.x0;
-    const wH = WORLD.bound.z1 - WORLD.bound.z0;
+    const LW = liveWorld();
+    worldCenter.x = (LW.bound.x0 + LW.bound.x1) / 2;
+    worldCenter.z = (LW.bound.z0 + LW.bound.z1) / 2;
+    const wW = LW.bound.x1 - LW.bound.x0;
+    const wH = LW.bound.z1 - LW.bound.z0;
     const pad = 0.82;                                        // leave a margin
     const s = Math.min((cssW * pad) / wW, (cssH * pad) / wH);
-    view.scale = Math.max(8, Math.min(160, s));
+    view.scale = Math.max(4, Math.min(160, s));
     view.panX = 0;
     view.panZ = 0;
+    const sub = overlay.querySelector('#emwmap-title .sub');
+    if (sub) sub.textContent = LW.name;
   }
 
   /* --------------------------------------------------------------- drawing */
@@ -198,73 +261,94 @@ export function initWorldMap(){
   function draw(){
     if (!cssW || !cssH) return;
     ctx.clearRect(0, 0, cssW, cssH);
+    const LW = liveWorld();
 
-    // ---- backdrop outside bounds (subtle vignette grass) ----
-    ctx.fillStyle = '#23301f';
+    // ---- ocean backdrop (the island sits in open water) ----
+    ctx.fillStyle = '#1e4356';
     ctx.fillRect(0, 0, cssW, cssH);
 
-    // ---- playable area rectangle ----
-    const a = w2s(WORLD.bound.x0, WORLD.bound.z0);
-    const b = w2s(WORLD.bound.x1, WORLD.bound.z1);
+    // ---- island (playable bounds) ----
+    const a = w2s(LW.bound.x0, LW.bound.z0);
+    const b = w2s(LW.bound.x1, LW.bound.z1);
     const bx = a.x, by = a.y, bw = b.x - a.x, bh = b.y - a.y;
     ctx.save();
-    roundRectPath(bx, by, bw, bh, 10);
+    roundRectPath(bx, by, bw, bh, 14);
     ctx.fillStyle = PAL.grassH;
     ctx.fill();
     // faint grass texture stripes
     ctx.clip();
     ctx.globalAlpha = 0.10;
     ctx.fillStyle = PAL.grass;
-    for (let gx = WORLD.bound.x0; gx < WORLD.bound.x1; gx += 1.5){
-      const s0 = w2s(gx, WORLD.bound.z0);
-      ctx.fillRect(s0.x, by, Math.max(1, view.scale * 0.7), bh);
+    for (let gx = LW.bound.x0; gx < LW.bound.x1; gx += 4){
+      const s0 = w2s(gx, LW.bound.z0);
+      ctx.fillRect(s0.x, by, Math.max(1, view.scale * 1.8), bh);
     }
     ctx.restore();
     ctx.globalAlpha = 1;
-    // bounds frame
-    roundRectPath(bx, by, bw, bh, 10);
+    roundRectPath(bx, by, bw, bh, 14);
     ctx.lineWidth = 3;
-    ctx.strokeStyle = PAL.frame;
+    ctx.strokeStyle = '#d8cfa8';                             // sandy shoreline
     ctx.stroke();
 
-    // ---- pond ----
-    const pc = w2s(WORLD.pond.x, WORLD.pond.z);
-    ctx.beginPath();
-    ctx.arc(pc.x, pc.y, WORLD.pond.r * view.scale, 0, Math.PI * 2);
-    ctx.fillStyle = PAL.water;
-    ctx.fill();
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = '#1b4a5e';
-    ctx.stroke();
-
-    // ---- dirt path ----
-    if (WORLD.path.length >= 2){
+    // ---- legacy pond (chapel-grounds fallback only) ----
+    if (LW.pond){
+      const pc = w2s(LW.pond.x, LW.pond.z);
       ctx.beginPath();
-      WORLD.path.forEach((p, i) => {
-        const s = w2s(p.x, p.z);
-        if (i === 0) ctx.moveTo(s.x, s.y); else ctx.lineTo(s.x, s.y);
-      });
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.lineWidth = Math.max(3, view.scale * 0.9);
-      ctx.strokeStyle = PAL.dirt;
-      ctx.stroke();
+      ctx.arc(pc.x, pc.y, LW.pond.r * view.scale, 0, Math.PI * 2);
+      ctx.fillStyle = PAL.water; ctx.fill();
+      ctx.lineWidth = 2; ctx.strokeStyle = '#1b4a5e'; ctx.stroke();
     }
 
-    // ---- chapel footprint ----
-    const ca = w2s(WORLD.chapel.x0, WORLD.chapel.z0);
-    const cb = w2s(WORLD.chapel.x1, WORLD.chapel.z1);
-    roundRectPath(ca.x, ca.y, cb.x - ca.x, cb.y - ca.y, 4);
-    ctx.fillStyle = PAL.stone;
-    ctx.fill();
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = '#7a6a48';
-    ctx.stroke();
+    // ---- dirt paths (manifest polylines) ----
+    (LW.paths || []).forEach(pts => {
+      ctx.beginPath();
+      pts.forEach((p, i) => {
+        const s = w2s(p[0], p[1]);
+        if (i === 0) ctx.moveTo(s.x, s.y); else ctx.lineTo(s.x, s.y);
+      });
+      ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      ctx.lineWidth = Math.max(3, view.scale * 2.2);
+      ctx.strokeStyle = PAL.dirt;
+      ctx.stroke();
+    });
 
-    // ---- POI icons + labels ----
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    WORLD.pois.forEach(poi => {
+    // ---- building footprints + labels ----
+    (LW.buildings || []).forEach(bd => {
+      const ca = w2s(bd.x0, bd.z0), cb = w2s(bd.x1, bd.z1);
+      roundRectPath(ca.x, ca.y, cb.x - ca.x, cb.y - ca.y, 3);
+      ctx.fillStyle = PAL.stone; ctx.fill();
+      ctx.lineWidth = 2; ctx.strokeStyle = '#7a6a48'; ctx.stroke();
+      if (bd.label && view.scale > 5){
+        ctx.font = 'bold 11px "Trebuchet MS",sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#4a3d28';
+        ctx.fillText(bd.label, (ca.x + cb.x) / 2, (ca.y + cb.y) / 2);
+      }
+    });
+
+    // ---- zone name banners ----
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    (LW.zones || []).forEach(zn => {
+      const s = w2s(zn.x, zn.z);
+      ctx.font = 'bold 13px "Trebuchet MS",sans-serif';
+      const lw = ctx.measureText(zn.label).width + 12;
+      ctx.fillStyle = 'rgba(33,29,24,.66)';
+      roundRectPath(s.x - lw / 2, s.y - 30, lw, 18, 5);
+      ctx.fill();
+      ctx.fillStyle = PAL.gold;
+      ctx.fillText(zn.label, s.x, s.y - 21);
+    });
+
+    // ---- mob dots (live, alive only) ----
+    (LW.mobs || []).forEach(mo => {
+      const s = w2s(mo.x, mo.z);
+      ctx.beginPath(); ctx.arc(s.x, s.y, 4, 0, Math.PI * 2);
+      ctx.fillStyle = '#c8452e'; ctx.fill();
+      ctx.lineWidth = 1.5; ctx.strokeStyle = '#211d18'; ctx.stroke();
+    });
+
+    // ---- POI icons + labels (live fixtures + landmarks) ----
+    (LW.pois || []).forEach(poi => {
       const s = w2s(poi.x, poi.z);
       // pin disc
       ctx.beginPath();
@@ -277,14 +361,16 @@ export function initWorldMap(){
       // icon
       ctx.font = '13px "Trebuchet MS",sans-serif';
       ctx.fillText(poi.icon, s.x, s.y + 0.5);
-      // label
-      ctx.font = 'bold 12px "Trebuchet MS",sans-serif';
-      const lw = ctx.measureText(poi.name).width + 10;
-      ctx.fillStyle = 'rgba(33,29,24,.82)';
-      roundRectPath(s.x - lw / 2, s.y + 14, lw, 17, 4);
-      ctx.fill();
-      ctx.fillStyle = PAL.ink;
-      ctx.fillText(poi.name, s.x, s.y + 23);
+      // label (only when zoomed in enough to matter)
+      if (view.scale > 9){
+        ctx.font = 'bold 12px "Trebuchet MS",sans-serif';
+        const lw = ctx.measureText(poi.name).width + 10;
+        ctx.fillStyle = 'rgba(33,29,24,.82)';
+        roundRectPath(s.x - lw / 2, s.y + 14, lw, 17, 4);
+        ctx.fill();
+        ctx.fillStyle = PAL.ink;
+        ctx.fillText(poi.name, s.x, s.y + 23);
+      }
     });
 
     // ---- "you are here" marker ----

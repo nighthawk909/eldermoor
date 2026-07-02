@@ -338,6 +338,8 @@ function addIslandGround(){
   scene.add(mesh); _islandGround = mesh;
 }
 export function instanceManifest(data){
+  // publish the manifest + live bounds for data-driven consumers (world map)
+  try { window.EMWORLD = Object.assign(window.EMWORLD || {}, { manifest: data, bound: BOUND }); } catch(e){}
   addIslandGround();                                                                   // land under the whole island (kills the all-water look)
   // keep procedural scatter OUT of building footprints and off placed objects/NPCs,
   // so nothing grows through a wall/roof or on top of an instructor (was: trees inside houses).

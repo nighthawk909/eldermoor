@@ -418,10 +418,11 @@ function paperDollSVG(sel){
   }
   return `<svg viewBox="0 0 120 200" class="pd-svg" xmlns="http://www.w3.org/2000/svg">${s.join('')}</svg>`;
 }
-/* ---- live 3D preview: a small rotating render of the REAL in-world avatar
-   (window.EMAVATAR.buildBody), built from the current selection. Falls back to
-   the 2D SVG paper-doll if THREE / the avatar builder isn't available, so the
-   creator can never break. */
+/* ---- live 3D preview: a small rotating render of the REAL in-world avatar —
+   the rigged KayKit glTF character (window.EMAVATAR.buildGlbPreview), idling,
+   retinted live to the chosen skin tone / hair colour. While the model streams
+   in (or if it fails) the procedural buildBody figure shows, and if THREE
+   itself is absent the 2D SVG paper-doll draws — the creator can never break. */
 let _pv = null;
 function ensurePreview3D(host){
   const T = (typeof window !== 'undefined') && window.THREE;
@@ -440,22 +441,91 @@ function ensurePreview3D(host){
     const key = new T.DirectionalLight(0xfff0d8, 0.9); key.position.set(2.5, 4, 3); scene.add(key);
     const root = new T.Group(); scene.add(root);
     host.innerHTML = ''; host.appendChild(renderer.domElement);
-    _pv = { host, renderer, scene, camera, root, raf:0, T };
-    const tick = () => { _pv.raf = requestAnimationFrame(tick); root.rotation.y += 0.014; renderer.render(scene, camera); };
+    const clock = new T.Clock();
+    _pv = { host, renderer, scene, camera, root, raf:0, T, clock,
+            model:null, modelKey:null, loadingKey:null, pendingSel:null };
+    const tick = () => {
+      _pv.raf = requestAnimationFrame(tick);
+      root.rotation.y += 0.014;
+      const dt = clock.getDelta();
+      if(_pv.model && _pv.model.mixer) _pv.model.mixer.update(dt);   // idle breathe
+      renderer.render(scene, camera);
+    };
     tick();
     return _pv;
   } catch(e){ _pv = null; return null; }
 }
+/* Detach AND dispose everything under the preview root. Object3D.remove()
+   alone leaks GPU resources — each buildGlbPreview() load allocates fresh
+   skinned geometry + a fresh tint CanvasTexture, and a player comparing two
+   looks re-loads on every toggle, so the swap path must free the outgoing
+   model (geometry, materials, material.map, and the kept original atlas in
+   userData.emOrigMap) every time. */
+function disposePreviewChildren(pv){
+  if(pv.model && pv.model.mixer){ try { pv.model.mixer.stopAllAction(); } catch(e){} }
+  while(pv.root.children.length){
+    const c = pv.root.children[0];
+    pv.root.remove(c);
+    try {
+      c.traverse(o => {
+        if(o.geometry && o.geometry.dispose) o.geometry.dispose();
+        if(o.material){
+          const ms = Array.isArray(o.material) ? o.material : [o.material];
+          ms.forEach(m => {
+            if(!m) return;
+            if(m.map && m.map.dispose) m.map.dispose();
+            const orig = m.userData && m.userData.emOrigMap;
+            if(orig && orig !== m.map && orig.dispose) orig.dispose();
+            if(m.dispose) m.dispose();
+          });
+        }
+      });
+    } catch(e){ /* dispose is best-effort; never break the creator */ }
+  }
+}
+function showProcedural(pv, sel){
+  try {
+    const build = window.EMAVATAR && window.EMAVATAR.buildBody;
+    if(!build) return false;
+    disposePreviewChildren(pv);
+    pv.model = null; pv.modelKey = null;
+    const r = build(sel);
+    if(r && r.group){ pv.root.add(r.group); return true; }
+  } catch(e){ /* fall through */ }
+  return false;
+}
 function drawPreview(host, sel){
   try {
-    const build = (typeof window !== 'undefined') && window.EMAVATAR && window.EMAVATAR.buildBody;
-    if(build){
-      const pv = ensurePreview3D(host);
-      if(pv){
-        while(pv.root.children.length) pv.root.remove(pv.root.children[0]);
-        const r = build(sel);
-        if(r && r.group){ pv.root.add(r.group); return; }
+    const av = (typeof window !== 'undefined') && window.EMAVATAR;
+    const pv = av && ensurePreview3D(host);
+    if(pv){
+      if(av.buildGlbPreview && av.pickModelKey){
+        const key = av.pickModelKey(sel);
+        if(pv.model && pv.modelKey === key){
+          // colour-only change: retint the live atlas, no reload
+          pv.model.retint(sel.colours && sel.colours.skin, sel.colours && sel.colours.hair);
+          return;
+        }
+        if(pv.loadingKey){ pv.pendingSel = sel; return; }   // a load is in flight; apply latest sel when it lands
+        pv.loadingKey = key;
+        av.buildGlbPreview(sel, m => {
+          if(pv !== _pv) return;                            // preview torn down meanwhile
+          pv.loadingKey = null;
+          const pending = pv.pendingSel; pv.pendingSel = null;
+          if(m){
+            disposePreviewChildren(pv);        // free the outgoing model + its tint texture
+            pv.root.add(m.group);
+            pv.model = m; pv.modelKey = m.modelKey;
+          }
+          // user kept cycling while we loaded — reconcile against the latest pick
+          if(pending) drawPreview(host, pending);
+          else if(!m) showProcedural(pv, sel);              // glb failed: procedural stand-in
+        });
+        // while the very first model streams in, show the procedural figure
+        if(!pv.model) showProcedural(pv, sel);
+        return;
       }
+      if(showProcedural(pv, sel)) return;
     }
   } catch(e){ /* fall through to the 2D paper-doll */ }
   if(host) host.innerHTML = paperDollSVG(sel);

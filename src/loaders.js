@@ -10,7 +10,7 @@ import {
   applyColliders, instanceManifest, PIECES, buildGrid
 } from './world.js';
 import { player, rig } from './player.js';
-import { NPCS, npcCtrl } from './npc.js';
+import { NPCS, npcCtrl, loadNpcGlb, setNpcGlbState } from './npc.js';
 
 /* ------------------------------------------------------------ asset loading */
 let loaded = 0;
@@ -19,7 +19,7 @@ let loaded = 0;
    when ALL expected loads resolve, so scenery/NPCs/content never pop in after
    the loading screen has already faded. */
 const KIT_PIECE_COUNT = Object.keys(PIECES).length;   // dynamic: tree/bush/rock + zone fixtures
-const EXPECTED_LOADS = 2 + KIT_PIECE_COUNT + NPCS.filter(n => n.glb).length + 1 /* content-data registry */;
+const EXPECTED_LOADS = 2 + KIT_PIECE_COUNT + NPCS.filter(n => n.kaykit || n.glb).length + 1 /* content-data registry */;
 /* Safety net: never let the overlay hang forever if one load silently never
    settles (every loader.load() error path already calls maybeReady(), and
    loadContentData()'s fetches never reject - but this guards any path we
@@ -64,7 +64,7 @@ export function startLoading(){
   fetch(WORLD.replace('.glb', '.colliders.json'))                 // nav/collision sidecar
     .then(r => r.json()).then(applyColliders)
     .catch(err => console.warn('colliders json failed:', err));
-  loader.load(WORLD, g => { dressMaterials(g.scene); scene.add(g.scene); maybeReady(); },
+  loader.load(WORLD, g => { dressMaterials(g.scene); scene.add(g.scene); hideBakedMonk(g.scene); maybeReady(); },
     undefined, err => { document.getElementById('load').textContent = 'Failed to load world.glb - ' + err; });
 
   /* kit-piece library + manifest instancing: one glb per piece, cloned at every placement the
@@ -89,18 +89,64 @@ export function startLoading(){
     maybeReady();
   }, undefined, err => { document.getElementById('load').textContent = 'Failed to load player.glb - ' + err; });
 
-  /* place every NPC that has its own glTF (data-driven) + wire up wandering */
-  NPCS.filter(n => n.glb).forEach(n => {
-    loader.load(n.glb, g => {
-      dressMaterials(g.scene, false);
-      g.scene.position.set(n.x, 0, n.z);
-      g.scene.rotation.y = (n.rotY || 0);
-      scene.add(g.scene);
-      const rg = {}; ['legL','legR','armL','armR'].forEach(k => { const o = g.scene.getObjectByName(k); if(o) rg[k]=o; });
-      if(n.wander) npcCtrl.push({ n, group:g.scene, rig:rg, col:n._col,
+  /* place every roster NPC (data-driven) + wire up wandering. Bodies are the
+     rigged KayKit characters (n.kaykit: model + skin/hair tint, same pipeline
+     as the instructors); the old cone/icosphere glbs under assets/npcs/ load
+     ONLY if the rigged body fails (n.glb fallback), so the chapel cast can
+     never go invisible. */
+  NPCS.filter(n => n.kaykit || n.glb).forEach(n => {
+    const finish = (group, bundle) => {
+      group.position.set(n.x, 0, n.z);
+      group.rotation.y = (n.rotY || 0);
+      scene.add(group);
+      const rg = {}; ['legL','legR','armL','armR'].forEach(k => { const o = group.getObjectByName(k); if(o) rg[k]=o; });
+      if(bundle){
+        group.userData.glb = bundle;               // updateNpcs drives the mixer, not box limbs
+        setNpcGlbState(bundle, 'idle');
+      }
+      if(n.wander) npcCtrl.push({ n, group, rig:rg, col:n._col,
         home:{x:n.x, z:n.z}, px:n.x, pz:n.z, tx:n.x, tz:n.z,
         rotY:n.rotY||0, moving:false, phase:0, waitT:1+Math.random()*3 });
       maybeReady();
-    }, undefined, err => { console.warn('NPC load failed:', n.id, err); maybeReady(); });
+    };
+    const legacy = () => {
+      if(!n.glb){ maybeReady(); return; }
+      loader.load(n.glb, g => { dressMaterials(g.scene, false); finish(g.scene, null); },
+        undefined, err => { console.warn('NPC load failed:', n.id, err); maybeReady(); });
+    };
+    if(n.kaykit){
+      loadNpcGlb(n.id, n.kaykit).then(bundle => {
+        if(bundle && bundle.scene){
+          const wrap = new THREE.Group();          // loadNpcGlb centers/scales the rig at the origin
+          wrap.add(bundle.scene);
+          finish(wrap, bundle);
+        } else legacy();                            // rigged body failed - fall back to the old glb
+      }).catch(legacy);
+    } else legacy();
   });
+}
+
+/* The chapel monk's OLD cone/icosphere body is baked into world.glb (it has no
+   node of its own - just anonymous primitives at his spot beside the altar).
+   Now that Brother Aldric spawns as a rigged roster NPC, hide every world mesh
+   whose bounds sit inside a small cylinder at his authored position so the two
+   bodies don't overlap. Radius 0.8 clears the monk without reaching the altar
+   (2m away) or the chapel walls. */
+function hideBakedMonk(worldScene){
+  try {
+    const MX = 1.4, MZ = -2.9, R = 0.8;
+    worldScene.updateMatrixWorld(true);
+    const c = new THREE.Vector3();
+    let hidden = 0;
+    worldScene.traverse(o => {
+      if(!o.isMesh || !o.geometry) return;
+      if(!o.geometry.boundingSphere) o.geometry.computeBoundingSphere();
+      const bs = o.geometry.boundingSphere;
+      if(!bs) return;
+      c.copy(bs.center); o.localToWorld(c);
+      const d = Math.hypot(c.x - MX, c.z - MZ);
+      if(d < R && bs.radius < 1.5 && c.y < 2.6){ o.visible = false; hidden++; }
+    });
+    console.log('[loaders] baked monk meshes hidden:', hidden);
+  } catch(e){ console.warn('[loaders] hideBakedMonk failed:', e); }
 }

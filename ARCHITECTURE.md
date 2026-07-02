@@ -26,6 +26,9 @@ Original OSRS-style web game. Vanilla ES modules, no build step. Detailed file m
 - Engine/world/movement: `engine, world, player, npc, dialogue, interact, input, loaders`.
 - HUD + tabs: `hud, tooltip, orbs, xpcounter, worldmap, minimap-nav, minimap-render` + per-tab modules.
 - Systems: `combat, skilling, equipment, save, audio, bank, lessons, make-interface, charcreate, appearance-apply`.
+- Character art: `avatar` (rigged KayKit glb player, built-in gear-node show/hide, procedural fallback),
+  `char/glb-tint` (runtime skin/hair atlas recolor via masks in `assets/ext/characters/masks/`, baked by
+  `tools/bake_tint_masks.py`), `charcreate` (creator previews the real rigged model via `EMAVATAR.buildGlbPreview`).
 
 ## Conventions
 - Straight ASCII quotes only; escape apostrophes inside single-quoted strings as `\'` (a stray `'` breaks

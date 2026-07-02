@@ -81,6 +81,15 @@ function tintRoot(root, colours) {
   root.traverse(function (obj) {
     if (!obj.isMesh) return;
 
+    // NEVER paint the rigged KayKit glbs (player avatar / NPC bodies): their
+    // mesh names collide with these heuristics ('Knight_Head' → skin, etc.)
+    // but every mesh shares ONE atlas material, so a single material.color
+    // write repaints the whole character. Their colours are handled properly
+    // by src/char/glb-tint.js (atlas retint). Roots are flagged at load.
+    for (let p = obj; p; p = p.parent) {
+      if (p.userData && p.userData.emAtlasTinted) return;
+    }
+
     // Build a combined name string: object name + material name(s).
     const objNameLC = (obj.name || '').toLowerCase();
     const mats = Array.isArray(obj.material) ? obj.material : (obj.material ? [obj.material] : []);

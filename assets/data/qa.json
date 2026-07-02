@@ -1,7 +1,17 @@
 {
-  "version": "v69",
+  "version": "v70",
   "title": "v66 — solid walls + enter-through-doors, readable chat",
   "items": [
+    {
+      "id": "worldmap-live",
+      "title": "World map shows the REAL island",
+      "how": "Click World Map (top right): you see the whole Tutorial Island in the ocean - all nine zone names (Chapel, Warden's Lodge, Mine, Combat Yard, Bank, Wizard's Tower, Departure Dock...), building footprints, the winding dirt path, bank/furnace/anvil icons, red creature dots, and a 'You' marker at your actual position. Pan + zoom work."
+    },
+    {
+      "id": "equip-verified",
+      "title": "Equip/unequip end-to-end",
+      "how": "Tap a sword in the bag: it equips AND appears in your hand. Open Worn Equipment and tap the weapon cell: it unequips, returns to the bag, and disappears from your hand."
+    },
     {
       "id": "real-progression",
       "title": "You start at level 1 (dev character OFF)",

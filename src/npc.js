@@ -242,6 +242,34 @@ function npcGltfLoader(){
   if(typeof THREE === 'undefined' || typeof THREE.GLTFLoader !== 'function') return null;
   return new THREE.GLTFLoader();
 }
+/* The KayKit glbs ship their entire gear wardrobe as always-visible nodes
+   (the Knight carries 2 swords + 4 shields + helmet + cape at once, parented
+   to the hand slots). Hide all of it, then re-show a small role-appropriate
+   loadout so each instructor reads as their profession, not an armory rack. */
+const NPC_GEAR_NODE_RE = /Sword|Shield|Axe|Knife|Crossbow|Throwable|Wand|Staff|Spellbook|Mug|Helmet|_Hat|_Cape/i;
+const NPC_LOADOUTS = [
+  [/guard|warden|combat/i,             [/^1H_Sword$/, /Round_Shield$/, /_Helmet$/, /_Cape$/]],
+  [/mage|wizard/i,                     [/^2H_Staff$/, /_Hat$/, /_Cape$/]],
+  [/survival|ranger|rogue/i,           [/^Knife$/]],
+  [/barbarian/i,                       [/^1H_Axe$/]],
+  [/guide|quest|account|banker|chef/i, [/_Cape$/]],
+];
+function curateNpcGear(root, role){
+  const gear = {};
+  root.traverse(o => {
+    if(o.name && NPC_GEAR_NODE_RE.test(o.name)){ o.visible = false; gear[o.name] = o; }
+  });
+  const r = String(role || '');
+  for(const [roleRe, wants] of NPC_LOADOUTS){
+    if(!roleRe.test(r)) continue;
+    wants.forEach(re => {
+      for(const name of Object.keys(gear)){
+        if(re.test(name)){ gear[name].visible = true; break; }
+      }
+    });
+    return;
+  }
+}
 /* Attempt the rigged-glTF NPC body load. Resolves a { scene, mixer, actions }
    bundle on success, or null on any failure - caller keeps the procedural
    buildNpcBody() box already in the scene so the NPC is never invisible. */
@@ -256,6 +284,8 @@ function loadNpcGlb(role){
         const root = gltf.scene;
         if(!root){ resolve(null); return; }
         dressMaterials(root, false);
+        curateNpcGear(root, role);
+        root.userData.emAtlasTinted = true;   // appearance-apply must not repaint the shared atlas material
         root.updateMatrixWorld(true);
         const box = new THREE.Box3().setFromObject(root);
         const h = Math.max(0.01, box.max.y - box.min.y);

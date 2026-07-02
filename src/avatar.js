@@ -19,6 +19,8 @@
    same data contract (tracked in BACKLOG).
    ===================================================================== */
 
+import initGlbTint from './char/glb-tint.js';
+
 const DEF = { skin:'#e8b98e', hair:'#3a2a1c', torso:'#3f6f8c', legs:'#2f3742', feet:'#5a3f28' };
 
 /* ---------------------------------------------------------------------
@@ -56,6 +58,63 @@ const CLIP_ALIASES = {
      action runs for many ticks, not a single swing. */
   gather: ['1H_Melee_Attack_Chop', '2H_Melee_Attack_Slice', '1H_Melee_Attack_Slice_Diagonal', 'Unarmed_Melee_Attack_Punch_A'],
 };
+/* -------------------------------------------------------------------
+   BUILT-IN GEAR NODES. Every KayKit character glb ships its full gear
+   wardrobe as ALWAYS-VISIBLE mesh nodes parented to the hand slots /
+   head / chest (2 swords + 4 shields + helmet + cape on the Knight, etc.)
+   glTF has no visibility flag, so untouched they ALL render at once —
+   the player was walking around holding a sword and four stacked shields.
+   We hide every one of them at load, then re-show the node matching each
+   actually-equipped item (preferred over loading a separate gear .gltf:
+   the built-ins are already skinned, positioned and atlas-textured). */
+const GEAR_NODE_RE = /Sword|Shield|Axe|Knife|Crossbow|Throwable|Wand|Staff|Spellbook|Mug|Helmet|_Hat|_Cape/i;
+/* per-slot: ordered [item-id regex, gear-node-name regex] — first node
+   present in the loaded model wins. */
+const GEAR_NODES = {
+  weapon: [
+    [/2h|great|battle/i,        /^2H_(Sword|Axe)$/],
+    [/axe|hatchet|pick/i,       /^1H_Axe$/],
+    [/dagger|knife/i,           /^Knife$/],
+    [/bow/i,                    /^1H_Crossbow$/],
+    [/staff/i,                  /^2H_Staff$/],
+    [/wand/i,                   /^1H_Wand$/],
+    [/sword|blade|scimitar/i,   /^1H_Sword$/],
+    [/./,                       /^1H_(Sword|Axe)$|^Knife$|^1H_Wand$/],
+  ],
+  shield: [
+    [/square|tower|kite/i,      /^Rectangle_Shield$/],
+    [/spike/i,                  /^Spike_Shield$/],
+    [/badge|buckler/i,          /^Badge_Shield$/],
+    [/./,                       /Round_Shield$/],
+  ],
+  head:   [ [/./, /_Helmet$|_Hat$/] ],
+  cape:   [ [/./, /_Cape$/] ],
+};
+GEAR_NODES.helm = GEAR_NODES.head;
+
+/* collect + hide every built-in gear node; returns {name -> Object3D} */
+function collectGearNodes(root){
+  const nodes = {};
+  root.traverse(o => {
+    if(o.name && GEAR_NODE_RE.test(o.name)){ o.visible = false; nodes[o.name] = o; }
+  });
+  return nodes;
+}
+
+/* pick the built-in node for an equipped item id, or null */
+function pickGearNode(nodes, slot, id){
+  const table = GEAR_NODES[slot];
+  if(!table) return null;
+  id = String(id || '');
+  for(const [idRe, nodeRe] of table){
+    if(!idRe.test(id)) continue;
+    for(const name of Object.keys(nodes)){
+      if(nodeRe.test(name)) return nodes[name];
+    }
+  }
+  return null;
+}
+
 /* gear id/slot -> KayKit gear .gltf filename (closest visual match). */
 const GEAR_FILES = {
   weapon: [
@@ -191,6 +250,7 @@ function buildBody(sel){
 export function initAvatar(){
   if (typeof window === 'undefined') return null;
   if (window.EMAVATAR) return window.EMAVATAR;
+  initGlbTint();
 
   let current = null;       // { group, pivots, handR, handL }
   let wornSig = '';         // signature of the last-rendered worn set
@@ -281,8 +341,17 @@ export function initAvatar(){
           const handR = findBone(root, ['handslot.r', 'handslot_r', 'hand.r']);
           const handL = findBone(root, ['handslot.l', 'handslot_l', 'hand.l']);
 
-          glb = { scene: root, mixer, actions, activeName: null, handR, handL, modelKey, worn:{} };
+          // hide the baked-in gear wardrobe (all of it renders by default);
+          // renderWornGlb() re-shows the pieces the player actually wears.
+          const gearNodes = collectGearNodes(root);
+          root.userData.emAtlasTinted = true;   // appearance-apply must not repaint the shared atlas material
+
+          glb = { scene: root, mixer, actions, activeName: null, handR, handL, modelKey, worn:{}, gearNodes };
           pg.add(root);
+
+          // apply the creator's skin-tone / hair-colour picks to the atlas
+          if(window.EMTINT) window.EMTINT.tint(root, modelKey, col(sel,'skin'), col(sel,'hair'));
+
           // start in idle (or whatever's available) immediately
           playState('idle');
           resolve(true);
@@ -511,20 +580,38 @@ export function initAvatar(){
     weapon: { pos:[0, -0.02, 0.02], rot:[0, 0, 0] },
     shield: { pos:[0, -0.02, 0.02], rot:[0, Math.PI/2, 0] },
   };
+  const GLB_GEAR_SLOTS = ['weapon','shield','head','helm','cape'];
   function renderWornGlb(){
     if(!glb || !glb.scene) return;
     const ws = wornState();
-    const sig = Object.keys(ws).filter(k => k==='weapon'||k==='shield').sort().map(s => s + ':' + ws[s]).join('|');
+    const sig = Object.keys(ws).filter(k => GLB_GEAR_SLOTS.indexOf(k) >= 0).sort().map(s => s + ':' + ws[s]).join('|');
     if(sig === glbWornSig) return;
     glbWornSig = sig;
 
-    ['weapon','shield'].forEach(slot => {
-      if(glb.worn[slot]){ disposeGearMesh(glb.worn[slot]); glb.worn[slot] = null; }
+    // tear down: re-hide any built-in node shown last pass, dispose loaded props
+    GLB_GEAR_SLOTS.forEach(slot => {
+      const prev = glb.worn[slot];
+      if(!prev) return;
+      if(prev.userData && prev.userData.emBuiltinGear) prev.visible = false;
+      else disposeGearMesh(prev);
+      glb.worn[slot] = null;
     });
 
-    ['weapon','shield'].forEach(slot => {
+    GLB_GEAR_SLOTS.forEach(slot => {
       const id = ws[slot];
       if(!id) return;
+      // 1) PREFERRED: the model's own baked-in gear node — already skinned,
+      //    positioned and textured from the same atlas as the body.
+      const node = pickGearNode(glb.gearNodes || {}, slot, id);
+      if(node){
+        node.visible = true;
+        node.userData.emBuiltinGear = true;
+        glb.worn[slot] = node;
+        return;
+      }
+      // 2) FALLBACK: clone a standalone KayKit gear .gltf onto the hand bone
+      //    (weapon/shield only — armour slots have no standalone props).
+      if(slot !== 'weapon' && slot !== 'shield') return;
       const bone = slot === 'weapon' ? glb.handR : glb.handL;
       if(!bone) return;                              // rig has no matching socket - skip gracefully
       const file = pickGearFile(slot, id);
@@ -556,8 +643,44 @@ export function initAvatar(){
     try { renderWornGlb(); } catch(e){}
   }, 400);
 
+  /* -------------------------------------------------------- creator preview
+     Load a standalone tinted+idling copy of the rigged model for a given
+     appearance selection (used by the character creator so the preview shows
+     the REAL in-world character, not the procedural box body). Async;
+     cb({group, mixer, modelKey, retint}) on success, cb(null) on any failure
+     (caller falls back to buildBody / the SVG paper-doll). The caller owns
+     the returned group (adds it to its own scene + ticks the mixer). */
+  function buildGlbPreview(sel, cb){
+    const T = TH();
+    const loader = gltfLoader();
+    if(!T || !loader){ cb && cb(null); return; }
+    const modelKey = pickModelKey(sel);
+    const file = KAYKIT_MODELS[modelKey] || KAYKIT_MODELS.knight;
+    loader.load(KAYKIT_DIR + file, gltf => {
+      try {
+        const root = gltf.scene;
+        if(!root){ cb && cb(null); return; }
+        root.updateMatrixWorld(true);
+        const box = new T.Box3().setFromObject(root);
+        const hgt = Math.max(0.01, box.max.y - box.min.y);
+        root.scale.setScalar(hgt > 0.05 ? (TARGET_HEIGHT / hgt) : 1);
+        collectGearNodes(root);                     // hide the baked-in gear wardrobe
+        root.userData.emAtlasTinted = true;         // keep appearance-apply's heuristics off the atlas
+        const retint = (skinHex, hairHex) => {
+          if(window.EMTINT) window.EMTINT.tint(root, modelKey, skinHex, hairHex);
+        };
+        retint(col(sel,'skin'), col(sel,'hair'));
+        const mixer = new T.AnimationMixer(root);
+        const idle = resolveAction(mixer, gltf, CLIP_ALIASES.idle);
+        if(idle) idle.play();
+        cb && cb({ group: root, mixer, modelKey, retint });
+      } catch(e){ console.warn('[avatar] preview build failed:', e); cb && cb(null); }
+    }, undefined, err => { console.warn('[avatar] preview load failed:', file, err); cb && cb(null); });
+  }
+
   window.EMAVATAR = {
-    rebuild, renderWorn, buildBody, current(){ return current; },
+    rebuild, renderWorn, buildBody, buildGlbPreview, pickModelKey,
+    current(){ return current; },
     /* REAL-AVATAR state API: driven by player.js each frame. */
     update,                 // update(dt) - ticks the AnimationMixer; no-op if no glb avatar loaded
     setState,                // setState('idle'|'walk'|'run'|'attack'|'cast'|'death'|'hit'|'block'|'gather', fadeSeconds?)

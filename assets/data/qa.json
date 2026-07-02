@@ -1,7 +1,37 @@
 {
-  "version": "v66",
+  "version": "v67",
   "title": "v66 — solid walls + enter-through-doors, readable chat",
   "items": [
+    {
+      "id": "cc-real-model",
+      "title": "Creator shows the REAL character",
+      "how": "Fresh character: the creator preview is the actual 3D game character (idle-breathing, rotating), NOT a blocky box figure."
+    },
+    {
+      "id": "cc-skin-hair",
+      "title": "Skin tone + hair colour apply",
+      "how": "In the creator, click different Skin and Hair swatches: the model's face/hands and hair visibly change colour immediately."
+    },
+    {
+      "id": "cc-model-swap",
+      "title": "Head/torso picks change the model",
+      "how": "Cycle Head to Hooded (or Torso to Robe): the preview swaps to the hooded/robed character and keeps your chosen colours."
+    },
+    {
+      "id": "world-tint",
+      "title": "In-world character matches the creator",
+      "how": "Enter the world: your character has the same skin tone/hair colour you picked, and is NOT holding an armory of extra swords/shields."
+    },
+    {
+      "id": "equip-visible",
+      "title": "Equipping is visible",
+      "how": "Wield a sword/shield from the bag: it appears in the character's hand; unequip removes it. Try a helm/cape if you have one."
+    },
+    {
+      "id": "npc-loadouts",
+      "title": "NPCs carry role gear only",
+      "how": "Look at instructors: the guard-types hold sword+shield, the mage a staff — nobody is holding several shields at once."
+    },
     {
       "id": "login",
       "title": "Login screen on load",

@@ -7,7 +7,7 @@
 import { canvas, scene, camera, col, buzz } from './engine.js';
 import { clampX, clampZ, planPath, astar, staticBlocked } from './world.js';
 import { NPCS, OBJECTS } from './npc.js';
-import { move, pos } from './player.js';
+import { move, pos, arrive } from './player.js';
 import { talk, sayLines } from './dialogue.js';
 
 /* shared registry of raycast proxies (NPCs, objects, scenery) - pushed to by npc.js
@@ -98,8 +98,20 @@ export function pickAt(px, py){
    inside a wall/collider (occluded/unreachable) or no walkable route exists at all, so a
    walk-tap through geometry fails loudly instead of silently degrading into a stuck path. */
 function isReachable(tx, tz){
-  if(staticBlocked(tx, tz)) return false;          // tile itself is inside a wall/prop footprint
-  return !!astar(pos.x, pos.z, tx, tz, null);       // a walkable route exists from here
+  if(!staticBlocked(tx, tz)) return !!astar(pos.x, pos.z, tx, tz, null);   // clear tile: direct probe
+  // Solid interactables CONTAIN their own collider (bank booth r0.35, furnace,
+  // anvil...), so the direct probe always failed -> "I can't reach that" on
+  // every click, forever (the owner's dead-bank report). The player never
+  // stands ON the fixture anyway - they stand BESIDE it - so accept the target
+  // if any approach tile on a small ring around it is walkable + routable.
+  for(const r of [0.9, 1.3]){
+    for(let k = 0; k < 8; k++){
+      const a = k * Math.PI / 4;
+      const ax = tx + Math.cos(a) * r, az = tz + Math.sin(a) * r;
+      if(!staticBlocked(ax, az) && astar(pos.x, pos.z, ax, az, null)) return true;
+    }
+  }
+  return false;
 }
 export function worldClick(px, py){            // single tap = OSRS default action
   const { npc, obj, scenery, mob, ground } = pickAt(px, py);
@@ -112,7 +124,14 @@ export function worldClick(px, py){            // single tap = OSRS default acti
 export function engage(t){
   if(t && window.EMGATE && !EMGATE.allow(t)){ EMGATE.nudge(t); showMarker(t.x, t.z, '#ffe27a'); return; }  // lesson gate: nudge instead of acting
   if(t && !isReachable(t.x, t.z)){ showCantReach(t.x, t.z); return; }   // OW6/OW+5: no route to the target
-  move.pending = t; move._lastGoal = {x:t.x, z:t.z}; planPath(t.x, t.z); showMarker(t.x, t.z, '#7fe0ff'); buzz(18);
+  move.pending = t; move._lastGoal = {x:t.x, z:t.z};
+  // ALREADY IN RANGE: act immediately. planPath from an adjacent tile yields an
+  // empty path, so followPath() never ran and the pending action silently died -
+  // clicking a booth/NPC you were standing next to did NOTHING (owner-reported
+  // dead bank; same for adjacent talk/fixtures). OSRS acts instantly here.
+  const range = t.talkRange || 1.5;
+  if(Math.hypot(t.x - pos.x, t.z - pos.z) <= range){ arrive(); return; }
+  planPath(t.x, t.z); showMarker(t.x, t.z, '#7fe0ff'); buzz(18);
 }
 export const engageNpc = engage;
 export function walkTo(g){

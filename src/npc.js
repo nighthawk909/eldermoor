@@ -88,22 +88,29 @@ function clearBubble(npc){
 /* let dialogue.js trigger bubbles without importing the module directly */
 if(typeof window !== 'undefined') window.EMNPC = { say: npcSay };
 
+/* Roster bodies are rigged KayKit characters (kaykit: model + skin/hair tint,
+   loaded in loaders.js via loadNpcGlb). The old cone/icosphere glbs under
+   assets/npcs/ remain ONLY as a load-failure fallback (n.glb). */
 export const NPCS = [
-  { id:'monk', name:'Brother Aldric', x:1.4, z:-2.9, talkRange:1.25,   // baked beside the altar (stationary)
+  { id:'monk', name:'Brother Aldric', x:1.4, z:-2.9, talkRange:1.25, wander:0.45,
+    kaykit:{ model:'mage', skin:'#e8b98e', hair:'#4a3420' },
     examine:"A devout brother who tends the Chapel of Eldermoor.",
     lines:[
       "Peace be upon you, traveller.",
       "You stand in the Chapel of Eldermoor. We keep the altar lit and bury the bones of the fallen for the Prayer it grants.",
       "Rest here as long as you need. The road beyond these walls is a hard one." ] },
   { id:'sister', glb:'assets/npcs/sister.glb', name:'Sister Wenna', x:-1.4, z:-0.6, rotY:0.7, talkRange:1.2, wander:1.0,
+    kaykit:{ model:'mage', skin:'#f1cfa9', hair:'#1c140d' },
     examine:"A quiet sister of the chapel order.",
     lines:[ "Light keep you, traveller.",
             "I tend the candles and the quiet. Few faces pass through these doors." ] },
   { id:'pilgrim1', glb:'assets/npcs/pilgrim1.glb', name:'Pilgrim Joss', x:1.4, z:0.6, rotY:-0.7, talkRange:1.2, wander:1.1,
+    kaykit:{ model:'rogue', skin:'#d49a6a', hair:'#6b4a2a' },
     examine:"A road-worn pilgrim resting his feet.",
     lines:[ "Long road behind me, longer ahead.",
             "I stop at every chapel I can. A moment\'s peace is worth the miles." ] },
   { id:'pilgrim2', glb:'assets/npcs/pilgrim2.glb', name:'Old Maven', x:0, z:3.4, rotY:Math.PI, talkRange:1.2, wander:0.9,
+    kaykit:{ model:'rogue_hooded', skin:'#b87a4e', hair:'#cfcfcf' },
     examine:"An elder who has seen many winters.",
     lines:[ "Eh? Come to pray, have you?",
             "In my day we walked to the mainland. No boats, no fuss. Bah." ] },
@@ -219,6 +226,7 @@ function buildNpcBody(role){
 const NPC_KAYKIT_DIR = 'assets/ext/characters/';
 const NPC_KAYKIT_MODELS = {
   knight: 'Knight.glb', mage: 'Mage.glb', rogue: 'Rogue.glb', barbarian: 'Barbarian.glb',
+  rogue_hooded: 'Rogue_Hooded.glb',
 };
 const NPC_CLIP_ALIASES = {
   idle: ['Idle', 'Unarmed_Idle'],
@@ -273,11 +281,23 @@ function curateNpcGear(root, role){
 /* Attempt the rigged-glTF NPC body load. Resolves a { scene, mixer, actions }
    bundle on success, or null on any failure - caller keeps the procedural
    buildNpcBody() box already in the scene so the NPC is never invisible. */
-function loadNpcGlb(role){
+/* deterministic per-NPC colour variety: hash the npc id into the creator's
+   skin/hair palettes so the cast doesn't read as identical clones. */
+const NPC_SKINS = ['#e8b98e','#f1cfa9','#d49a6a','#b87a4e','#8c5a36','#5e3a22'];
+const NPC_HAIRS = ['#3a2a1c','#4a3420','#1c140d','#6b4a2a','#8a6a3a','#c9a96a','#9c3030','#cfcfcf'];
+function npcVariety(id){
+  let h = 0; const s = String(id || '');
+  for(let i = 0; i < s.length; i++) h = (h*31 + s.charCodeAt(i)) >>> 0;
+  return { skin: NPC_SKINS[h % NPC_SKINS.length], hair: NPC_HAIRS[(h >> 3) % NPC_HAIRS.length] };
+}
+/* spec (optional): { model:'mage', skin:'#hex', hair:'#hex' } — explicit body
+   pick + tint for roster NPCs; instructors pass only role and get
+   pickNpcModelKey + hash variety. */
+function loadNpcGlb(role, spec){
   return new Promise(resolve => {
     const loader = npcGltfLoader();
     if(!loader){ resolve(null); return; }
-    const modelKey = pickNpcModelKey(role);
+    const modelKey = (spec && spec.model) || pickNpcModelKey(role);
     const file = NPC_KAYKIT_MODELS[modelKey] || NPC_KAYKIT_MODELS.knight;
     loader.load(NPC_KAYKIT_DIR + file, gltf => {
       try {
@@ -286,12 +306,18 @@ function loadNpcGlb(role){
         dressMaterials(root, false);
         curateNpcGear(root, role);
         root.userData.emAtlasTinted = true;   // appearance-apply must not repaint the shared atlas material
+        if(window.EMTINT && spec && (spec.skin || spec.hair)){
+          window.EMTINT.tint(root, modelKey, spec.skin, spec.hair);
+        }
         root.updateMatrixWorld(true);
         const box = new THREE.Box3().setFromObject(root);
         const h = Math.max(0.01, box.max.y - box.min.y);
         const scl = (h > 0.05) ? (NPC_TARGET_HEIGHT / h) : 1.0;
         root.scale.setScalar(scl);
-        root.rotation.y = Math.PI;    // KayKit rigs face +Z; world forward is -Z (matches avatar.js)
+        // NO extra yaw: KayKit rigs face +Z and updateNpcs aims the group's +Z
+        // along the walk direction (rotation.y = atan2(ux,uz)); the old
+        // rotation.y=PI here made every NPC walk backwards.
+        root.rotation.y = 0;
         root.position.set(0,0,0);
         const mixer = new THREE.AnimationMixer(root);
         const actions = {};
@@ -317,6 +343,8 @@ function setNpcGlbState(bundle, name){
   bundle._active = name;
 }
 
+export { loadNpcGlb, setNpcGlbState };
+
 export function addNpc(spec){
   if(!spec || spec.x==null || spec.z==null) return null;
   const id = spec.dialogue || spec.id;
@@ -341,7 +369,7 @@ export function addNpc(spec){
   // Kick off the rigged glTF body load in the background (BOOT-CRITICAL: the
   // procedural box body above is already live in the scene, so a slow/failed
   // load here never blocks or blanks the NPC - it just stays procedural).
-  loadNpcGlb(role).then(bundle => {
+  loadNpcGlb(role, npcVariety(id)).then(bundle => {
     if(!bundle || !bundle.scene) return;                // load failed - keep the procedural body
     // hide the procedural primitive meshes (legL/legR/armL/armR/torso/head) BEFORE
     // adding the glb, so the hide-pass never touches the glb's own meshes; the now-

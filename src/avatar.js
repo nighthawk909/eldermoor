@@ -337,7 +337,11 @@ export function initAvatar(){
           const h = Math.max(0.01, box.max.y - box.min.y);
           const scl = (h > 0.05) ? (TARGET_HEIGHT / h) : KAYKIT_FALLBACK_SCALE;
           root.scale.setScalar(scl);
-          root.rotation.y = Math.PI;     // KayKit rigs face +Z; world forward is -Z (matches player.rotation.y default)
+          // NO extra yaw: the KayKit rig faces +Z, same as the procedural body
+          // (beard/boots at +Z), and player.js aims the GROUP's +Z along the
+          // walk direction (rotation.y = atan2(ux,uz)). The old rotation.y=PI
+          // here flipped the model 180deg — the "walking backwards" bug.
+          root.rotation.y = 0;
           root.position.set(0,0,0);
 
           const mixer = new T.AnimationMixer(root);

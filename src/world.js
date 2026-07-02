@@ -207,7 +207,36 @@ export const SCENERY_DESC = {
   // world edge as its backdrop. Both carry verb 'Board' so arrive() can fire the `departed` flag.
   dock: { name:'Ferry dock', verb:'Board', examine:'The ferry to the mainland waits here. Board it when you are ready to leave.' },
   boat: { name:'Boat',       verb:'Board', examine:'A small boat that will carry you across to the mainland - your adventure begins.' },
+  ladder: { name:'Ladder', verb:'Climb', examine:'A sturdy wooden ladder in and out of the mine pit.' },
 };
+
+/* -------- climbable ladders (owner-reported "unclimbable stairs").
+   The manifest authors ladder_down + ladder_up CO-LOCATED at the mine mouth
+   (the pit is a surface pocket, not a real Y-layer yet), which used to place
+   two stacked meshes with NO interactivity - clicking them walked you to the
+   spot and did nothing. Now: one mesh + one Climb node per location pair;
+   arrive() (player.js) teleports you across the mouth based on which side
+   you're standing on. Sides are derived from the ladder's zone center. */
+export const LADDER_NODES = [];
+function placeLadder(o, zones){
+  // co-located pair: only the first placement builds the mesh + node
+  const twin = LADDER_NODES.find(l => Math.hypot(l.x - o.x, l.z - o.z) < 1.2);
+  if(twin) return twin;
+  place('ladder', o.x, o.z, o.rot || 0, o.scale || 1);   // visual mesh + collider + (via SCENERY_DESC) a Climb proxy
+  const node = SCENERY_NODES[SCENERY_NODES.length - 1];
+  if(!node || node.type !== 'ladder') return null;
+  // "inside" = toward the owning zone's center; "outside" = mirrored across the mouth
+  const zone = (zones || []).find(z => z.id === o.zone) || null;
+  const c = (zone && zone.center) || { x: o.x, z: o.z + 3 };
+  const dx = c.x - o.x, dz = c.z - o.z, d = Math.max(0.01, Math.hypot(dx, dz));
+  const inDist = Math.min(3.0, d);                        // land a few tiles inside
+  node.climb = {
+    inside:  { x: o.x + (dx/d) * inDist,  z: o.z + (dz/d) * inDist },
+    outside: { x: o.x - (dx/d) * 2.5,     z: o.z - (dz/d) * 2.5 },
+  };
+  LADDER_NODES.push(node);
+  return node;
+}
 /* live registry of gatherable scenery nodes + per-type respawn timing (seconds) */
 export const SCENERY_NODES = [];
 export const RESPAWN_SECS = { tree:4, bush:3, rock:3 };
@@ -391,6 +420,7 @@ export function instanceManifest(data){
       window.EMDOORS.placeDoor(o.x, o.z, { w:2.0, dir:(Math.abs((o.rot||0)%Math.PI) > 0.6 ? 'z' : 'x'),
         gate:true, startOpen:false, name:'Gate', examine:'The gate to the rat pen. Open it to fight the rats.' });
     }
+    else if(o.type === 'ladder_down' || o.type === 'ladder_up') placeLadder(o, data.zones);      // climbable (pairs de-duplicated)
     else if(MARKER_PIECE[o.type]) place(MARKER_PIECE[o.type], o.x, o.z, o.rot||0, o.scale||1);   // real Blender-authored prop
     else if(!PIECES[o.type]) placeMarker(o.x, o.z);                                 // placeholder for still-unmodelled props (gate/target/rune_rack/boat)
   } catch(e){ console.warn('[em] object', e); } });

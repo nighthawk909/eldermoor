@@ -74,6 +74,18 @@ export function arrive(){           // in range of the pending target → act on
         if(window.EMHUD) EMHUD.addChat('You board the ferry and set sail for the mainland. Your adventure begins!');
         try{ window.dispatchEvent(new CustomEvent('em-flag', { detail:'departed' })); }catch(e){}
       }
+      else if(t.type === 'ladder' && t.climb){    // mine-mouth ladder: climb across to the other side
+        const inside = t.climb.inside, outside = t.climb.outside;
+        // which side am I on? whichever destination is FARTHER is where I'm going
+        const dIn = Math.hypot(inside.x - pos.x, inside.z - pos.z);
+        const dOut = Math.hypot(outside.x - pos.x, outside.z - pos.z);
+        const dest = dIn >= dOut ? inside : outside;
+        const goingIn = dest === inside;
+        pos.x = clampX(dest.x); pos.z = clampZ(dest.z);
+        move.path = []; move.moving = false;
+        if(window.EMHUD) EMHUD.addChat(goingIn ? 'You climb down the ladder into the mine pit.'
+                                                : 'You climb up the ladder out of the pit.');
+      }
       else if(t.fixture === 'bank-booth'){
         if(window.EMBANK) EMBANK.open();
       } else if(t.fixture === 'poll-booth'){

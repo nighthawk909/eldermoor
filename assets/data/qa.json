@@ -1,7 +1,12 @@
 {
-  "version": "v70",
+  "version": "v71",
   "title": "v66 — solid walls + enter-through-doors, readable chat",
   "items": [
+    {
+      "id": "ladder-climb",
+      "title": "The mine ladder is climbable",
+      "how": "At the Tutorial Mine mouth, click the ladder: your character walks to it and climbs down into the pit ('You climb down the ladder into the mine pit.'). Click it again from inside: you climb back out."
+    },
     {
       "id": "worldmap-live",
       "title": "World map shows the REAL island",

@@ -126,15 +126,17 @@ export function startLoading(){
   });
 }
 
-/* The chapel monk's OLD cone/icosphere body is baked into world.glb (it has no
-   node of its own - just anonymous primitives at his spot beside the altar).
-   Now that Brother Aldric spawns as a rigged roster NPC, hide every world mesh
-   whose bounds sit inside a small cylinder at his authored position so the two
-   bodies don't overlap. Radius 0.8 clears the monk without reaching the altar
-   (2m away) or the chapel walls. */
+/* world.glb bakes in a few LEFTOVER placeholder bodies with no nodes of their
+   own (anonymous primitives): the chapel monk's old cone/icosphere body beside
+   the altar (superseded by the rigged roster NPC) and a white marker box at
+   the giant-rat spawn (superseded by the real rat mesh). Hide every world mesh
+   whose bounds sit inside a small cylinder at those authored spots. Radii are
+   tight enough not to touch the altar/walls. */
+const BAKED_LEFTOVERS = [
+  { x: 1.4, z: -2.9, r: 0.8, what: 'old monk body' },
+];
 function hideBakedMonk(worldScene){
   try {
-    const MX = 1.4, MZ = -2.9, R = 0.8;
     worldScene.updateMatrixWorld(true);
     const c = new THREE.Vector3();
     let hidden = 0;
@@ -144,9 +146,10 @@ function hideBakedMonk(worldScene){
       const bs = o.geometry.boundingSphere;
       if(!bs) return;
       c.copy(bs.center); o.localToWorld(c);
-      const d = Math.hypot(c.x - MX, c.z - MZ);
-      if(d < R && bs.radius < 1.5 && c.y < 2.6){ o.visible = false; hidden++; }
+      for(const s of BAKED_LEFTOVERS){
+        if(Math.hypot(c.x - s.x, c.z - s.z) < s.r && bs.radius < 1.5 && c.y < 2.6){ o.visible = false; hidden++; break; }
+      }
     });
-    console.log('[loaders] baked monk meshes hidden:', hidden);
+    console.log('[loaders] baked leftover meshes hidden:', hidden);
   } catch(e){ console.warn('[loaders] hideBakedMonk failed:', e); }
 }

@@ -1,6 +1,8 @@
 # BACKLOG.md — Eldermoor
 
 
+> **v72 (2026-07-02) — QC sightings closed: the 'white box' was the RAT (color-space bug) + duplicate Aldric deduped.** (1) The mysterious white box on the chapel lawn was root-caused by hide-and-look elimination: it was the GIANT RAT itself — mob materials used raw sRGB hex (color:0x5a4a3a) which the sRGB outputEncoding double-brightens to cream (~#d8cfc0); every other module routes colors through engine col() = convertSRGBToLinear. _mobMat now converts, so mobs render their authored fur colors (verified by capture: brown rat). (2) Duplicate 'Brother Aldric': the manifest's brother_aldric NPC slipped past addNpc's id-only dupe check alongside the roster monk (same display name; 'monk' holds the canonical dialogue tree) — addNpc now ALSO dedupes by display name. (3) hideBakedMonk generalized to a BAKED_LEFTOVERS list (monk only, after the rat-marker theory was disproven). Both v69 BACKLOG sightings closed. Bug-hunter fleet still running; findings to be triaged next.
+
 > **v71 (2026-07-02) — the mine ladder climbs (owner-reported "unclimbable stairs") + the bug-hunter fleet is live.** (1) The manifest's ladder_down/ladder_up at the mine mouth were CO-LOCATED decorative meshes with zero interactivity (two stacked ladder models, no proxy/verb — clicking walked you to the spot and did nothing). Now: placeLadder() de-duplicates the pair into ONE mesh + ONE Climb scenery node whose destinations derive from the owning zone's center (inside = a few tiles toward the pit, outside = mirrored across the mouth); player.js arrive() picks the far side based on where you stand and teleports with the proper chat line. Verified E2E by real synthetic click: walk-to-ladder -> "You climb down the ladder into the mine pit." -> position inside -> click again -> climbs out; 0 errors. (2) **Bug-hunter fleet** (owner-requested): a shared headless QA kit (scratchpad emtest.js: boots the real game, clickWorld/teleport/shot helpers, error collection, camera-settle-aware) + a 6-agent workflow hunting the tutorial chain, combat, skilling, economy/bank, UI chrome (desktop+mobile viewports), and world/visual domains by PLAYING the live game and filing evidence-backed findings. Results feed the fix queue.
 
 > **v70 (2026-07-02) — the world map shows the REAL island + equip path verified end-to-end.** (1) **World map was frozen at the original prototype**: worldmap.js drew a hand-authored 14x19 chapel lawn while the live game is a 68x94 nine-zone island — the owner's "world map" report. It now renders from LIVE data at draw time (new liveWorld()): world.js stashes the loaded manifest + live BOUND on window.EMWORLD (instanceManifest), and the map composes ocean backdrop -> island bounds with sandy shoreline -> manifest dirt-path polylines -> building footprints with labels -> all nine zone name banners -> fixture POI pins from live FIXTURE_NODES (bank/furnace/anvil/range/altar/runes/fishing/archery) -> live mob dots (alive only) -> the You marker. Legacy hand-authored map kept only as a no-manifest fallback. Verified by capture: full island visible with every zone labelled, path winding chapel->dock, creature dots in the combat yard, You at the chapel. (2) **"Equip no-op" closed as VERIFIED WORKING** (no code change needed): real DOM taps in headless Chromium prove bag-tap -> Wield -> worn updated -> sword visible in hand, and equipment-tab tap -> unequip -> back in bag -> mesh hidden on the next 400ms tick (8 consecutive samples). An earlier probe that suggested a leak was a race in the probe itself. 0 console errors in all runs.
@@ -75,10 +77,11 @@ Outstanding work to 100%. Item-level pass/fail tests in `PARITY_AUDIT.md` (~645 
 `ROADMAP.md`. This is the prioritized feature backlog.
 
 ## Sightings (from v69 QC captures)
-- [ ] **Two "Brother Aldric" nameplates** visible near the chapel — the roster monk plus (likely) a
-  manifest-spawned duplicate with a different id slipping past addNpc's dupe check. Dedup by NAME too.
-- [ ] **Unidentified white box prop** near the chapel south lawn (visible in captures) — identify and
-  either texture it properly or remove it.
+- [x] **Two "Brother Aldric" nameplates** — FIXED v72: addNpc also dedupes by display NAME (the manifest's
+  brother_aldric duplicated the roster monk, whose 'monk' dialogue tree is the canonical one).
+- [x] **Unidentified white box prop** — RESOLVED v72: it was the GIANT RAT, double-brightened to cream by
+  raw-hex material colors under the sRGB output encoding; _mobMat now converts via convertSRGBToLinear
+  (the engine col() convention), so mobs render their authored fur colors.
 
 ## Character art (post-v67 follow-ups)
 - [ ] **Modular character pack for true mix-and-match** (hair styles, faces, bodies as separate
